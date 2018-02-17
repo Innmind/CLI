@@ -15,7 +15,10 @@
         "issues": "http://github.com/Innmind/CLI/issues"
     },
     "require": {
-        "php": "~7.2"
+        "php": "~7.2",
+        "innmind/stream": "^1.3",
+        "innmind/immutable": "^2.7",
+        "innmind/url": "^2.0"
     },
     "autoload": {
         "psr-4": {
@@ -28,7 +31,8 @@
         }
     },
     "require-dev": {
-        "phpunit/phpunit": "~6.0"
+        "phpunit/phpunit": "~6.0",
+        "giorgiosironi/eris": "^0.9.0"
     },
     "scripts": {
         "test": "vendor/bin/phpunit --colors=always"
