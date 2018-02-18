@@ -5,6 +5,7 @@ namespace Tests\Innmind\CLI\Command;
 
 use Innmind\CLI\{
     Command\Arguments,
+    Command\Options,
     Command\Specification,
     Command,
     Environment,
@@ -17,7 +18,7 @@ class ArgumentsTest extends TestCase
     public function testInterface()
     {
         $spec = new Specification(new class implements Command {
-            public function __invoke(Environment $env, Arguments $args): void
+            public function __invoke(Environment $env, Arguments $args, Options $options): void
             {
             }
 

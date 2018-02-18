@@ -6,6 +6,7 @@ namespace Tests\Innmind\CLI\Command;
 use Innmind\CLI\{
     Command\Specification,
     Command\Arguments,
+    Command\Options,
     Command\Pattern,
     Command,
     Environment,
@@ -18,7 +19,7 @@ class SpecificationTest extends TestCase
     public function testInterface()
     {
         $command = new class implements Command {
-            public function __invoke(Environment $env, Arguments $arguments): void
+            public function __invoke(Environment $env, Arguments $arguments, Options $options): void
             {
             }
 
@@ -64,7 +65,7 @@ DESCRIPTION;
     public function testThrowWhenEmptyDeclaration()
     {
         $command = new class implements Command {
-            public function __invoke(Environment $env, Arguments $arguments): void
+            public function __invoke(Environment $env, Arguments $arguments, Options $options): void
             {
             }
 
