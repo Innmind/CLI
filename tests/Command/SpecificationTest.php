@@ -9,6 +9,7 @@ use Innmind\CLI\{
     Command\Pattern,
     Command,
     Environment,
+    Exception\EmptyDeclaration,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -58,5 +59,23 @@ DESCRIPTION;
         );
         $this->assertInstanceOf(Pattern::class, $spec->pattern());
         $this->assertSame('container [output] ...proxy', (string) $spec->pattern());
+    }
+
+    public function testThrowWhenEmptyDeclaration()
+    {
+        $command = new class implements Command {
+            public function __invoke(Environment $env, Arguments $arguments): void
+            {
+            }
+
+            public function __toString(): string
+            {
+                return '  ';
+            }
+        };
+
+        $this->expectException(EmptyDeclaration::class);
+
+        new Specification($command);
     }
 }
