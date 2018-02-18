@@ -6,6 +6,7 @@ namespace Innmind\CLI\Command;
 use Innmind\CLI\{
     Command\Pattern\Inputs,
     Command\Pattern\Input,
+    Command\Pattern\Argument,
     Command\Pattern\PackArgument,
     Command\Pattern\RequiredArgument,
     Command\Pattern\OptionalArgument,
@@ -36,7 +37,11 @@ final class Pattern
             }
         );
 
-        $packs = $this->inputs->filter(static function(Input $input): bool {
+        $arguments = $this->inputs->filter(static function(Input $input): bool {
+            return $input instanceof Argument;
+        });
+
+        $packs = $arguments->filter(static function(Input $input): bool {
             return $input instanceof PackArgument;
         });
 
@@ -44,12 +49,12 @@ final class Pattern
             throw new OnlyOnePackArgumentAllowed;
         }
 
-        if ($packs->size() > 0 && !$this->inputs->last() instanceof PackArgument) {
+        if ($packs->size() > 0 && !$arguments->last() instanceof PackArgument) {
             throw new PackArgumentMustBeTheLastOne;
         }
 
-        $this->inputs->drop(1)->reduce(
-            $this->inputs->take(1),
+        $arguments->drop(1)->reduce(
+            $arguments->take(1),
             static function(Stream $inputs, Input $input): Stream {
                 if (
                     $inputs->last() instanceof OptionalArgument &&

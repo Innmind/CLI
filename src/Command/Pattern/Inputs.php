@@ -16,6 +16,8 @@ final class Inputs
             RequiredArgument::class,
             OptionalArgument::class,
             PackArgument::class,
+            OptionFlag::class,
+            OptionWithValue::class,
         ];
     }
 

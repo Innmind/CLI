@@ -27,14 +27,15 @@ class PatternTest extends TestCase
             Str::of('foo'),
             Str::of('bar'),
             Str::of('[baz]'),
-            Str::of('...foobar')
+            Str::of('...foobar'),
+            Str::of('--foo')
         );
     }
 
     public function testStringCast()
     {
         $this->assertSame(
-            'foo bar [baz] ...foobar',
+            'foo bar [baz] ...foobar --foo',
             (string) $this->pattern
         );
     }
@@ -53,7 +54,8 @@ class PatternTest extends TestCase
 
         new Pattern(
             Str::of('...foo'),
-            Str::of('...bar')
+            Str::of('...bar'),
+            Str::of('--foo')
         );
     }
 
@@ -63,7 +65,8 @@ class PatternTest extends TestCase
 
         new Pattern(
             Str::of('...foo'),
-            Str::of('bar')
+            Str::of('bar'),
+            Str::of('--foo')
         );
     }
 
@@ -74,6 +77,7 @@ class PatternTest extends TestCase
         new Pattern(
             Str::of('baz'),
             Str::of('[foo]'),
+            Str::of('--foo'),
             Str::of('bar')
         );
     }

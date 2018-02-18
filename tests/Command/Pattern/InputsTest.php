@@ -8,6 +8,8 @@ use Innmind\CLI\{
     Command\Pattern\RequiredArgument,
     Command\Pattern\OptionalArgument,
     Command\Pattern\PackArgument,
+    Command\Pattern\OptionFlag,
+    Command\Pattern\OptionWithValue,
     Exception\PatternNotRecognized,
 };
 use Innmind\Immutable\Str;
@@ -22,6 +24,8 @@ class InputsTest extends TestCase
         $this->assertInstanceOf(RequiredArgument::class, $inputs->load(Str::of('foo')));
         $this->assertInstanceOf(OptionalArgument::class, $inputs->load(Str::of('[foo]')));
         $this->assertInstanceOf(PackArgument::class, $inputs->load(Str::of('...foo')));
+        $this->assertInstanceOf(OptionFlag::class, $inputs->load(Str::of('-f|--foo')));
+        $this->assertInstanceOf(OptionWithValue::class, $inputs->load(Str::of('-f|--foo=')));
     }
 
     public function testThrowWhenPatternNotRecognized()
