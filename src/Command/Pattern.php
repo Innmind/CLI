@@ -80,7 +80,7 @@ final class Pattern
             )
             ->reduce(
                 new Map('string', 'mixed'),
-                static function(Map $inputs, int $position, Input $input) use ($arguments): Map {
+                static function(Map $inputs, int $position, Input $input) use ($arguments): MapInterface {
                     return $input->extract($inputs, $position, $arguments);
                 }
             );
