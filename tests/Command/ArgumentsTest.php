@@ -23,7 +23,7 @@ class ArgumentsTest extends TestCase
 
             public function __toString(): string
             {
-                return 'watch container [output]';
+                return 'watch container --foo [output]';
             }
         });
 

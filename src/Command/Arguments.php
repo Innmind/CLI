@@ -16,6 +16,7 @@ final class Arguments
     {
         $this->arguments = $spec
             ->pattern()
+            ->arguments()
             ->extract($arguments);
     }
 
