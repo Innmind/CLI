@@ -15,6 +15,7 @@ final class OptionWithValue implements Input, Option
     private const PATTERN = '~^(?<short>-[a-zA-Z0-9]\|)?(?<name>--[a-zA-Z0-9]+)=$~';
 
     private $name;
+    private $short;
     private $pattern;
 
     private function __construct(string $name, ?string $short)
