@@ -10,7 +10,7 @@ use Innmind\Immutable\{
     MapInterface,
 };
 
-final class OptionWithValue implements Input
+final class OptionWithValue implements Input, Option
 {
     private const PATTERN = '~^(?<short>-[a-zA-Z0-9]\|)?(?<name>--[a-zA-Z0-9]+)=$~';
 

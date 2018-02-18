@@ -6,6 +6,7 @@ namespace Tests\Innmind\CLI\Command\Pattern;
 use Innmind\CLI\{
     Command\Pattern\OptionalArgument,
     Command\Pattern\Input,
+    Command\Pattern\Argument,
     Exception\MissingArgument,
     Exception\PatternNotRecognized,
 };
@@ -28,6 +29,7 @@ class OptionalArgumentTest extends TestCase
     public function testInterface()
     {
         $this->assertInstanceOf(Input::class, OptionalArgument::fromString(Str::of('[foo]')));
+        $this->assertInstanceOf(Argument::class, OptionalArgument::fromString(Str::of('[foo]')));
     }
 
     public function testThrowWhenInvalidPattern()

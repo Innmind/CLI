@@ -10,7 +10,7 @@ use Innmind\Immutable\{
     MapInterface,
 };
 
-final class OptionalArgument implements Input
+final class OptionalArgument implements Input, Argument
 {
     private $name;
 

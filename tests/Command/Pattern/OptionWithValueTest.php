@@ -6,6 +6,7 @@ namespace Tests\Innmind\CLI\Command\Pattern;
 use Innmind\CLI\{
     Command\Pattern\OptionWithValue,
     Command\Pattern\Input,
+    Command\Pattern\Option,
     Exception\MissingArgument,
     Exception\PatternNotRecognized,
 };
@@ -28,6 +29,7 @@ class OptionWithValueTest extends TestCase
     public function testInterface()
     {
         $this->assertInstanceOf(Input::class, OptionWithValue::fromString(Str::of('--foo=')));
+        $this->assertInstanceOf(Option::class, OptionWithValue::fromString(Str::of('--foo=')));
     }
 
     public function testThrowWhenInvalidPattern()

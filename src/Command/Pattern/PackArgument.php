@@ -10,7 +10,7 @@ use Innmind\Immutable\{
     MapInterface,
 };
 
-final class PackArgument implements Input
+final class PackArgument implements Input, Argument
 {
     private $name;
 

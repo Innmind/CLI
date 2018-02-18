@@ -13,7 +13,7 @@ use Innmind\Immutable\{
     MapInterface,
 };
 
-final class RequiredArgument implements Input
+final class RequiredArgument implements Input, Argument
 {
     private $name;
 

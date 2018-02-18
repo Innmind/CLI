@@ -6,6 +6,7 @@ namespace Tests\Innmind\CLI\Command\Pattern;
 use Innmind\CLI\{
     Command\Pattern\PackArgument,
     Command\Pattern\Input,
+    Command\Pattern\Argument,
     Exception\MissingArgument,
     Exception\PatternNotRecognized,
 };
@@ -29,6 +30,7 @@ class PackArgumentTest extends TestCase
     public function testInterface()
     {
         $this->assertInstanceOf(Input::class, PackArgument::fromString(Str::of('...foo')));
+        $this->assertInstanceOf(Argument::class, PackArgument::fromString(Str::of('...foo')));
     }
 
     public function testThrowWhenInvalidPattern()
