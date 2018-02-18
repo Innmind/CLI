@@ -12,6 +12,7 @@ use Innmind\CLI\{
 };
 use Innmind\Immutable\{
     Str,
+    StreamInterface,
     Stream,
     MapInterface,
     Map,
@@ -88,5 +89,18 @@ class OptionFlagTest extends TestCase
         );
 
         $this->assertSame($expected, $arguments);
+    }
+
+    public function testClean()
+    {
+        $input = OptionFlag::fromString(Str::of('-f|--foo'));
+
+        $arguments = $input->clean(
+            Stream::of('string', 'watev', '--foo', 'bar', 'baz', '-f')
+        );
+
+        $this->assertInstanceOf(StreamInterface::class, $arguments);
+        $this->assertSame('string', (string) $arguments->type());
+        $this->assertSame(['watev', 'bar', 'baz'], $arguments->toPrimitive());
     }
 }

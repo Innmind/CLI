@@ -112,6 +112,24 @@ final class Pattern
             );
     }
 
+    /**
+     * Remove all options from the list of arguments so the arguments can be
+     * correctly extracted
+     *
+     * @param StreamInterface<string> $arguments
+     *
+     * @return StreamInterface<string>
+     */
+    public function clean(StreamInterface $arguments): StreamInterface
+    {
+        return $this->inputs->reduce(
+            $arguments,
+            static function(StreamInterface $arguments, Option $option): StreamInterface {
+                return $option->clean($arguments);
+            }
+        );
+    }
+
     public function __toString(): string
     {
         return (string) $this->inputs->join(' ');

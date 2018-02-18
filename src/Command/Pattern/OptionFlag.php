@@ -74,6 +74,16 @@ final class OptionFlag implements Input, Option
         return $parsed->put($this->name, true);
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function clean(StreamInterface $arguments): StreamInterface
+    {
+        return $arguments->filter(function(string $argument): bool {
+            return !Str::of($argument)->matches($this->pattern);
+        });
+    }
+
     public function __toString(): string
     {
         if (!is_string($this->short)) {

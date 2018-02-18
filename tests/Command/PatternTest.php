@@ -124,4 +124,15 @@ class PatternTest extends TestCase
             (string) $this->pattern
         );
     }
+
+    public function testClean()
+    {
+        $arguments = $this->pattern->options()->clean(
+            Stream::of('string', 'foo', '--foo', 'bar', 'baz')
+        );
+
+        $this->assertInstanceOf(StreamInterface::class, $arguments);
+        $this->assertSame('string', (string) $arguments->type());
+        $this->assertSame(['foo', 'bar', 'baz'], $arguments->toPrimitive());
+    }
 }

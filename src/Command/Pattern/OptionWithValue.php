@@ -90,6 +90,38 @@ final class OptionWithValue implements Input, Option
         );
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function clean(StreamInterface $arguments): StreamInterface
+    {
+        $flag = $arguments->reduce(
+            null,
+            function(?string $flag, string $argument): ?string {
+                return $flag ?? (Str::of($argument)->matches($this->pattern) ? $argument : null);
+            }
+        );
+
+        if (is_null($flag)) {
+            return $arguments;
+        }
+
+        $index = $arguments->indexOf($flag);
+        $parts = Str::of($flag)->split('=');
+
+        if ($parts->size() >= 2) {
+            //means it's of the form -{option}={value}
+            return $arguments
+                ->take($index)
+                ->append($arguments->drop($index + 1));
+        }
+
+        //if we're here it's that a short flag with its value as the _next_ argument
+        return $arguments
+            ->take($index)
+            ->append($arguments->drop($index + 2));
+    }
+
     public function __toString(): string
     {
         if (!is_string($this->short)) {

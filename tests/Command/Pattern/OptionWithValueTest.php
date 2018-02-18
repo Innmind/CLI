@@ -12,6 +12,7 @@ use Innmind\CLI\{
 };
 use Innmind\Immutable\{
     Str,
+    StreamInterface,
     Stream,
     MapInterface,
     Map,
@@ -135,5 +136,55 @@ class OptionWithValueTest extends TestCase
         );
 
         $this->assertSame($expected, $arguments);
+    }
+
+    public function testCleanWhenNoOption()
+    {
+        $input = OptionWithValue::fromString(Str::of('-f|--foo='));
+
+        $arguments = $input->clean(
+            $expected = Stream::of('string', 'watev', 'f', 'bar', 'baz')
+        );
+
+        $this->assertSame($expected, $arguments);
+    }
+
+    public function testCleanWhenOptionWithValueAttached()
+    {
+        $input = OptionWithValue::fromString(Str::of('-f|--foo='));
+
+        $arguments = $input->clean(
+            Stream::of('string', 'watev', '--foo=foo', 'bar', 'baz')
+        );
+
+        $this->assertInstanceOf(StreamInterface::class, $arguments);
+        $this->assertSame('string', (string) $arguments->type());
+        $this->assertSame(['watev', 'bar', 'baz'], $arguments->toPrimitive());
+    }
+
+    public function testCleanWhenShortOptionWithValueAttached()
+    {
+        $input = OptionWithValue::fromString(Str::of('-f|--foo='));
+
+        $arguments = $input->clean(
+            Stream::of('string', 'watev', '-f=foo', 'bar', 'baz')
+        );
+
+        $this->assertInstanceOf(StreamInterface::class, $arguments);
+        $this->assertSame('string', (string) $arguments->type());
+        $this->assertSame(['watev', 'bar', 'baz'], $arguments->toPrimitive());
+    }
+
+    public function testCleanWhenShortOptionWithValueAsNextArgument()
+    {
+        $input = OptionWithValue::fromString(Str::of('-f|--foo='));
+
+        $arguments = $input->clean(
+            Stream::of('string', 'watev', '-f', 'bar', 'baz')
+        );
+
+        $this->assertInstanceOf(StreamInterface::class, $arguments);
+        $this->assertSame('string', (string) $arguments->type());
+        $this->assertSame(['watev', 'baz'], $arguments->toPrimitive());
     }
 }
