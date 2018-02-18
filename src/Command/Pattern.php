@@ -7,6 +7,7 @@ use Innmind\CLI\{
     Command\Pattern\Inputs,
     Command\Pattern\Input,
     Command\Pattern\Argument,
+    Command\Pattern\Option,
     Command\Pattern\PackArgument,
     Command\Pattern\RequiredArgument,
     Command\Pattern\OptionalArgument,
@@ -66,6 +67,26 @@ final class Pattern
                 return $inputs->add($input);
             }
         );
+    }
+
+    public function options(): self
+    {
+        $self = clone $this;
+        $self->inputs = $self->inputs->filter(static function(Input $input): bool {
+            return $input instanceof Option;
+        });
+
+        return $self;
+    }
+
+    public function arguments(): self
+    {
+        $self = clone $this;
+        $self->inputs = $self->inputs->filter(static function(Input $input): bool {
+            return $input instanceof Argument;
+        });
+
+        return $self;
     }
 
     /**
