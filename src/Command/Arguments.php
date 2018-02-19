@@ -3,21 +3,30 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Command;
 
-use Innmind\Immutable\StreamInterface;
+use Innmind\Immutable\{
+    MapInterface,
+    Map,
+};
 
 final class Arguments
 {
     private $arguments;
 
     /**
-     * @param StreamInterface<string> $arguments
+     * @param MapInterface<string, mixed> $arguments
      */
-    public function __construct(Specification $spec, StreamInterface $arguments)
+    public function __construct(MapInterface $arguments = null)
     {
-        $this->arguments = $spec
-            ->pattern()
-            ->arguments()
-            ->extract($arguments);
+        $arguments = $arguments ?? new Map('string', 'mixed');
+
+        if (
+            (string) $arguments->keyType() !== 'string' ||
+            (string) $arguments->valueType() !== 'mixed'
+        ) {
+            throw new \TypeError('Argument 1 must be of type MapInterface<string, mixed>');
+        }
+
+        $this->arguments = $arguments;
     }
 
     /**

@@ -10,7 +10,10 @@ use Innmind\CLI\{
     Command,
     Environment,
 };
-use Innmind\Immutable\Stream;
+use Innmind\Immutable\{
+    Stream,
+    Map,
+};
 use PHPUnit\Framework\TestCase;
 
 class OptionsTest extends TestCase
@@ -28,17 +31,48 @@ class OptionsTest extends TestCase
             }
         });
 
-        $options = new Options($spec, Stream::of('string', '--foo'));
+        $options = new Options(
+            $spec
+                ->pattern()
+                ->options()
+                ->extract(Stream::of('string', '--foo'))
+        );
 
         $this->assertTrue($options->contains('foo'));
         $this->assertTrue($options->get('foo'));
         $this->assertFalse($options->contains('bar'));
 
-        $options = new Options($spec, Stream::of('string', '--foo', '--bar=baz'));
+        $options = new Options(
+            $spec
+                ->pattern()
+                ->options()
+                ->extract(Stream::of('string', '--foo', '--bar=baz'))
+        );
 
         $this->assertTrue($options->contains('foo'));
         $this->assertTrue($options->get('foo'));
         $this->assertTrue($options->contains('bar'));
         $this->assertSame('baz', $options->get('bar'));
+    }
+
+    public function testOptionsCanBeBuiltWithoutAnyValue()
+    {
+        $this->assertInstanceOf(Options::class, new Options);
+    }
+
+    public function testThrowWhenInvalidOptionsKeys()
+    {
+        $this->expectException(\TypeError::class);
+        $this->expectExceptionMessage('Argument 1 must be of type MapInterface<string, mixed>');
+
+        new Options(new Map('int', 'mixed'));
+    }
+
+    public function testThrowWhenInvalidOptionsValues()
+    {
+        $this->expectException(\TypeError::class);
+        $this->expectExceptionMessage('Argument 1 must be of type MapInterface<string, mixed>');
+
+        new Options(new Map('string', 'string'));
     }
 }

@@ -10,7 +10,10 @@ use Innmind\CLI\{
     Command,
     Environment,
 };
-use Innmind\Immutable\Stream;
+use Innmind\Immutable\{
+    Stream,
+    Map,
+};
 use PHPUnit\Framework\TestCase;
 
 class ArgumentsTest extends TestCase
@@ -28,17 +31,48 @@ class ArgumentsTest extends TestCase
             }
         });
 
-        $arguments = new Arguments($spec, Stream::of('string', 'foo'));
+        $arguments = new Arguments(
+            $spec
+                ->pattern()
+                ->arguments()
+                ->extract(Stream::of('string', 'foo'))
+        );
 
         $this->assertTrue($arguments->contains('container'));
         $this->assertSame('foo', $arguments->get('container'));
         $this->assertFalse($arguments->contains('output'));
 
-        $arguments = new Arguments($spec, Stream::of('string', 'foo', 'bar'));
+        $arguments = new Arguments(
+            $spec
+                ->pattern()
+                ->arguments()
+                ->extract(Stream::of('string', 'foo', 'bar'))
+        );
 
         $this->assertTrue($arguments->contains('container'));
         $this->assertSame('foo', $arguments->get('container'));
         $this->assertTrue($arguments->contains('output'));
         $this->assertSame('bar', $arguments->get('output'));
+    }
+
+    public function testArgumentsCanBeBuiltWithoutAnyValue()
+    {
+        $this->assertInstanceOf(Arguments::class, new Arguments);
+    }
+
+    public function testThrowWhenInvalidArgumentsKeys()
+    {
+        $this->expectException(\TypeError::class);
+        $this->expectExceptionMessage('Argument 1 must be of type MapInterface<string, mixed>');
+
+        new Arguments(new Map('int', 'mixed'));
+    }
+
+    public function testThrowWhenInvalidArgumentsValues()
+    {
+        $this->expectException(\TypeError::class);
+        $this->expectExceptionMessage('Argument 1 must be of type MapInterface<string, mixed>');
+
+        new Arguments(new Map('string', 'string'));
     }
 }

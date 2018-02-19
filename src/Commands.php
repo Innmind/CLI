@@ -84,9 +84,19 @@ final class Commands
         }
 
         try {
-            $options = new Options($spec, $arguments);
+            $options = new Options(
+                $spec
+                    ->pattern()
+                    ->options()
+                    ->extract($arguments)
+            );
             $arguments = $spec->pattern()->options()->clean($arguments);
-            $arguments = new Arguments($spec, $arguments);
+            $arguments = new Arguments(
+                $spec
+                    ->pattern()
+                    ->arguments()
+                    ->extract($arguments)
+            );
         } catch (Exception $e) {
             $this->displayUsage($env, $spec);
             $env->exit(64); //EX_USAGE The command was used incorrectly
