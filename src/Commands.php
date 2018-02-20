@@ -50,13 +50,13 @@ final class Commands
         $command = $env->arguments()->get(1); //0 being the tool name
 
         if ($command === 'help') {
-            $this->displayHelp($env);
+            $this->displayHelp($env->output());
 
             return;
         }
 
         if (!$this->specifications->contains($command)) {
-            $this->displayHelp($env);
+            $this->displayHelp($env->error());
             $env->exit(64); //EX_USAGE The command was used incorrectly
 
             return;
@@ -78,7 +78,11 @@ final class Commands
         }
 
         if ($arguments->contains('--help')) {
-            $this->displayUsage($env, $spec);
+            $this->displayUsage(
+                $env->output(),
+                $env->arguments()->first(),
+                $spec
+            );
 
             return;
         }
@@ -98,7 +102,11 @@ final class Commands
                     ->extract($arguments)
             );
         } catch (Exception $e) {
-            $this->displayUsage($env, $spec);
+            $this->displayUsage(
+                $env->error(),
+                $env->arguments()->first(),
+                $spec
+            );
             $env->exit(64); //EX_USAGE The command was used incorrectly
 
             return;
@@ -107,7 +115,7 @@ final class Commands
         $run($env, $arguments, $options);
     }
 
-    private function displayUsage(Environment $env, Specification $spec): void
+    private function displayUsage(Writable $stream, string $bin, Specification $spec): void
     {
         $description = Str::of($spec->shortDescription())
             ->append("\n\n")
@@ -118,21 +126,21 @@ final class Commands
             $description = $description->prepend("\n\n");
         }
 
-        $env->output()->write(
+        $stream->write(
             Str::of('usage: ')
-                ->append($env->arguments()->first())
+                ->append($bin)
                 ->append(' ')
                 ->append((string) $spec)
                 ->append((string) $description)
         );
     }
 
-    private function displayHelp(Environment $env): void
+    private function displayHelp(Writable $stream): void
     {
         $this->commands->keys()->reduce(
-            $env->output(),
-            static function(Writable $output, Specification $spec): Writable {
-                return $output->write(
+            $stream,
+            static function(Writable $stream, Specification $spec): Writable {
+                return $stream->write(
                     Str::of($spec->name())
                         ->append(' ')
                         ->append($spec->shortDescription())

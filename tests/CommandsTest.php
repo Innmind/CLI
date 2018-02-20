@@ -141,7 +141,7 @@ class CommandsTest extends TestCase
             ->with(64);
         $env
             ->expects($this->once())
-            ->method('output')
+            ->method('error')
             ->willReturn ($output = $this->createMock(Writable::class));
         $output
             ->expects($this->at(0))
@@ -190,7 +190,7 @@ USAGE;
             ->with(64);
         $env
             ->expects($this->once())
-            ->method('output')
+            ->method('error')
             ->willReturn ($output = $this->createMock(Writable::class));
         $output
             ->expects($this->once())
