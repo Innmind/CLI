@@ -17,6 +17,7 @@ class TableTest extends TestCase
     public function testStringCast()
     {
         $printTo = new Table(
+            null,
             new Row(new Cell('foo'), new Cell('foobar')),
             new Row(new Cell('foobar'), new Cell('foo'))
         );
@@ -39,13 +40,44 @@ TABLE;
         $printTo($output);
     }
 
+    public function testStringCastWithHeader()
+    {
+        $printTo = new Table(
+            new Row(new Cell('first col'), new Cell('second col')),
+            new Row(new Cell('foo'), new Cell('foobar')),
+            new Row(new Cell('foobar'), new Cell('foo'))
+        );
+
+        $expected = <<<TABLE
++-----------+------------+
+| first col | second col |
++-----------+------------+
+| foo       | foobar     |
+| foobar    | foo        |
++-----------+------------+
+TABLE;
+
+        $this->assertSame($expected, (string) $printTo);
+    }
+
     public function testThrowWhenAllRowsNotOfSameSize()
     {
         $this->expectException(EachRowMustBeOfSameSize::class);
 
         new Table(
+            null,
             new Row(new Cell('foo'), new Cell('bar')),
             new Row(new Cell('foo'))
+        );
+    }
+
+    public function testThrowWhenHeaderRowNotOfSameSize()
+    {
+        $this->expectException(EachRowMustBeOfSameSize::class);
+
+        new Table(
+            new Row(new Cell('foo')),
+            new Row(new Cell('foo'), new Cell('bar'))
         );
     }
 }

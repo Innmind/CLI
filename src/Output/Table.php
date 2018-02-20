@@ -16,10 +16,12 @@ use Innmind\Immutable\{
 
 final class Table
 {
+    private $header;
     private $rows;
 
-    public function __construct(Row $row, Row ...$rows)
+    public function __construct(?Row $header, Row $row, Row ...$rows)
     {
+        $this->header = $header;
         $this->rows = Stream::of(Row::class, $row, ...$rows);
         $this->rows->drop(1)->reduce(
             $this->rows->first()->size(),
@@ -31,6 +33,10 @@ final class Table
                 return $size;
             }
         );
+
+        if ($header && $header->size() !== $this->rows->first()->size()) {
+            throw new EachRowMustBeOfSameSize;
+        }
     }
 
     public function __invoke(Writable $stream): void
@@ -40,36 +46,7 @@ final class Table
 
     public function __toString(): string
     {
-        $columns = Stream::of('int', ...range(0, $this->rows->first()->size() - 1));
-        $defaultWidths = $columns->reduce(
-            new Map('int', 'int'),
-            static function(Map $widths, int $column): Map {
-                return $widths->put($column, 0);
-            }
-        );
-        $widthPerColumn = $this->rows->reduce(
-            $defaultWidths,
-            static function(Map $widths, Row $row) use ($columns): Map {
-                return $columns->reduce(
-                    $widths,
-                    static function(Map $widths, int $column) use ($row): Map {
-                        $width = $row->width($column);
-
-                        if ($width < $widths->get($column)) {
-                            return $widths;
-                        }
-
-                        return $widths->put($column, $width);
-                    }
-                );
-            }
-        );
-        $widths = $columns->reduce(
-            Stream::of('int'),
-            static function(Stream $widths, int $column) use ($widthPerColumn): Stream {
-                return $widths->add($widthPerColumn->get($column));
-            }
-        );
+        $widths = $this->widths($this->rows());
         $rows = $this->rows->reduce(
             Stream::of(Str::class),
             static function(Stream $rows, Row $row) use ($widths): Stream {
@@ -89,12 +66,71 @@ final class Table
             })
             ->join('')
             ->append("\n");
+        $rows = $rows->join("\n")->append("\n");
+
+        if ($this->header instanceof Row) {
+            $header = Str::of(($this->header)(...$widths));
+            $rows = $rows->prepend(
+                (string) $header
+                    ->append("\n")
+                    ->append((string) $bound)
+            );
+        }
 
         return (string) $rows
-            ->join("\n")
-            ->append("\n")
             ->prepend((string) $bound)
             ->append((string) $bound)
             ->trim();
+    }
+
+    /**
+     * @return Stream<Row>
+     */
+    private function rows(): Stream
+    {
+        if ($this->header instanceof Row) {
+            return Stream::of(Row::class, $this->header, ...$this->rows);
+        }
+
+        return $this->rows;
+    }
+
+    /**
+     * @param Stream<Row> $rows
+     * @return Stream<int>
+     */
+    private function widths(Stream $rows): Stream
+    {
+        $columns = Stream::of('int', ...range(0, $rows->first()->size() - 1));
+        $defaultWidths = $columns->reduce(
+            new Map('int', 'int'),
+            static function(Map $widths, int $column): Map {
+                return $widths->put($column, 0);
+            }
+        );
+        $widthPerColumn = $rows->reduce(
+            $defaultWidths,
+            static function(Map $widths, Row $row) use ($columns): Map {
+                return $columns->reduce(
+                    $widths,
+                    static function(Map $widths, int $column) use ($row): Map {
+                        $width = $row->width($column);
+
+                        if ($width < $widths->get($column)) {
+                            return $widths;
+                        }
+
+                        return $widths->put($column, $width);
+                    }
+                );
+            }
+        );
+
+        return $columns->reduce(
+            Stream::of('int'),
+            static function(Stream $widths, int $column) use ($widthPerColumn): Stream {
+                return $widths->add($widthPerColumn->get($column));
+            }
+        );
     }
 }
