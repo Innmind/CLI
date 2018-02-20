@@ -43,7 +43,7 @@ class RowTest extends TestCase
                 $t = str_pad($t, 14);
                 $this->assertSame(
                     "| $f | $s | $t |",
-                    $row(10, 12, 14)
+                    $row('|', 10, 12, 14)
                 );
             });
     }

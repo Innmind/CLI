@@ -28,7 +28,7 @@ final class Row implements RowInterface
         return $this->cells->get($column)->width();
     }
 
-    public function __invoke(int ...$widths): string
+    public function __invoke(string $separator, int ...$widths): string
     {
         $widths = Stream::of('int', ...$widths);
 
@@ -44,8 +44,8 @@ final class Row implements RowInterface
                     return $cells->add($cell);
                 }
             )
-            ->join(' | ')
-            ->prepend('| ')
-            ->append(' |');
+            ->join(" $separator ")
+            ->prepend($separator.' ')
+            ->append(' '.$separator);
     }
 }

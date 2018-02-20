@@ -12,12 +12,16 @@ use Innmind\Immutable\{
     Stream,
     Str,
     Map,
+    Sequence,
 };
 
 final class Table
 {
     private $header;
     private $rows;
+    private $columnSeparator = '|';
+    private $rowSeparator = '-';
+    private $crossingSeparator = '+';
 
     public function __construct(?Row $header, Row $row, Row ...$rows)
     {
@@ -39,6 +43,16 @@ final class Table
         }
     }
 
+    public static function borderless(?Row $header, Row $row, Row ...$rows): self
+    {
+        $self = new self($header, $row, ...$rows);
+        $self->columnSeparator = '';
+        $self->rowSeparator = '';
+        $self->crossingSeparator = '';
+
+        return $self;
+    }
+
     public function __invoke(Writable $stream): void
     {
         $stream->write(Str::of((string) $this));
@@ -49,38 +63,48 @@ final class Table
         $widths = $this->widths($this->rows());
         $rows = $this->rows->reduce(
             Stream::of(Str::class),
-            static function(Stream $rows, Row $row) use ($widths): Stream {
-                return $rows->add(Str::of($row(...$widths)));
+            function(Stream $rows, Row $row) use ($widths): Stream {
+                return $rows->add(Str::of($row(
+                    $this->columnSeparator,
+                    ...$widths
+                )));
             }
         );
 
         $bound = $rows
             ->first()
             ->split()
-            ->map(static function(Str $char): Str {
-                if ((string) $char === '|') {
-                    return Str::of('+');
+            ->map(function(Str $char): Str {
+                if ((string) $char === $this->columnSeparator) {
+                    return Str::of($this->crossingSeparator);
                 }
 
-                return Str::of('-');
+                return Str::of($this->rowSeparator);
             })
             ->join('')
-            ->append("\n");
-        $rows = $rows->join("\n")->append("\n");
+            ->trim();
+        $header = Str::of('');
+        $rows = $rows->join("\n");
+
 
         if ($this->header instanceof Row) {
-            $header = Str::of(($this->header)(...$widths));
-            $rows = $rows->prepend(
-                (string) $header
+            $header = Str::of(($this->header)(
+                $this->columnSeparator,
+                ...$widths
+            ));
+
+            if (!$bound->empty()) {
+                $header = $header
                     ->append("\n")
-                    ->append((string) $bound)
-            );
+                    ->append((string) $bound);
+            }
         }
 
-        return (string) $rows
-            ->prepend((string) $bound)
-            ->append((string) $bound)
-            ->trim();
+        return (string) Sequence::of($bound, $header, $rows, $bound)
+            ->filter(static function(Str $line): bool {
+                return !$line->empty();
+            })
+            ->join("\n");
     }
 
     /**

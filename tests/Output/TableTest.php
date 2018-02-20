@@ -60,6 +60,21 @@ TABLE;
         $this->assertSame($expected, (string) $printTo);
     }
 
+    public function testBorderlessTable()
+    {
+        $printTo = Table::borderless(
+            new Row(new Cell('first col'), new Cell('second col')),
+            new Row(new Cell('foo'), new Cell('foobar')),
+            new Row(new Cell('foobar'), new Cell('foo'))
+        );
+
+        $expected = " first col  second col \n".
+" foo        foobar     \n".
+" foobar     foo        ";
+
+        $this->assertSame($expected, (string) $printTo);
+    }
+
     public function testThrowWhenAllRowsNotOfSameSize()
     {
         $this->expectException(EachRowMustBeOfSameSize::class);

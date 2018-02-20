@@ -7,5 +7,5 @@ interface Row
 {
     public function size(): int;
     public function width(int $column): int;
-    public function __invoke(int ...$widths): string;
+    public function __invoke(string $separator, int ...$widths): string;
 }
