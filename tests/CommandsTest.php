@@ -147,15 +147,16 @@ class CommandsTest extends TestCase
             ->expects($this->at(0))
             ->method('write')
             ->with($this->callback(function(Str $value): bool {
-                return (string) $value === "foo \n";
+                return (string) $value === " foo     \n watch   ";
             }))
             ->will($this->returnSelf());
         $output
             ->expects($this->at(1))
             ->method('write')
             ->with($this->callback(function(Str $value): bool {
-                return (string) $value === "watch \n";
-            }));
+                return (string) $value === "\n";
+            }))
+            ->will($this->returnSelf());
 
         $this->assertNull($run($env));
     }
@@ -312,15 +313,16 @@ USAGE;
             ->expects($this->at(0))
             ->method('write')
             ->with($this->callback(function(Str $value): bool {
-                return (string) $value === "foo Description\n";
+                return (string) $value === " foo    Description                \n watch  Watch dependency injection ";
             }))
             ->will($this->returnSelf());
         $output
             ->expects($this->at(1))
             ->method('write')
             ->with($this->callback(function(Str $value): bool {
-                return (string) $value === "watch Watch dependency injection\n";
-            }));
+                return (string) $value === "\n";
+            }))
+            ->will($this->returnSelf());
 
         $this->assertNull($run($env));
     }

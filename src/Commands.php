@@ -7,13 +7,17 @@ use Innmind\CLI\{
     Command\Specification,
     Command\Arguments,
     Command\Options,
-    Exception\Exception
+    Exception\Exception,
+    Output\Table,
+    Output\Table\Row\Row,
+    Output\Table\Row\Cell\Cell,
 };
 use Innmind\Stream\Writable;
 use Innmind\Immutable\{
     Set,
     Map,
     Str,
+    Stream,
 };
 
 final class Commands
@@ -137,16 +141,17 @@ final class Commands
 
     private function displayHelp(Writable $stream): void
     {
-        $this->commands->keys()->reduce(
-            $stream,
-            static function(Writable $stream, Specification $spec): Writable {
-                return $stream->write(
-                    Str::of($spec->name())
-                        ->append(' ')
-                        ->append($spec->shortDescription())
-                        ->append("\n")
-                );
+        $rows = $this->commands->keys()->reduce(
+            Stream::of(Row::class),
+            static function(Stream $rows, Specification $spec): Stream {
+                return $rows->add(new Row(
+                    new Cell($spec->name()),
+                    new Cell($spec->shortDescription())
+                ));
             }
         );
+        $printTo = Table::borderless(null, ...$rows);
+        $printTo($stream);
+        $stream->write(Str::of("\n"));
     }
 }
