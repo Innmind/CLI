@@ -51,7 +51,16 @@ final class Commands
             return;
         }
 
-        $command = $env->arguments()->get(1); //0 being the tool name
+        $arguments = $env->arguments();
+
+        if (!$arguments->indices()->contains(1)) {
+            $this->displayHelp($env->error());
+            $env->exit(64); //EX_USAGE The command was used incorrectly
+
+            return;
+        }
+
+        $command = $arguments->get(1); //0 being the tool name
 
         if ($command === 'help') {
             $this->displayHelp($env->output());

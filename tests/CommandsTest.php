@@ -326,4 +326,61 @@ USAGE;
 
         $this->assertNull($run($env));
     }
+
+    public function testDisplayHelpWhenNoCommandProvided()
+    {
+        $run = new Commands(
+            new class implements Command {
+                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                {
+                    $env->exit(42);
+                }
+
+                public function __toString(): string
+                {
+                    return 'foo';
+                }
+            },
+            new class implements Command {
+                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                {
+                    $env->exit(24);
+                }
+
+                public function __toString(): string
+                {
+                    return 'watch container [output] --foo';
+                }
+            }
+        );
+        $env = $this->createMock(Environment::class);
+        $env
+            ->expects($this->once())
+            ->method('arguments')
+            ->willReturn(Stream::of('string', 'bin/console'));
+        $env
+            ->expects($this->once())
+            ->method('exit')
+            ->with(64);
+        $env
+            ->expects($this->once())
+            ->method('error')
+            ->willReturn ($output = $this->createMock(Writable::class));
+        $output
+            ->expects($this->at(0))
+            ->method('write')
+            ->with($this->callback(function(Str $value): bool {
+                return (string) $value === " foo     \n watch   ";
+            }))
+            ->will($this->returnSelf());
+        $output
+            ->expects($this->at(1))
+            ->method('write')
+            ->with($this->callback(function(Str $value): bool {
+                return (string) $value === "\n";
+            }))
+            ->will($this->returnSelf());
+
+        $this->assertNull($run($env));
+    }
 }
