@@ -6,6 +6,7 @@ namespace Innmind\CLI\Command;
 use Innmind\Immutable\{
     MapInterface,
     Map,
+    StreamInterface,
 };
 
 final class Arguments
