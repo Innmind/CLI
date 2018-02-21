@@ -104,7 +104,7 @@ class MainTest extends TestCase
         );
         $this->assertSame(
             "->main() at $cwd/src/Main.php:17",
-            (string) $output->get(3)->substring(-62)
+            (string) $output->get(3)->substring(-28 - strlen($cwd))
         );
         $this->assertSame(
             "fixtures/thrower.php: Innmind\CLI\Main->__construct() at $cwd/fixtures/thrower.php:14",
