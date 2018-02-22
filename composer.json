@@ -1,0 +1,42 @@
+{
+    "name": "innmind/cli",
+    "type": "library",
+    "description": "Library to build CLI tools",
+    "keywords": ["cli"],
+    "homepage": "http://github.com/Innmind/CLI",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Baptiste Langlade",
+            "email": "langlade.baptiste@gmail.com"
+        }
+    ],
+    "support": {
+        "issues": "http://github.com/Innmind/CLI/issues"
+    },
+    "require": {
+        "php": "~7.2",
+        "innmind/stream": "^1.3",
+        "innmind/immutable": "^2.7",
+        "innmind/url": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Innmind\\CLI\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\Innmind\\CLI\\": "tests/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~6.0",
+        "giorgiosironi/eris": "^0.9.0",
+        "innmind/server-control": "^2.2",
+        "innmind/filesystem": "^3.0"
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit --colors=always"
+    }
+}
