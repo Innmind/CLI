@@ -55,6 +55,30 @@ class OptionsTest extends TestCase
         $this->assertSame('baz', $options->get('bar'));
     }
 
+    public function testFromSpecification()
+    {
+        $spec = new Specification(new class implements Command {
+            public function __invoke(Environment $env, Arguments $args, Options $options): void
+            {
+            }
+
+            public function __toString(): string
+            {
+                return 'watch container --foo --bar= [output]';
+            }
+        });
+
+        $options = Options::fromSpecification(
+            $spec,
+            Stream::of('string', '--foo')
+        );
+
+        $this->assertInstanceOf(Options::class, $options);
+        $this->assertTrue($options->contains('foo'));
+        $this->assertTrue($options->get('foo'));
+        $this->assertFalse($options->contains('bar'));
+    }
+
     public function testOptionsCanBeBuiltWithoutAnyValue()
     {
         $this->assertInstanceOf(Options::class, new Options);

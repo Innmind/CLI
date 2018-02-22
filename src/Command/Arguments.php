@@ -31,6 +31,23 @@ final class Arguments
     }
 
     /**
+     * @param StreamInterface<string> $arguments
+     */
+    public static function fromSpecification(
+        Specification $specification,
+        StreamInterface $arguments
+    ): self {
+        $arguments = $specification->pattern()->options()->clean($arguments);
+
+        return new self(
+            $specification
+                ->pattern()
+                ->arguments()
+                ->extract($arguments)
+        );
+    }
+
+    /**
      * @return string|StreamInterface<string>
      */
     public function get(string $argument)

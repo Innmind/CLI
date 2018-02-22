@@ -101,19 +101,8 @@ final class Commands
         }
 
         try {
-            $options = new Options(
-                $spec
-                    ->pattern()
-                    ->options()
-                    ->extract($arguments)
-            );
-            $arguments = $spec->pattern()->options()->clean($arguments);
-            $arguments = new Arguments(
-                $spec
-                    ->pattern()
-                    ->arguments()
-                    ->extract($arguments)
-            );
+            $options = Options::fromSpecification($spec, $arguments);
+            $arguments = Arguments::fromSpecification($spec, $arguments);
         } catch (Exception $e) {
             $this->displayUsage(
                 $env->error(),

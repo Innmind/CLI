@@ -6,6 +6,7 @@ namespace Innmind\CLI\Command;
 use Innmind\Immutable\{
     MapInterface,
     Map,
+    StreamInterface,
 };
 
 final class Options
@@ -27,6 +28,21 @@ final class Options
         }
 
         $this->options = $options;
+    }
+
+    /**
+     * @param StreamInterface<string> $arguments
+     */
+    public static function fromSpecification(
+        Specification $specification,
+        StreamInterface $arguments
+    ): self {
+        return new self(
+            $specification
+                ->pattern()
+                ->options()
+                ->extract($arguments)
+        );
     }
 
     /**

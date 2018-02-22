@@ -55,6 +55,30 @@ class ArgumentsTest extends TestCase
         $this->assertSame('bar', $arguments->get('output'));
     }
 
+    public function testFromSpecification()
+    {
+        $spec = new Specification(new class implements Command {
+            public function __invoke(Environment $env, Arguments $args, Options $options): void
+            {
+            }
+
+            public function __toString(): string
+            {
+                return 'watch container --foo [output]';
+            }
+        });
+
+        $arguments = Arguments::fromSpecification(
+            $spec,
+            Stream::of('string', 'foo')
+        );
+
+        $this->assertInstanceOf(Arguments::class, $arguments);
+        $this->assertTrue($arguments->contains('container'));
+        $this->assertSame('foo', $arguments->get('container'));
+        $this->assertFalse($arguments->contains('output'));
+    }
+
     public function testArgumentsCanBeBuiltWithoutAnyValue()
     {
         $this->assertInstanceOf(Arguments::class, new Arguments);
