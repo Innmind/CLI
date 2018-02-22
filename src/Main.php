@@ -71,8 +71,9 @@ abstract class Main
             );
         }
 
-        return Str::of('%s->%s() at %s:%s')->sprintf(
+        return Str::of('%s%s%s() at %s:%s')->sprintf(
             $trace['class'],
+            $trace['type'],
             $trace['function'],
             $trace['file'],
             $trace['line']
