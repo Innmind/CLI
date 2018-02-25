@@ -23,6 +23,16 @@ class ExitCodeTest extends TestCase
             });
     }
 
+    public function testSuccessful()
+    {
+        $this->assertTrue((new ExitCode(0))->successful());
+        $this
+            ->forAll(Generator\choose(1, 254))
+            ->then(function(int $code): void {
+                $this->assertFalse((new ExitCode($code))->successful());
+            });
+    }
+
     public function testNegativeCodesAreReplacedByZero()
     {
         $this

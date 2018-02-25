@@ -18,4 +18,9 @@ final class ExitCode
     {
         return $this->code;
     }
+
+    public function successful(): bool
+    {
+        return $this->code === 0;
+    }
 }
