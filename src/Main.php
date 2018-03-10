@@ -71,6 +71,14 @@ abstract class Main
             );
         }
 
+        if (!isset($trace['file'])) {
+            return Str::of('%s%s%s()')->sprintf(
+                $trace['class'],
+                $trace['type'],
+                $trace['function']
+            );
+        }
+
         return Str::of('%s%s%s() at %s:%s')->sprintf(
             $trace['class'],
             $trace['type'],
