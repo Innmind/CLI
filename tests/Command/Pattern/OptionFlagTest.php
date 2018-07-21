@@ -38,7 +38,7 @@ class OptionFlagTest extends TestCase
         $this
             ->forAll(Generator\string())
             ->when(static function(string $string): bool {
-                return !preg_match('~^[a-zA-Z0-9]+$~', $string);
+                return !preg_match('~^[a-zA-Z0-9\-]+$~', $string);
             })
             ->then(function(string $string): void {
                 $string = '--'.$string;
