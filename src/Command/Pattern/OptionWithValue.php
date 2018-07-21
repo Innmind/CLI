@@ -12,7 +12,7 @@ use Innmind\Immutable\{
 
 final class OptionWithValue implements Input, Option
 {
-    private const PATTERN = '~^(?<short>-[a-zA-Z0-9]\|)?(?<name>--[a-zA-Z0-9]+)=$~';
+    private const PATTERN = '~^(?<short>-[a-zA-Z0-9]\|)?(?<name>--[a-zA-Z0-9\-]+)=$~';
 
     private $name;
     private $short;
