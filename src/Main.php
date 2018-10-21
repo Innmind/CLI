@@ -3,6 +3,14 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI;
 
+use Innmind\TimeContinuum\{
+    TimeContinuumInterface,
+    TimeContinuum\Earth,
+};
+use Innmind\OperatingSystem\{
+    Factory,
+    OperatingSystem,
+};
 use Innmind\Stream\Writable;
 use Innmind\Immutable\{
     Stream,
@@ -11,10 +19,13 @@ use Innmind\Immutable\{
 
 abstract class Main
 {
-    final public function __construct()
+    final public function __construct(TimeContinuumInterface $clock = null)
     {
         try {
-            $this->main($env = new Environment\GlobalEnvironment);
+            $this->main(
+                $env = new Environment\GlobalEnvironment,
+                Factory::build($clock ?? new Earth)
+            );
         } catch (\Throwable $e) {
             $this->print(
                 $env->arguments()->first(),
@@ -27,7 +38,7 @@ abstract class Main
         exit($env->exitCode()->toInt());
     }
 
-    abstract protected function main(Environment $env): void;
+    abstract protected function main(Environment $env, OperatingSystem $os): void;
 
     final public function __destruct()
     {

@@ -7,9 +7,10 @@ use Innmind\CLI\{
     Main,
     Environment
 };
+use Innmind\OperatingSystem\OperatingSystem;
 
 new class extends Main {
-    protected function main(Environment $env): void
+    protected function main(Environment $env, OperatingSystem $os): void
     {
         $env->exit((int) $env->arguments()->last());
     }
