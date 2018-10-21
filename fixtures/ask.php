@@ -9,13 +9,14 @@ use Innmind\CLI\{
     Question\Question,
     Question\ChoiceQuestion,
 };
+use Innmind\OperatingSystem\OperatingSystem;
 use Innmind\Immutable\{
     Map,
     Str,
 };
 
 new class extends Main {
-    protected function main(Environment $env): void
+    protected function main(Environment $env, OperatingSystem $os): void
     {
         $user = new Question('your name please :');
         $pwd = Question::hiddenResponse('password :');

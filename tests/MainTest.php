@@ -83,7 +83,7 @@ class MainTest extends TestCase
             (string) $output->get(0)
         );
         $this->assertSame(
-            "fixtures/thrower.php: $cwd/fixtures/thrower.php:17",
+            "fixtures/thrower.php: $cwd/fixtures/thrower.php:18",
             (string) $output->get(1)
         );
         $this->assertSame(
@@ -103,11 +103,11 @@ class MainTest extends TestCase
             (string) $output->get(3)->substring(38 + strlen($cwd), 21)
         );
         $this->assertSame(
-            "->main() at $cwd/src/Main.php:17",
+            "->main() at $cwd/src/Main.php:27",
             (string) $output->get(3)->substring(-28 - strlen($cwd))
         );
         $this->assertSame(
-            "fixtures/thrower.php: Innmind\CLI\Main->__construct() at $cwd/fixtures/thrower.php:14",
+            "fixtures/thrower.php: Innmind\CLI\Main->__construct() at $cwd/fixtures/thrower.php:15",
             (string) $output->get(4)
         );
         $this->assertSame(
