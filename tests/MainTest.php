@@ -103,7 +103,7 @@ class MainTest extends TestCase
             (string) $output->get(3)->substring(38 + strlen($cwd), 21)
         );
         $this->assertSame(
-            "->main() at $cwd/src/Main.php:27",
+            "->main() at $cwd/src/Main.php:34",
             (string) $output->get(3)->substring(-28 - strlen($cwd))
         );
         $this->assertSame(

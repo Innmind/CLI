@@ -7,6 +7,7 @@ use Innmind\TimeContinuum\{
     TimeContinuumInterface,
     TimeContinuum\Earth,
 };
+use Innmind\TimeWarp\Halt\Usleep;
 use Innmind\OperatingSystem\{
     Factory,
     OperatingSystem,
@@ -21,10 +22,16 @@ abstract class Main
 {
     final public function __construct(TimeContinuumInterface $clock = null)
     {
+        $clock = $clock ?? new Earth;
+
         try {
             $this->main(
-                $env = new Environment\GlobalEnvironment,
-                Factory::build($clock ?? new Earth)
+                $env = new Environment\BackPressureWrites(
+                    new Environment\GlobalEnvironment,
+                    $clock,
+                    new Usleep
+                ),
+                Factory::build($clock)
             );
         } catch (\Throwable $e) {
             $this->print(
