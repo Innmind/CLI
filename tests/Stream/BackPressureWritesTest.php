@@ -120,7 +120,7 @@ class BackPressureWritesTest extends TestCase
             ->method('__invoke')
             ->with(
                 $clock,
-                new Millisecond(150)
+                new Millisecond(1)
             );
 
         $stream->write($data);
