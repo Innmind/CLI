@@ -36,7 +36,7 @@ final class BackPressureWrites implements Writable
         $this->clock = $clock;
         $this->halt = $halt;
         $this->threshold = new ElapsedPeriod(10); // 10 milliseconds
-        $this->stall = new Millisecond(150);
+        $this->stall = new Millisecond(1);
     }
 
     public function write(Str $data): Writable
