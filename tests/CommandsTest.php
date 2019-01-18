@@ -197,7 +197,7 @@ USAGE;
             ->expects($this->once())
             ->method('write')
             ->with($this->callback(function(Str $value): bool {
-                return (string) $value === 'usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar";
+                return (string) $value === 'usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar\n";
             }));
 
         $this->assertNull($run($env));
@@ -265,7 +265,7 @@ USAGE;
             ->expects($this->once())
             ->method('write')
             ->with($this->callback(function(Str $value): bool {
-                return (string) $value === 'usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar";
+                return (string) $value === 'usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar\n";
             }));
 
         $this->assertNull($run($env));

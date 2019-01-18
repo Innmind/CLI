@@ -134,6 +134,7 @@ final class Commands
                 ->append(' ')
                 ->append((string) $spec)
                 ->append((string) $description)
+                ->append("\n")
         );
     }
 
