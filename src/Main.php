@@ -64,7 +64,11 @@ abstract class Main
             ->reduce(
                 $this->renderError($stack->throwable()),
                 function(StreamInterface $lines, Throwable $e): StreamInterface {
-                    return $lines->append($this->renderError($e));
+                    return $lines
+                        ->add(Str::of(''))
+                        ->add(Str::of('Caused by'))
+                        ->add(Str::of(''))
+                        ->append($this->renderError($e));
                 }
             )
             ->map(static function(Str $line) use ($bin): Str {
