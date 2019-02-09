@@ -79,7 +79,7 @@ class MainTest extends TestCase
 
         $this->assertCount(6, $output);
         $this->assertSame(
-            "fixtures/thrower.php: Innmind\CLI\Exception\LogicException(waaat)",
+            "fixtures/thrower.php: Innmind\CLI\Exception\LogicException(waaat, 0)",
             (string) $output->get(0)
         );
         $this->assertSame(
@@ -102,8 +102,8 @@ class MainTest extends TestCase
             "/fixtures/thrower.php",
             (string) $output->get(3)->substring(38 + strlen($cwd), 21)
         );
-        $this->assertSame(
-            "->main() at $cwd/src/Main.php:34",
+        $this->assertRegExp(
+            "~^->main\(\) at $cwd/src/Main.php:(37|32)$~",
             (string) $output->get(3)->substring(-28 - strlen($cwd))
         );
         $this->assertSame(
