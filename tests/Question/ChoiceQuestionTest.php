@@ -33,6 +33,8 @@ class ChoiceQuestionTest extends TestCase
                 ->put('bar', 3)
         );
         $input = new class implements Readable, Selectable {
+                private $resource;
+
                 public function close(): Stream
                 {
                     return $this;
@@ -73,7 +75,7 @@ class ChoiceQuestionTest extends TestCase
 
                 public function resource()
                 {
-                    return tmpfile();
+                    return $this->resource ?? $this->resource = tmpfile();
                 }
 
                 public function read(int $length = null): Str

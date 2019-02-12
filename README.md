@@ -31,9 +31,10 @@ use Innmind\CLI\{
     Main,
     Environment,
 };
+use Innmind\OperatingSystem\OperatingSystem;
 
 new class extends Main {
-    protected function main(Environment $env): void
+    protected function main(Environment $env, OperatingSystem $os): void
     {
         //your code here
     }
@@ -56,7 +57,7 @@ use Innmind\CLI\{
     Command\Options,
 };
 
-function main(Environment $env): void
+function main(Environment $env, OperatingSystem $os): void
 {
     $run = new Commands(
         new class implements Command {
