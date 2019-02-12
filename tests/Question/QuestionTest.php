@@ -22,6 +22,8 @@ class QuestionTest extends TestCase
     {
         $question = new Question('message');
         $input = new class implements Readable, Selectable {
+                private $resource;
+
                 public function close(): Stream
                 {
                     return $this;
@@ -62,7 +64,7 @@ class QuestionTest extends TestCase
 
                 public function resource()
                 {
-                    return tmpfile();
+                    return $this->resource ?? $this->resource = tmpfile();
                 }
 
                 public function read(int $length = null): Str
@@ -109,6 +111,8 @@ class QuestionTest extends TestCase
         $this->assertInstanceOf(Question::class, $question);
 
         $input = new class implements Readable, Selectable {
+                private $resource;
+
                 public function close(): Stream
                 {
                     return $this;
@@ -149,7 +153,7 @@ class QuestionTest extends TestCase
 
                 public function resource()
                 {
-                    return tmpfile();
+                    return $this->resource ?? $this->resource = tmpfile();
                 }
 
                 public function read(int $length = null): Str
