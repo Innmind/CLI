@@ -99,4 +99,15 @@ class ArgumentsTest extends TestCase
 
         new Arguments(new Map('string', 'string'));
     }
+
+    public function testAccessPackByDedicatedMethod()
+    {
+        $arguments = new Arguments(
+            Map::of('string', 'mixed')
+                ('rest', Stream::of('string', 'foo', 'bar'))
+        );
+
+        $this->assertTrue($arguments->contains('rest'));
+        $this->assertSame($arguments->get('rest'), $arguments->pack());
+    }
 }
