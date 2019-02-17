@@ -12,6 +12,7 @@ use Innmind\Immutable\{
 final class Arguments
 {
     private $arguments;
+    private $pack;
 
     /**
      * @param MapInterface<string, mixed> $arguments
@@ -28,6 +29,13 @@ final class Arguments
         }
 
         $this->arguments = $arguments;
+        $pack = $arguments->values()->filter(static function($argument): bool {
+            return $argument instanceof StreamInterface;
+        });
+
+        if (!$pack->empty()) {
+            $this->pack = $pack->current();
+        }
     }
 
     /**
@@ -48,11 +56,22 @@ final class Arguments
     }
 
     /**
-     * @return string|StreamInterface<string>
+     * @return string Pack is deprecated
      */
     public function get(string $argument)
     {
-        return $this->arguments->get($argument);
+        $value =  $this->arguments->get($argument);
+
+        if ($value instanceof StreamInterface) {
+            @trigger_error('Use self::pack() instead', E_USER_DEPRECATED);
+        }
+
+        return $value;
+    }
+
+    public function pack(): StreamInterface
+    {
+        return $this->pack;
     }
 
     public function contains(string $argument): bool
