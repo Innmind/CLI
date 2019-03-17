@@ -103,7 +103,7 @@ class MainTest extends TestCase
             (string) $output->get(3)->substring(38 + strlen($cwd), 21)
         );
         $this->assertRegExp(
-            "~^->main\(\) at $cwd/src/Main.php:(39|34)$~",
+            "~^->main\(\) at $cwd/src/Main.php:(39|32)$~",
             (string) $output->get(3)->substring(-28 - strlen($cwd))
         );
         $this->assertSame(
