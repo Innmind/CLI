@@ -29,10 +29,12 @@ abstract class Main
 
         try {
             $this->main(
-                $env = new Environment\BackPressureWrites(
-                    new Environment\GlobalEnvironment,
-                    $os->clock(),
-                    new Usleep
+                $env = new Environment\ChunkWriteByLine(
+                    new Environment\BackPressureWrites(
+                        new Environment\GlobalEnvironment,
+                        $os->clock(),
+                        new Usleep
+                    )
                 ),
                 $os
             );
