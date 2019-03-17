@@ -34,7 +34,7 @@ final class GlobalEnvironment implements Environment
         $this->input = new Readable\NonBlocking(
             new Readable\Stream(STDIN)
         );
-        $this->output = new Writable\Stream(STDOUT);
+        $this->output = new Writable\Stream(fopen('php://output', 'w'));
         $this->error = new Writable\Stream(STDERR);
         $this->arguments = Stream::of('string', ...$_SERVER['argv']);
         $variables = getenv();

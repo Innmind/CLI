@@ -24,7 +24,6 @@ final class BackPressureWrites implements Environment
     private $environment;
     private $clock;
     private $halt;
-    private $output;
     private $error;
 
     public function __construct(
@@ -44,11 +43,7 @@ final class BackPressureWrites implements Environment
 
     public function output(): Writable
     {
-        return $this->output ?? $this->output = new Stream\BackPressureWrites(
-            $this->environment->output(),
-            $this->clock,
-            $this->halt
-        );
+        return $this->environment->output();
     }
 
     public function error(): Writable

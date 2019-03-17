@@ -51,28 +51,19 @@ class BackPressureWritesTest extends TestCase
         $this->assertSame($expected, $env->input());
     }
 
-    public function testWrapOutput()
+    public function testOutput()
     {
         $env = new BackPressureWrites(
             $inner = $this->createMock(Environment::class),
             $this->createMock(TimeContinuumInterface::class),
             $this->createMock(Halt::class)
         );
-        $data = new Str('');
         $inner
             ->expects($this->once())
             ->method('output')
             ->willReturn($expected = $this->createMock(Writable::class));
-        $expected
-            ->expects($this->once())
-            ->method('write')
-            ->with($data);
 
-        $output = $env->output();
-
-        $this->assertInstanceOf(BackPressureWritesStream::class, $output);
-        $this->assertSame($output, $env->output());
-        $output->write($data);
+        $this->assertSame($expected, $env->output());
     }
 
     public function testWrapError()
