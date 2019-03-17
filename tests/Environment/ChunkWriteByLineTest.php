@@ -4,13 +4,11 @@ declare(strict_types = 1);
 namespace Tests\Innmind\CLI\Environment;
 
 use Innmind\CLI\{
-    Environment\BackPressureWrites,
+    Environment\ChunkWriteByLine,
     Environment\ExitCode,
     Environment,
-    Stream\BackPressureWrites as BackPressureWritesStream,
+    Stream\ChunkWriteByLine as ChunkWriteByLineStream,
 };
-use Innmind\TimeContinuum\TimeContinuumInterface;
-use Innmind\TimeWarp\Halt;
 use Innmind\Stream\{
     Readable,
     Writable,
@@ -22,26 +20,22 @@ use Innmind\Immutable\{
 };
 use PHPUnit\Framework\TestCase;
 
-class BackPressureWritesTest extends TestCase
+class ChunkWriteByLineTest extends TestCase
 {
     public function testInterface()
     {
         $this->assertInstanceOf(
             Environment::class,
-            new BackPressureWrites(
-                $this->createMock(Environment::class),
-                $this->createMock(TimeContinuumInterface::class),
-                $this->createMock(Halt::class)
+            new ChunkWriteByLine(
+                $this->createMock(Environment::class)
             )
         );
     }
 
     public function testInput()
     {
-        $env = new BackPressureWrites(
-            $inner = $this->createMock(Environment::class),
-            $this->createMock(TimeContinuumInterface::class),
-            $this->createMock(Halt::class)
+        $env = new ChunkWriteByLine(
+            $inner = $this->createMock(Environment::class)
         );
         $inner
             ->expects($this->once())
@@ -53,10 +47,8 @@ class BackPressureWritesTest extends TestCase
 
     public function testOutput()
     {
-        $env = new BackPressureWrites(
-            $inner = $this->createMock(Environment::class),
-            $this->createMock(TimeContinuumInterface::class),
-            $this->createMock(Halt::class)
+        $env = new ChunkWriteByLine(
+            $inner = $this->createMock(Environment::class)
         );
         $inner
             ->expects($this->once())
@@ -68,10 +60,8 @@ class BackPressureWritesTest extends TestCase
 
     public function testWrapError()
     {
-        $env = new BackPressureWrites(
-            $inner = $this->createMock(Environment::class),
-            $this->createMock(TimeContinuumInterface::class),
-            $this->createMock(Halt::class)
+        $env = new ChunkWriteByLine(
+            $inner = $this->createMock(Environment::class)
         );
         $data = new Str('');
         $inner
@@ -85,17 +75,15 @@ class BackPressureWritesTest extends TestCase
 
         $error = $env->error();
 
-        $this->assertInstanceOf(BackPressureWritesStream::class, $error);
+        $this->assertInstanceOf(ChunkWriteByLineStream::class, $error);
         $this->assertSame($error, $env->error());
         $error->write($data);
     }
 
     public function testArguments()
     {
-        $env = new BackPressureWrites(
-            $inner = $this->createMock(Environment::class),
-            $this->createMock(TimeContinuumInterface::class),
-            $this->createMock(Halt::class)
+        $env = new ChunkWriteByLine(
+            $inner = $this->createMock(Environment::class)
         );
         $inner
             ->expects($this->once())
@@ -107,10 +95,8 @@ class BackPressureWritesTest extends TestCase
 
     public function testExit()
     {
-        $env = new BackPressureWrites(
-            $inner = $this->createMock(Environment::class),
-            $this->createMock(TimeContinuumInterface::class),
-            $this->createMock(Halt::class)
+        $env = new ChunkWriteByLine(
+            $inner = $this->createMock(Environment::class)
         );
         $inner
             ->expects($this->once())
@@ -122,10 +108,8 @@ class BackPressureWritesTest extends TestCase
 
     public function testExitCode()
     {
-        $env = new BackPressureWrites(
-            $inner = $this->createMock(Environment::class),
-            $this->createMock(TimeContinuumInterface::class),
-            $this->createMock(Halt::class)
+        $env = new ChunkWriteByLine(
+            $inner = $this->createMock(Environment::class)
         );
         $inner
             ->expects($this->once())
@@ -137,10 +121,8 @@ class BackPressureWritesTest extends TestCase
 
     public function testWorkingDirectory()
     {
-        $env = new BackPressureWrites(
-            $inner = $this->createMock(Environment::class),
-            $this->createMock(TimeContinuumInterface::class),
-            $this->createMock(Halt::class)
+        $env = new ChunkWriteByLine(
+            $inner = $this->createMock(Environment::class)
         );
         $inner
             ->expects($this->once())

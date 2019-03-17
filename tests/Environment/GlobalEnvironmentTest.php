@@ -45,7 +45,9 @@ class GlobalEnvironmentTest extends TestCase
     {
         $this->assertInstanceOf(Writable::class, $this->env->output());
         $this->assertInstanceOf(Selectable::class, $this->env->output());
-        $this->assertSame(STDOUT, $this->env->output()->resource());
+        $info = stream_get_meta_data($this->env->output()->resource());
+        $this->assertSame('php://output', $info['uri']);
+        $this->assertSame('wb', $info['mode']);
     }
 
     public function testError()
