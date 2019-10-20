@@ -41,7 +41,7 @@ final class Arguments
     /**
      * @param StreamInterface<string> $arguments
      */
-    public static function fromSpecification(
+    public static function of(
         Specification $specification,
         StreamInterface $arguments
     ): self {
@@ -53,6 +53,17 @@ final class Arguments
                 ->arguments()
                 ->extract($arguments)
         );
+    }
+
+    /**
+     * @deprecated
+     * @see self::of()
+     */
+    public static function fromSpecification(
+        Specification $specification,
+        StreamInterface $arguments
+    ): self {
+        return self::of($specification, $arguments);
     }
 
     /**
