@@ -22,9 +22,9 @@ use Innmind\Immutable\{
 
 abstract class Main
 {
-    final public function __construct(TimeContinuumInterface $clock = null)
+    final public function __construct()
     {
-        $os = Factory::build($clock);
+        $os = Factory::build();
 
         try {
             $this->main(
