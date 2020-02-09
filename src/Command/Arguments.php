@@ -7,6 +7,7 @@ use Innmind\Immutable\{
     Map,
     Sequence,
 };
+use function Innmind\Immutable\assertMap;
 
 final class Arguments
 {
@@ -18,14 +19,9 @@ final class Arguments
      */
     public function __construct(Map $arguments = null)
     {
-        $arguments = $arguments ?? Map::of('string', 'mixed');
+        $arguments ??= Map::of('string', 'mixed');
 
-        if (
-            (string) $arguments->keyType() !== 'string' ||
-            (string) $arguments->valueType() !== 'mixed'
-        ) {
-            throw new \TypeError('Argument 1 must be of type Map<string, mixed>');
-        }
+        assertMap('string', 'mixed', $arguments, 1);
 
         $this->arguments = $arguments;
         $pack = $arguments->values()->filter(static function($argument): bool {

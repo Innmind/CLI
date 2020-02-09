@@ -14,6 +14,7 @@ use Innmind\Immutable\{
     Map,
     Set,
 };
+use function Innmind\Immutable\assertMap;
 
 final class ChoiceQuestion
 {
@@ -25,12 +26,7 @@ final class ChoiceQuestion
      */
     public function __construct(string $question, Map $values)
     {
-        if (
-            (string) $values->keyType() !== 'scalar' ||
-            (string) $values->valueType() !== 'scalar'
-        ) {
-            throw new \TypeError('Argument 2 must be of type Map<scalar, scalar>');
-        }
+        assertMap('scalar', 'scalar', $values, 2);
 
         $this->question = Str::of($question);
         $this->values = $values;

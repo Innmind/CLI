@@ -7,6 +7,7 @@ use Innmind\Immutable\{
     Map,
     Sequence,
 };
+use function Innmind\Immutable\assertMap;
 
 final class Options
 {
@@ -17,14 +18,9 @@ final class Options
      */
     public function __construct(Map $options = null)
     {
-        $options = $options ?? Map::of('string', 'mixed');
+        $options ??= Map::of('string', 'mixed');
 
-        if (
-            (string) $options->keyType() !== 'string' ||
-            (string) $options->valueType() !== 'mixed'
-        ) {
-            throw new \TypeError('Argument 1 must be of type Map<string, mixed>');
-        }
+        assertMap('string', 'mixed', $options, 1);
 
         $this->options = $options;
     }
