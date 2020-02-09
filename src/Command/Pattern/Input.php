@@ -11,7 +11,7 @@ use Innmind\Immutable\{
 
 interface Input
 {
-    public static function fromString(Str $pattern): self;
+    public static function of(Str $pattern): self;
 
     /**
      * @param Map<string, mixed> $parsed

@@ -27,8 +27,8 @@ class RequiredArgumentTest extends TestCase
 
     public function testInterface()
     {
-        $this->assertInstanceOf(Input::class, RequiredArgument::fromString(Str::of('foo')));
-        $this->assertInstanceOf(Argument::class, RequiredArgument::fromString(Str::of('foo')));
+        $this->assertInstanceOf(Input::class, RequiredArgument::of(Str::of('foo')));
+        $this->assertInstanceOf(Argument::class, RequiredArgument::of(Str::of('foo')));
     }
 
     public function testThrowWhenInvalidPattern()
@@ -42,7 +42,7 @@ class RequiredArgumentTest extends TestCase
                 $this->expectException(PatternNotRecognized::class);
                 $this->expectExceptionMessage($string);
 
-                RequiredArgument::fromString(Str::of($string));
+                RequiredArgument::of(Str::of($string));
             });
     }
 
@@ -53,14 +53,14 @@ class RequiredArgumentTest extends TestCase
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,
-                    RequiredArgument::fromString(Str::of($string))->toString(),
+                    RequiredArgument::of(Str::of($string))->toString(),
                 );
             });
     }
 
     public function testExtract()
     {
-        $input = RequiredArgument::fromString(Str::of('foo'));
+        $input = RequiredArgument::of(Str::of('foo'));
 
         $arguments = $input->extract(
             Map::of('string', 'mixed'),
@@ -77,7 +77,7 @@ class RequiredArgumentTest extends TestCase
 
     public function testThrowWhenArgumentNotFound()
     {
-        $input = RequiredArgument::fromString(Str::of('foo'));
+        $input = RequiredArgument::of(Str::of('foo'));
 
         $this->expectException(MissingArgument::class);
         $this->expectExceptionMessage('foo');

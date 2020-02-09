@@ -22,7 +22,7 @@ final class RequiredArgument implements Input, Argument
         $this->name = $name;
     }
 
-    public static function fromString(Str $pattern): Input
+    public static function of(Str $pattern): Input
     {
         if (!$pattern->matches('~^[a-zA-Z0-9]+$~')) {
             throw new PatternNotRecognized($pattern->toString());

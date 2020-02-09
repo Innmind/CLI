@@ -27,8 +27,8 @@ class OptionalArgumentTest extends TestCase
 
     public function testInterface()
     {
-        $this->assertInstanceOf(Input::class, OptionalArgument::fromString(Str::of('[foo]')));
-        $this->assertInstanceOf(Argument::class, OptionalArgument::fromString(Str::of('[foo]')));
+        $this->assertInstanceOf(Input::class, OptionalArgument::of(Str::of('[foo]')));
+        $this->assertInstanceOf(Argument::class, OptionalArgument::of(Str::of('[foo]')));
     }
 
     public function testThrowWhenInvalidPattern()
@@ -42,7 +42,7 @@ class OptionalArgumentTest extends TestCase
                 $this->expectException(PatternNotRecognized::class);
                 $this->expectExceptionMessage('['.$string.']');
 
-                OptionalArgument::fromString(Str::of('['.$string.']'));
+                OptionalArgument::of(Str::of('['.$string.']'));
             });
     }
 
@@ -53,14 +53,14 @@ class OptionalArgumentTest extends TestCase
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,
-                    OptionalArgument::fromString(Str::of($string))->toString(),
+                    OptionalArgument::of(Str::of($string))->toString(),
                 );
             });
     }
 
     public function testExtract()
     {
-        $input = OptionalArgument::fromString(Str::of('[foo]'));
+        $input = OptionalArgument::of(Str::of('[foo]'));
 
         $arguments = $input->extract(
             Map::of('string', 'mixed'),
@@ -77,7 +77,7 @@ class OptionalArgumentTest extends TestCase
 
     public function testDoNothingWhenArgumentNotFound()
     {
-        $input = OptionalArgument::fromString(Str::of('[foo]'));
+        $input = OptionalArgument::of(Str::of('[foo]'));
 
         $arguments = $input->extract(
             $expected = Map::of('string', 'mixed'),

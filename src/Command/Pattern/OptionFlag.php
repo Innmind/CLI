@@ -34,7 +34,7 @@ final class OptionFlag implements Input, Option
         }
     }
 
-    public static function fromString(Str $pattern): Input
+    public static function of(Str $pattern): Input
     {
         if (!$pattern->matches(self::PATTERN)) {
             throw new PatternNotRecognized($pattern->toString());

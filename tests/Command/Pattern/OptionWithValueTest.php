@@ -28,8 +28,8 @@ class OptionWithValueTest extends TestCase
 
     public function testInterface()
     {
-        $this->assertInstanceOf(Input::class, OptionWithValue::fromString(Str::of('--foo=')));
-        $this->assertInstanceOf(Option::class, OptionWithValue::fromString(Str::of('--foo=')));
+        $this->assertInstanceOf(Input::class, OptionWithValue::of(Str::of('--foo=')));
+        $this->assertInstanceOf(Option::class, OptionWithValue::of(Str::of('--foo=')));
     }
 
     public function testThrowWhenInvalidPattern()
@@ -44,7 +44,7 @@ class OptionWithValueTest extends TestCase
                 $this->expectException(PatternNotRecognized::class);
                 $this->expectExceptionMessage($string);
 
-                OptionWithValue::fromString(Str::of($string));
+                OptionWithValue::of(Str::of($string));
             });
     }
 
@@ -55,14 +55,14 @@ class OptionWithValueTest extends TestCase
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,
-                    OptionWithValue::fromString(Str::of($string))->toString(),
+                    OptionWithValue::of(Str::of($string))->toString(),
                 );
             });
     }
 
     public function testExtract()
     {
-        $input = OptionWithValue::fromString(Str::of('--foo='));
+        $input = OptionWithValue::of(Str::of('--foo='));
 
         $arguments = $input->extract(
             Map::of('string', 'mixed'),
@@ -79,7 +79,7 @@ class OptionWithValueTest extends TestCase
 
     public function testExtractShortOptionWithValueRightAfterIt()
     {
-        $input = OptionWithValue::fromString(Str::of('-f|--foo='));
+        $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->extract(
             Map::of('string', 'mixed'),
@@ -96,7 +96,7 @@ class OptionWithValueTest extends TestCase
 
     public function testExtractShortOptionWithValueAsNextArgument()
     {
-        $input = OptionWithValue::fromString(Str::of('-f|--foo='));
+        $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->extract(
             Map::of('string', 'mixed'),
@@ -113,7 +113,7 @@ class OptionWithValueTest extends TestCase
 
     public function testDoesNothingWhenNoOption()
     {
-        $input = OptionWithValue::fromString(Str::of('--foo='));
+        $input = OptionWithValue::of(Str::of('--foo='));
 
         $arguments = $input->extract(
             $expected = Map::of('string', 'mixed'),
@@ -126,7 +126,7 @@ class OptionWithValueTest extends TestCase
 
     public function testDoesNothingWhenNoShortOption()
     {
-        $input = OptionWithValue::fromString(Str::of('-f|--foo='));
+        $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->extract(
             $expected = Map::of('string', 'mixed'),
@@ -139,7 +139,7 @@ class OptionWithValueTest extends TestCase
 
     public function testCleanWhenNoOption()
     {
-        $input = OptionWithValue::fromString(Str::of('-f|--foo='));
+        $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->clean(
             $expected = Sequence::of('string', 'watev', 'f', 'bar', 'baz')
@@ -150,7 +150,7 @@ class OptionWithValueTest extends TestCase
 
     public function testCleanWhenOptionWithValueAttached()
     {
-        $input = OptionWithValue::fromString(Str::of('-f|--foo='));
+        $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->clean(
             Sequence::of('string', 'watev', '--foo=foo', 'bar', 'baz')
@@ -163,7 +163,7 @@ class OptionWithValueTest extends TestCase
 
     public function testCleanWhenShortOptionWithValueAttached()
     {
-        $input = OptionWithValue::fromString(Str::of('-f|--foo='));
+        $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->clean(
             Sequence::of('string', 'watev', '-f=foo', 'bar', 'baz')
@@ -176,7 +176,7 @@ class OptionWithValueTest extends TestCase
 
     public function testCleanWhenShortOptionWithValueAsNextArgument()
     {
-        $input = OptionWithValue::fromString(Str::of('-f|--foo='));
+        $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->clean(
             Sequence::of('string', 'watev', '-f', 'bar', 'baz')

@@ -25,7 +25,7 @@ final class Inputs
     {
         foreach ($this->inputs as $input) {
             try {
-                return [$input, 'fromString']($pattern);
+                return [$input, 'of']($pattern);
             } catch (PatternNotRecognized $e) {
                 //pass
             }

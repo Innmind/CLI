@@ -28,8 +28,8 @@ class PackArgumentTest extends TestCase
 
     public function testInterface()
     {
-        $this->assertInstanceOf(Input::class, PackArgument::fromString(Str::of('...foo')));
-        $this->assertInstanceOf(Argument::class, PackArgument::fromString(Str::of('...foo')));
+        $this->assertInstanceOf(Input::class, PackArgument::of(Str::of('...foo')));
+        $this->assertInstanceOf(Argument::class, PackArgument::of(Str::of('...foo')));
     }
 
     public function testThrowWhenInvalidPattern()
@@ -43,7 +43,7 @@ class PackArgumentTest extends TestCase
                 $this->expectException(PatternNotRecognized::class);
                 $this->expectExceptionMessage('...'.$string);
 
-                PackArgument::fromString(Str::of('...'.$string));
+                PackArgument::of(Str::of('...'.$string));
             });
     }
 
@@ -54,14 +54,14 @@ class PackArgumentTest extends TestCase
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,
-                    PackArgument::fromString(Str::of($string))->toString(),
+                    PackArgument::of(Str::of($string))->toString(),
                 );
             });
     }
 
     public function testExtract()
     {
-        $input = PackArgument::fromString(Str::of('...foo'));
+        $input = PackArgument::of(Str::of('...foo'));
 
         $arguments = $input->extract(
             Map::of('string', 'mixed'),
@@ -80,7 +80,7 @@ class PackArgumentTest extends TestCase
 
     public function testExtractEmptyStreamWhenNotFound()
     {
-        $input = PackArgument::fromString(Str::of('...foo'));
+        $input = PackArgument::of(Str::of('...foo'));
 
         $arguments = $input->extract(
             Map::of('string', 'mixed'),
