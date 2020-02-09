@@ -47,10 +47,7 @@ final class Options
         );
     }
 
-    /**
-     * @return string|bool
-     */
-    public function get(string $argument)
+    public function get(string $argument): string
     {
         return $this->options->get($argument);
     }
