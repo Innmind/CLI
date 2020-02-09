@@ -48,17 +48,6 @@ final class Options
     }
 
     /**
-     * @deprecated
-     * @see self::of()
-     */
-    public static function fromSpecification(
-        Specification $specification,
-        Sequence $arguments
-    ): self {
-        return self::of($specification, $arguments);
-    }
-
-    /**
      * @return string|bool
      */
     public function get(string $argument)

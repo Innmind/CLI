@@ -69,7 +69,7 @@ class OptionsTest extends TestCase
         $this->assertSame('baz', $options->get('bar'));
     }
 
-    public function testFromSpecification()
+    public function testOf()
     {
         $spec = new Specification(new class implements Command {
             public function __invoke(Environment $env, Arguments $args, Options $options): void
@@ -82,7 +82,7 @@ class OptionsTest extends TestCase
             }
         });
 
-        $options = Options::fromSpecification(
+        $options = Options::of(
             $spec,
             Sequence::of('string', '--foo')
         );

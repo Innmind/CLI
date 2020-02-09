@@ -68,17 +68,6 @@ final class Arguments
         return new self($arguments, $pack);
     }
 
-    /**
-     * @deprecated
-     * @see self::of()
-     */
-    public static function fromSpecification(
-        Specification $specification,
-        Sequence $arguments
-    ): self {
-        return self::of($specification, $arguments);
-    }
-
     public function get(string $argument): string
     {
         return $this->arguments->get($argument);

@@ -108,8 +108,8 @@ final class Commands
         }
 
         try {
-            $options = Options::fromSpecification($spec, $arguments);
-            $arguments = Arguments::fromSpecification($spec, $arguments);
+            $options = Options::of($spec, $arguments);
+            $arguments = Arguments::of($spec, $arguments);
         } catch (Exception $e) {
             $this->displayUsage(
                 $env->error(),
