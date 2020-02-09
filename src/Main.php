@@ -22,7 +22,7 @@ use Innmind\Immutable\{
 
 abstract class Main
 {
-    final public function __construct()
+    final public function __construct(bool $displayBinInError = false)
     {
         $os = Factory::build();
         $env = new Environment\WriteAsASCII(
@@ -39,6 +39,7 @@ abstract class Main
             $this->main($env, $os);
         } catch (\Throwable $e) {
             $this->print(
+                $displayBinInError,
                 $env->arguments()->first(),
                 $e,
                 $env->error()
@@ -56,7 +57,7 @@ abstract class Main
         //main() is the only place to run code
     }
 
-    private function print(string $bin, \Throwable $e, Writable $stream): void
+    private function print(bool $displayBin, string $bin, \Throwable $e, Writable $stream): void
     {
         $stack = new StackTrace($e);
 
@@ -72,8 +73,12 @@ abstract class Main
                         ->append($this->renderError($e));
                 }
             )
-            ->map(static function(Str $line) use ($bin): Str {
-                return $line->prepend("$bin: ");
+            ->map(static function(Str $line) use ($bin, $displayBin): Str {
+                if ($displayBin) {
+                    return $line->prepend("$bin: ");
+                }
+
+                return $line;
             })
             ->foreach(
                 static fn(Str $line) => $stream->write($line->append("\n")),
