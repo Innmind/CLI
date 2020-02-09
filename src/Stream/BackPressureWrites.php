@@ -16,14 +16,14 @@ use Innmind\TimeContinuum\{
     Earth\ElapsedPeriod,
     Earth\Period\Millisecond,
 };
-use Innmind\TimeWarp\Halt;
+use Innmind\OperatingSystem\CurrentProcess;
 use Innmind\Immutable\Str;
 
 final class BackPressureWrites implements Writable
 {
     private Writable $stream;
     private Clock $clock;
-    private Halt $halt;
+    private CurrentProcess $process;
     private ElapsedPeriod $threshold;
     private Millisecond $stall;
     private ?PointInTime $lastHit = null;
@@ -31,11 +31,11 @@ final class BackPressureWrites implements Writable
     public function __construct(
         Writable $stream,
         Clock $clock,
-        Halt $halt
+        CurrentProcess $process
     ) {
         $this->stream = $stream;
         $this->clock = $clock;
-        $this->halt = $halt;
+        $this->process = $process;
         $this->threshold = new ElapsedPeriod(10); // 10 milliseconds
         $this->stall = new Millisecond(1);
     }
@@ -50,7 +50,7 @@ final class BackPressureWrites implements Writable
             $pressure = $this->clock->now()->elapsedSince($this->lastHit);
 
             if ($this->threshold->longerThan($pressure)) {
-                ($this->halt)($this->clock, $this->stall);
+                $this->process->halt($this->stall);
             }
         } finally {
             $this->stream->write($data);

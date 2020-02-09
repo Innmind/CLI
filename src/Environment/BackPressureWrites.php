@@ -8,7 +8,7 @@ use Innmind\CLI\{
     Stream,
 };
 use Innmind\TimeContinuum\Clock;
-use Innmind\TimeWarp\Halt;
+use Innmind\OperatingSystem\CurrentProcess;
 use Innmind\Stream\{
     Readable,
     Writable
@@ -23,17 +23,17 @@ final class BackPressureWrites implements Environment
 {
     private Environment $environment;
     private Clock $clock;
-    private Halt $halt;
+    private CurrentProcess $process;
     private ?Writable $error = null;
 
     public function __construct(
         Environment $environment,
         Clock $clock,
-        Halt $halt
+        CurrentProcess $process
     ) {
         $this->environment = $environment;
         $this->clock = $clock;
-        $this->halt = $halt;
+        $this->process = $process;
     }
 
     public function input(): Readable
@@ -51,7 +51,7 @@ final class BackPressureWrites implements Environment
         return $this->error ??= new Stream\BackPressureWrites(
             $this->environment->error(),
             $this->clock,
-            $this->halt
+            $this->process,
         );
     }
 

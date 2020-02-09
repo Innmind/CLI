@@ -33,7 +33,7 @@ abstract class Main
                         new Environment\BackPressureWrites(
                             new Environment\GlobalEnvironment,
                             $os->clock(),
-                            new Usleep
+                            $os->process(),
                         )
                     )
                 ),

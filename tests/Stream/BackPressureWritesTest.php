@@ -16,7 +16,7 @@ use Innmind\TimeContinuum\{
     Earth\ElapsedPeriod,
     Earth\Period\Millisecond,
 };
-use Innmind\TimeWarp\Halt;
+use Innmind\OperatingSystem\CurrentProcess;
 use Innmind\Immutable\Str;
 use PHPUnit\Framework\TestCase;
 
@@ -29,7 +29,7 @@ class BackPressureWritesTest extends TestCase
             new BackPressureWrites(
                 $this->createMock(Writable::class),
                 $this->createMock(Clock::class),
-                $this->createMock(Halt::class)
+                $this->createMock(CurrentProcess::class),
             )
         );
     }
@@ -39,16 +39,16 @@ class BackPressureWritesTest extends TestCase
         $stream = new BackPressureWrites(
             $inner = $this->createMock(Writable::class),
             $this->createMock(Clock::class),
-            $halt = $this->createMock(Halt::class)
+            $process = $this->createMock(CurrentProcess::class),
         );
         $data = Str::of('');
         $inner
             ->expects($this->once())
             ->method('write')
             ->with($data);
-        $halt
+        $process
             ->expects($this->never())
-            ->method('__invoke');
+            ->method('halt');
 
         $this->assertNull($stream->write($data));
     }
@@ -58,16 +58,16 @@ class BackPressureWritesTest extends TestCase
         $stream = new BackPressureWrites(
             $inner = $this->createMock(Writable::class),
             $clock = $this->createMock(Clock::class),
-            $halt = $this->createMock(Halt::class)
+            $process = $this->createMock(CurrentProcess::class),
         );
         $data = Str::of('');
         $inner
             ->expects($this->any())
             ->method('write')
             ->with($data);
-        $halt
+        $process
             ->expects($this->never())
-            ->method('__invoke');
+            ->method('halt');
         $clock
             ->expects($this->at(0))
             ->method('now')
@@ -91,7 +91,7 @@ class BackPressureWritesTest extends TestCase
         $stream = new BackPressureWrites(
             $inner = $this->createMock(Writable::class),
             $clock = $this->createMock(Clock::class),
-            $halt = $this->createMock(Halt::class)
+            $process = $this->createMock(CurrentProcess::class),
         );
         $data = Str::of('');
         $inner
@@ -111,13 +111,10 @@ class BackPressureWritesTest extends TestCase
             ->method('elapsedSince')
             ->with($first)
             ->willReturn(new ElapsedPeriod(9));
-        $halt
+        $process
             ->expects($this->once())
-            ->method('__invoke')
-            ->with(
-                $clock,
-                new Millisecond(1)
-            );
+            ->method('halt')
+            ->with(new Millisecond(1));
 
         $stream->write($data);
         $this->assertNull($stream->write($data));
@@ -128,7 +125,7 @@ class BackPressureWritesTest extends TestCase
         $stream = new BackPressureWrites(
             $inner = $this->createMock(Writable::class),
             $this->createMock(Clock::class),
-            $this->createMock(Halt::class)
+            $this->createMock(CurrentProcess::class),
         );
         $inner
             ->expects($this->once())
@@ -142,7 +139,7 @@ class BackPressureWritesTest extends TestCase
         $stream = new BackPressureWrites(
             $inner = $this->createMock(Writable::class),
             $this->createMock(Clock::class),
-            $this->createMock(Halt::class)
+            $this->createMock(CurrentProcess::class),
         );
         $inner
             ->expects($this->exactly(2))
@@ -158,7 +155,7 @@ class BackPressureWritesTest extends TestCase
         $stream = new BackPressureWrites(
             $inner = $this->createMock(Writable::class),
             $this->createMock(Clock::class),
-            $this->createMock(Halt::class)
+            $this->createMock(CurrentProcess::class),
         );
         $inner
             ->expects($this->once())
@@ -173,7 +170,7 @@ class BackPressureWritesTest extends TestCase
         $stream = new BackPressureWrites(
             $inner = $this->createMock(Writable::class),
             $this->createMock(Clock::class),
-            $this->createMock(Halt::class)
+            $this->createMock(CurrentProcess::class),
         );
         $position = new Position(42);
         $mode = Mode::fromStart();
@@ -190,7 +187,7 @@ class BackPressureWritesTest extends TestCase
         $stream = new BackPressureWrites(
             $inner = $this->createMock(Writable::class),
             $this->createMock(Clock::class),
-            $this->createMock(Halt::class)
+            $this->createMock(CurrentProcess::class),
         );
         $inner
             ->expects($this->once())
@@ -204,7 +201,7 @@ class BackPressureWritesTest extends TestCase
         $stream = new BackPressureWrites(
             $inner = $this->createMock(Writable::class),
             $this->createMock(Clock::class),
-            $this->createMock(Halt::class)
+            $this->createMock(CurrentProcess::class),
         );
         $inner
             ->expects($this->exactly(2))
@@ -220,7 +217,7 @@ class BackPressureWritesTest extends TestCase
         $stream = new BackPressureWrites(
             $inner = $this->createMock(Writable::class),
             $this->createMock(Clock::class),
-            $this->createMock(Halt::class)
+            $this->createMock(CurrentProcess::class),
         );
         $inner
             ->expects($this->once())
@@ -235,7 +232,7 @@ class BackPressureWritesTest extends TestCase
         $stream = new BackPressureWrites(
             $inner = $this->createMock(Writable::class),
             $this->createMock(Clock::class),
-            $this->createMock(Halt::class)
+            $this->createMock(CurrentProcess::class),
         );
         $inner
             ->expects($this->exactly(2))
