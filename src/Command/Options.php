@@ -11,7 +11,7 @@ use Innmind\Immutable\{
 
 final class Options
 {
-    private $options;
+    private MapInterface $options;
 
     /**
      * @param MapInterface<string, mixed> $options

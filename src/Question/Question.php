@@ -13,8 +13,8 @@ use Innmind\Immutable\Str;
 
 final class Question
 {
-    private $question;
-    private $hiddenResponse = false;
+    private Str $question;
+    private bool $hiddenResponse = false;
 
     public function __construct(string $question)
     {

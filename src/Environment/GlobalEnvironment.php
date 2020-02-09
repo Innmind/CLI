@@ -21,13 +21,13 @@ use Innmind\Immutable\{
 
 final class GlobalEnvironment implements Environment
 {
-    private $input;
-    private $output;
-    private $error;
-    private $arguments;
-    private $variables;
-    private $exitCode;
-    private $workingDirectory;
+    private Readable $input;
+    private Writable $output;
+    private Writable $error;
+    private Stream $arguments;
+    private Map $variables;
+    private ExitCode $exitCode;
+    private Path $workingDirectory;
 
     public function __construct()
     {

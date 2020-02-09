@@ -12,7 +12,7 @@ use Innmind\Immutable\{
 
 final class OptionalArgument implements Input, Argument
 {
-    private $name;
+    private string $name;
 
     private function __construct(string $name)
     {

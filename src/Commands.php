@@ -22,8 +22,8 @@ use Innmind\Immutable\{
 
 final class Commands
 {
-    private $commands;
-    private $specifications;
+    private Map $commands;
+    private Map $specifications;
 
     public function __construct(Command $command, Command ...$commands)
     {

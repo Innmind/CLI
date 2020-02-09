@@ -12,6 +12,7 @@ use Innmind\Stream\{
 };
 use Innmind\TimeContinuum\{
     TimeContinuumInterface,
+    PointInTimeInterface,
     ElapsedPeriod,
     Period\Earth\Millisecond,
 };
@@ -20,12 +21,12 @@ use Innmind\Immutable\Str;
 
 final class BackPressureWrites implements Writable
 {
-    private $stream;
-    private $clock;
-    private $halt;
-    private $threshold;
-    private $stall;
-    private $lastHit;
+    private Writable $stream;
+    private TimeContinuumInterface $clock;
+    private Halt $halt;
+    private ElapsedPeriod $threshold;
+    private Millisecond $stall;
+    private PointInTimeInterface $lastHit;
 
     public function __construct(
         Writable $stream,

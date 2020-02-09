@@ -17,11 +17,11 @@ use Innmind\Immutable\{
 
 final class Table
 {
-    private $header;
-    private $rows;
-    private $columnSeparator = '|';
-    private $rowSeparator = '-';
-    private $crossingSeparator = '+';
+    private ?Row $header;
+    private Stream $rows;
+    private string $columnSeparator = '|';
+    private string $rowSeparator = '-';
+    private string $crossingSeparator = '+';
 
     public function __construct(?Row $header, Row $row, Row ...$rows)
     {

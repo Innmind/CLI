@@ -11,10 +11,10 @@ use Innmind\Immutable\Str;
 
 final class Specification
 {
-    private $name;
-    private $shortDescription = '';
-    private $description = '';
-    private $pattern;
+    private string $name;
+    private string $shortDescription = '';
+    private string $description = '';
+    private Pattern $pattern;
 
     public function __construct(Command $command)
     {

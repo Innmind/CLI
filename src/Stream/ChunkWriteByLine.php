@@ -14,7 +14,7 @@ use Innmind\Immutable\Str;
 
 final class ChunkWriteByLine implements Writable
 {
-    private $stream;
+    private Writable $stream;
 
     public function __construct(Writable $stream)
     {

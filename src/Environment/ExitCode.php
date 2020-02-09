@@ -5,7 +5,7 @@ namespace Innmind\CLI\Environment;
 
 final class ExitCode
 {
-    private $code;
+    private int $code;
 
     public function __construct(int $code)
     {

@@ -15,7 +15,7 @@ use Innmind\Immutable\{
 
 final class RequiredArgument implements Input, Argument
 {
-    private $name;
+    private string $name;
 
     private function __construct(string $name)
     {

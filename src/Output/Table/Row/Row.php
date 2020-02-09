@@ -11,7 +11,7 @@ use Innmind\Immutable\{
 
 final class Row implements RowInterface
 {
-    private $cells;
+    private Stream $cells;
 
     public function __construct(Cell ...$cells)
     {

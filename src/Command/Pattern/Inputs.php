@@ -8,7 +8,7 @@ use Innmind\Immutable\Str;
 
 final class Inputs
 {
-    private $inputs;
+    private array $inputs;
 
     public function __construct()
     {

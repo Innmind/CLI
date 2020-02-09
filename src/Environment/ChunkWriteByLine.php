@@ -19,8 +19,8 @@ use Innmind\Immutable\{
 
 final class ChunkWriteByLine implements Environment
 {
-    private $environment;
-    private $error;
+    private Environment $environment;
+    private ?Writable $error = null;
 
     public function __construct(Environment $environment)
     {
@@ -39,7 +39,7 @@ final class ChunkWriteByLine implements Environment
 
     public function error(): Writable
     {
-        return $this->error ?? $this->error = new Stream\ChunkWriteByLine(
+        return $this->error ??= new Stream\ChunkWriteByLine(
             $this->environment->error()
         );
     }

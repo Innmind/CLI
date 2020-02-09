@@ -17,8 +17,8 @@ use Innmind\Immutable\{
 
 final class ChoiceQuestion
 {
-    private $question;
-    private $values;
+    private Str $question;
+    private MapInterface $values;
 
     /**
      * @param MapInterface<scalar, scalar> $values

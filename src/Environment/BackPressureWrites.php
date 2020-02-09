@@ -21,10 +21,10 @@ use Innmind\Immutable\{
 
 final class BackPressureWrites implements Environment
 {
-    private $environment;
-    private $clock;
-    private $halt;
-    private $error;
+    private Environment $environment;
+    private TimeContinuumInterface $clock;
+    private Halt $halt;
+    private ?Writable $error = null;
 
     public function __construct(
         Environment $environment,
@@ -48,7 +48,7 @@ final class BackPressureWrites implements Environment
 
     public function error(): Writable
     {
-        return $this->error ?? $this->error = new Stream\BackPressureWrites(
+        return $this->error ??= new Stream\BackPressureWrites(
             $this->environment->error(),
             $this->clock,
             $this->halt

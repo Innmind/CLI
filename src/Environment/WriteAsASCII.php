@@ -19,9 +19,9 @@ use Innmind\Immutable\{
 
 final class WriteAsASCII implements Environment
 {
-    private $environment;
-    private $output;
-    private $error;
+    private Environment $environment;
+    private ?Writable $output = null;
+    private ?Writable $error = null;
 
     public function __construct(Environment $environment)
     {

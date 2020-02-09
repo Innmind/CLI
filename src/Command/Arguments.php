@@ -11,8 +11,8 @@ use Innmind\Immutable\{
 
 final class Arguments
 {
-    private $arguments;
-    private $pack;
+    private MapInterface $arguments;
+    private ?StreamInterface $pack = null;
 
     /**
      * @param MapInterface<string, mixed> $arguments

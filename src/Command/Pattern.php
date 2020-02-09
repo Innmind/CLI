@@ -26,7 +26,7 @@ use Innmind\Immutable\{
 
 final class Pattern
 {
-    private $inputs;
+    private Stream $inputs;
 
     public function __construct(Str ...$inputs)
     {
