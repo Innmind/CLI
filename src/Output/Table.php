@@ -64,14 +64,12 @@ final class Table
     public function toString(): string
     {
         $widths = $this->widths($this->rows());
-        $rows = $this->rows->reduce(
-            Sequence::of(Str::class),
-            function(Sequence $rows, Row $row) use ($widths): Sequence {
-                return $rows->add(Str::of($row(
-                    $this->columnSeparator,
-                    ...unwrap($widths),
-                )));
-            }
+        $rows = $this->rows->mapTo(
+            Str::class,
+            fn(Row $row): Str => Str::of($row(
+                $this->columnSeparator,
+                ...unwrap($widths),
+            )),
         );
 
         $explodedFirstRow = $rows
@@ -113,9 +111,7 @@ final class Table
         }
 
         $lines = Sequence::of(Str::class, $bound, $header, $rows, $bound)
-            ->filter(static function(Str $line): bool {
-                return !$line->empty();
-            })
+            ->filter(static fn(Str $line): bool => !$line->empty())
             ->mapTo(
                 'string',
                 static fn(Str $line): string => $line->toString(),
@@ -142,7 +138,7 @@ final class Table
      */
     private function widths(Sequence $rows): Sequence
     {
-        $columns = Sequence::of('int', ...range(0, $rows->first()->size() - 1));
+        $columns = Sequence::ints(...range(0, $rows->first()->size() - 1));
         $defaultWidths = $columns->reduce(
             Map::of('int', 'int'),
             static function(Map $widths, int $column): Map {
@@ -167,11 +163,8 @@ final class Table
             }
         );
 
-        return $columns->reduce(
-            Sequence::of('int'),
-            static function(Sequence $widths, int $column) use ($widthPerColumn): Sequence {
-                return $widths->add($widthPerColumn->get($column));
-            }
+        return $columns->map(
+            static fn(int $column): int => $widthPerColumn->get($column),
         );
     }
 }

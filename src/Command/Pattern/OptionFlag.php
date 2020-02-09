@@ -8,6 +8,7 @@ use Innmind\Immutable\{
     Str,
     Sequence,
     Map,
+    Exception\NoElementMatchingPredicateFound,
 };
 
 final class OptionFlag implements Input, Option
@@ -60,18 +61,15 @@ final class OptionFlag implements Input, Option
         int $position,
         Sequence $arguments
     ): Map {
-        $exists = $arguments->reduce(
-            false,
-            function(bool $exists, string $argument): bool {
-                return $exists || Str::of($argument)->matches($this->pattern);
-            }
-        );
+        try {
+            $arguments->find(
+                fn(string $argument): bool => Str::of($argument)->matches($this->pattern),
+            );
 
-        if (!$exists) {
+            return ($parsed)($this->name, '');
+        } catch (NoElementMatchingPredicateFound $e) {
             return $parsed;
         }
-
-        return $parsed->put($this->name, '');
     }
 
     /**

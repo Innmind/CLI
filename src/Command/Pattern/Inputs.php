@@ -21,7 +21,7 @@ final class Inputs
         ];
     }
 
-    public function load(Str $pattern): Input
+    public function __invoke(Str $pattern): Input
     {
         foreach ($this->inputs as $input) {
             try {

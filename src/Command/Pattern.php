@@ -28,12 +28,10 @@ final class Pattern
 
     public function __construct(Str ...$inputs)
     {
-        $loader = new Inputs;
-        $this->inputs = Sequence::of(Str::class, ...$inputs)->reduce(
-            Sequence::of(Input::class),
-            static function(Sequence $inputs, Str $element) use ($loader): Sequence {
-                return $inputs->add($loader->load($element));
-            }
+        $load = new Inputs;
+        $this->inputs = Sequence::of(Str::class, ...$inputs)->mapTo(
+            Input::class,
+            static fn(Str $element): Input => $load($element),
         );
 
         $arguments = $this->inputs->filter(static function(Input $input): bool {
@@ -48,7 +46,7 @@ final class Pattern
             throw new OnlyOnePackArgumentAllowed;
         }
 
-        if ($packs->size() > 0 && !$arguments->last() instanceof PackArgument) {
+        if (!$packs->empty() && !$arguments->last() instanceof PackArgument) {
             throw new PackArgumentMustBeTheLastOne;
         }
 

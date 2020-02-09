@@ -8,6 +8,7 @@ use Innmind\Immutable\{
     Str,
     Sequence,
     Map,
+    Exception\NoElementMatchingPredicateFound,
 };
 use function Innmind\Immutable\join;
 
@@ -61,14 +62,11 @@ final class OptionWithValue implements Input, Option
         int $position,
         Sequence $arguments
     ): Map {
-        $flag = $arguments->reduce(
-            null,
-            function(?string $flag, string $argument): ?string {
-                return $flag ?? (Str::of($argument)->matches($this->pattern) ? $argument : null);
-            }
-        );
-
-        if (is_null($flag)) {
+        try {
+            $flag = $arguments->find(
+                fn(string $argument): bool => Str::of($argument)->matches($this->pattern),
+            );
+        } catch (NoElementMatchingPredicateFound $e) {
             return $parsed;
         }
 

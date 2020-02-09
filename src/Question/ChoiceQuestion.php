@@ -59,11 +59,9 @@ final class ChoiceQuestion
         $choices = $response
             ->substring(0, -1) // remove the new line character
             ->split(',')
-            ->reduce(
-                Set::of('string'),
-                static function(Set $choices, Str $choice): Set {
-                    return $choices->add($choice->trim()->toString());
-                }
+            ->toSetOf(
+                'string',
+                static fn(Str $choice): \Generator => yield $choice->trim()->toString(),
             );
 
         return $this->values->filter(static function($key) use ($choices): bool {

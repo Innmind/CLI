@@ -31,19 +31,19 @@ final class Commands
 
     public function __construct(Command $command, Command ...$commands)
     {
-        $this->commands = Set::of(Command::class, $command, ...$commands)->reduce(
-            Map::of(Specification::class, Command::class),
-            static function(Map $commands, Command $command): Map {
-                $spec = new Specification($command);
-
-                return $commands->put($spec, $command);
-            }
+        $this->commands = Set::of(Command::class, $command, ...$commands)->toMapOf(
+            Specification::class,
+            Command::class,
+            static function(Command $command): \Generator {
+                yield new Specification($command) => $command;
+            },
         );
-        $this->specifications = $this->commands->reduce(
-            Map::of('string', Specification::class),
-            static function(Map $specs, Specification $spec): Map {
-                return $specs->put($spec->name(), $spec);
-            }
+        $this->specifications = $this->commands->toMapOf(
+            'string',
+            Specification::class,
+            static function(Specification $spec): \Generator {
+                yield $spec->name() => $spec;
+            },
         );
     }
 
@@ -91,7 +91,7 @@ final class Commands
         $run = $this->commands->get($spec);
         $arguments = $env->arguments()->drop(1); //drop script name
 
-        if ($arguments->size() > 0 && $arguments->first() === $command) {
+        if (!$arguments->empty() && $arguments->first() === $command) {
             //drop command name, conditional as it can be omitted when only one
             //command defined
             $arguments = $arguments->drop(1);
