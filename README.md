@@ -1,10 +1,8 @@
 # CLI
 
-| `master` | `develop` |
-|----------|-----------|
-| [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Innmind/CLI/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/Innmind/CLI/?branch=master) | [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Innmind/CLI/badges/quality-score.png?b=develop)](https://scrutinizer-ci.com/g/Innmind/CLI/?branch=develop) |
-| [![Code Coverage](https://scrutinizer-ci.com/g/Innmind/CLI/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/Innmind/CLI/?branch=master) | [![Code Coverage](https://scrutinizer-ci.com/g/Innmind/CLI/badges/coverage.png?b=develop)](https://scrutinizer-ci.com/g/Innmind/CLI/?branch=develop) |
-| [![Build Status](https://scrutinizer-ci.com/g/Innmind/CLI/badges/build.png?b=master)](https://scrutinizer-ci.com/g/Innmind/CLI/build-status/master) | [![Build Status](https://scrutinizer-ci.com/g/Innmind/CLI/badges/build.png?b=develop)](https://scrutinizer-ci.com/g/Innmind/CLI/build-status/develop) |
+[![Build Status](https://github.com/Innmind/CLI/workflows/CI/badge.svg)](https://github.com/Innmind/CLI/actions?query=workflow%3ACI)
+[![codecov](https://codecov.io/gh/Innmind/CLI/branch/develop/graph/badge.svg)](https://codecov.io/gh/Innmind/CLI)
+[![Type Coverage](https://shepherd.dev/github/Innmind/CLI/coverage.svg)](https://shepherd.dev/github/Innmind/CLI)
 
 CLI is a small library to wrap all the needed informations to build a command line tool. The idea to build this came while reading the [ponylang](https://www.ponylang.org/) [documentation](https://tutorial.ponylang.org/getting-started/how-it-works.html) realising that other languages use a similar approach for the entry point of the app, so I decided to have a something similar for PHP.
 
