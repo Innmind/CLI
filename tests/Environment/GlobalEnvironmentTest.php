@@ -94,6 +94,7 @@ class GlobalEnvironmentTest extends TestCase
     public function testWorkingDirectory()
     {
         $this->assertInstanceOf(Path::class, $this->env->workingDirectory());
-        $this->assertSame(getcwd(), $this->env->workingDirectory()->toString());
+        $this->assertTrue($this->env->workingDirectory()->directory());
+        $this->assertSame(getcwd().'/', $this->env->workingDirectory()->toString());
     }
 }

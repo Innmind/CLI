@@ -46,7 +46,7 @@ final class GlobalEnvironment implements Environment
         }
 
         $this->exitCode = new ExitCode(0);
-        $this->workingDirectory = Path::of(getcwd());
+        $this->workingDirectory = Path::of(getcwd().'/');
     }
 
     public function input(): Readable
