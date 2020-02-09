@@ -15,13 +15,14 @@ use Innmind\Immutable\{
 use Symfony\Component\Dotenv\Dotenv;
 
 /**
- * @param $variables Map<string, string>
+ * @param Map<string, string> $variables
  *
  * @return Map<string, string>
  */
 function variables(Map $variables, Adapter $config): Map
 {
     if ($config->contains(new Name('.env'))) {
+        /** @var array<string, string> */
         $dot = (new Dotenv)->parse($config->get(new Name('.env'))->content()->toString());
 
         foreach ($dot as $key => $value) {

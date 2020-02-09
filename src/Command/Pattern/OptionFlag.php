@@ -29,7 +29,7 @@ final class OptionFlag implements Input, Option
         } else {
             $this->pattern = sprintf(
                 '~^-%s|--%s$~',
-                $this->short,
+                $short,
                 $this->name
             );
         }
@@ -42,6 +42,7 @@ final class OptionFlag implements Input, Option
         }
 
         $parts = $pattern->capture(self::PATTERN);
+        $short = null;
 
         if ($parts->contains('short') && !$parts->get('short')->empty()) {
             $short = $parts->get('short')->substring(1, -1)->toString();
@@ -49,7 +50,7 @@ final class OptionFlag implements Input, Option
 
         return new self(
             $parts->get('name')->substring(2)->toString(),
-            $short ?? null
+            $short,
         );
     }
 

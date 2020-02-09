@@ -88,10 +88,11 @@ final class Pattern
     /**
      * @param Sequence<string> $arguments
      *
-     * @return Map<string, mixed>
+     * @return Map<string, string|Sequence<string>>
      */
     public function extract(Sequence $arguments): Map
     {
+        /** @var Map<string, string|Sequence<string>> */
         return $this
             ->inputs
             ->reduce(
@@ -103,6 +104,7 @@ final class Pattern
             ->reduce(
                 Map::of('string', 'string|'.Sequence::class),
                 static function(Map $inputs, int $position, Input $input) use ($arguments): Map {
+                    /** @var Map<string, string|Sequence<string>> $inputs */
                     return $input->extract($inputs, $position, $arguments);
                 }
             );
@@ -118,9 +120,11 @@ final class Pattern
      */
     public function clean(Sequence $arguments): Sequence
     {
+        /** @var Sequence<string> */
         return $this->inputs->reduce(
             $arguments,
             static function(Sequence $arguments, Option $option): Sequence {
+                /** @var Sequence<string> $arguments */
                 return $option->clean($arguments);
             }
         );

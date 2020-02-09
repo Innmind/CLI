@@ -12,10 +12,12 @@ use function Innmind\Immutable\join;
 
 final class Row implements RowInterface
 {
+    /** @var Sequence<Cell> */
     private Sequence $cells;
 
     public function __construct(Cell ...$cells)
     {
+        /** @var Sequence<Cell> */
         $this->cells = Sequence::of(Cell::class, ...$cells);
     }
 
@@ -31,8 +33,9 @@ final class Row implements RowInterface
 
     public function __invoke(string $separator, int ...$widths): string
     {
-        $widths = Sequence::of('int', ...$widths);
+        $widths = Sequence::ints(...$widths);
 
+        /** @var Sequence<string> */
         $cells = $this
             ->cells
             ->reduce(

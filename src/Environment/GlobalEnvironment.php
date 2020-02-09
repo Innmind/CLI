@@ -19,7 +19,9 @@ final class GlobalEnvironment implements Environment
     private Readable $input;
     private Writable $output;
     private Writable $error;
+    /** @var Sequence<string> */
     private Sequence $arguments;
+    /** @var Map<string, string> */
     private Map $variables;
     private ExitCode $exitCode;
     private Path $workingDirectory;
@@ -31,8 +33,12 @@ final class GlobalEnvironment implements Environment
         );
         $this->output = new Writable\Stream(fopen('php://output', 'w'));
         $this->error = new Writable\Stream(STDERR);
-        $this->arguments = Sequence::strings(...$_SERVER['argv']);
+        /** @var list<string> */
+        $argv = $_SERVER['argv'];
+        $this->arguments = Sequence::strings(...$argv);
+        /** @var array<string, string> */
         $variables = getenv();
+        /** @var Map<string, string> */
         $this->variables = Map::of('string', 'string');
 
         foreach ($variables as $key => $value) {

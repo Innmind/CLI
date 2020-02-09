@@ -25,20 +25,18 @@ abstract class Main
     final public function __construct()
     {
         $os = Factory::build();
+        $env = new Environment\WriteAsASCII(
+            new Environment\ChunkWriteByLine(
+                new Environment\BackPressureWrites(
+                    new Environment\GlobalEnvironment,
+                    $os->clock(),
+                    $os->process(),
+                ),
+            ),
+        );
 
         try {
-            $this->main(
-                $env = new Environment\WriteAsASCII(
-                    new Environment\ChunkWriteByLine(
-                        new Environment\BackPressureWrites(
-                            new Environment\GlobalEnvironment,
-                            $os->clock(),
-                            $os->process(),
-                        )
-                    )
-                ),
-                $os
-            );
+            $this->main($env, $os);
         } catch (\Throwable $e) {
             $this->print(
                 $env->arguments()->first(),
@@ -87,6 +85,7 @@ abstract class Main
      */
     private function renderError(Throwable $e): Sequence
     {
+        /** @var Sequence<Str> */
         $lines = Sequence::of(
             Str::class,
             Str::of('%s(%s, %s)')->sprintf(
@@ -101,6 +100,7 @@ abstract class Main
             Str::of('')
         );
 
+        /** @var Sequence<Str> */
         return $e
             ->callFrames()
             ->reduce(

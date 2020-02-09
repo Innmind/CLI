@@ -11,6 +11,7 @@ use function Innmind\Immutable\assertMap;
 
 final class Options
 {
+    /** @var Map<string, string> */
     private Map $options;
 
     /**
@@ -32,19 +33,20 @@ final class Options
         Specification $specification,
         Sequence $arguments
     ): self {
-        return new self(
-            $specification
-                ->pattern()
-                ->options()
-                ->extract($arguments)
-                ->toMapOf( // simply for a type change
-                    'string',
-                    'string',
-                    static function(string $name, string $value): \Generator {
-                        yield $name => $value;
-                    },
-                ),
-        );
+        /** @var Map<string, string> */
+        $options = $specification
+            ->pattern()
+            ->options()
+            ->extract($arguments)
+            ->toMapOf( // simply for a type change
+                'string',
+                'string',
+                static function(string $name, $value): \Generator {
+                    yield $name => $value;
+                },
+            );
+
+        return new self($options);
     }
 
     public function get(string $argument): string

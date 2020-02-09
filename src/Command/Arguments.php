@@ -15,8 +15,10 @@ use function Innmind\Immutable\{
 
 final class Arguments
 {
+    /** @var Map<string, string> */
     private Map $arguments;
-    private ?Sequence $pack = null;
+    /** @var Sequence<string> */
+    private Sequence $pack;
 
     /**
      * @param Map<string, string> $arguments
@@ -48,6 +50,7 @@ final class Arguments
             ->extract($arguments);
 
         try {
+            /** @var Sequence<string> */
             $pack = $arguments->values()->find(
                 static fn($argument): bool => $argument instanceof Sequence,
             );
@@ -55,12 +58,13 @@ final class Arguments
             $pack = null;
         }
 
+        /** @var Map<string, string> */
         $arguments = $arguments
             ->filter(static fn(string $_, $argument): bool => \is_string($argument))
             ->toMapOf(
                 'string',
                 'string',
-                static function(string $key, string $argument): \Generator {
+                static function(string $key, $argument): \Generator {
                     yield $key => $argument;
                 },
             );

@@ -5,7 +5,8 @@ namespace Innmind\CLI\Command;
 
 use Innmind\CLI\{
     Command,
-    Exception\EmptyDeclaration
+    Exception\EmptyDeclaration,
+    Exception\LogicException,
 };
 use Innmind\Immutable\Str;
 use function Innmind\Immutable\{
@@ -30,9 +31,11 @@ final class Specification
 
         $parts = $declaration->split("\n");
 
-        if ($parts->size() >= 1) {
-            [$this->name, $this->pattern] = $this->buildPattern($parts->first());
+        if ($parts->empty()) {
+            throw new LogicException('Missing command pattern');
         }
+
+        [$this->name, $this->pattern] = $this->buildPattern($parts->first());
 
         if ($parts->size() >= 3) {
             //get(2) as there must be a blank line before

@@ -8,6 +8,7 @@ use Innmind\Immutable\Str;
 
 final class Inputs
 {
+    /** list<class-string<Input>> */
     private array $inputs;
 
     public function __construct()
@@ -23,8 +24,10 @@ final class Inputs
 
     public function __invoke(Str $pattern): Input
     {
+        /** @var class-string<Input> $input */
         foreach ($this->inputs as $input) {
             try {
+                /** @var Input */
                 return [$input, 'of']($pattern);
             } catch (PatternNotRecognized $e) {
                 //pass

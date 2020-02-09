@@ -33,13 +33,19 @@ final class Question
     {
         $output->write($this->question);
 
+        /** @psalm-suppress InvalidArgument $input must be a Selectable */
         $select = (new Select(new ElapsedPeriod(60 * 1000))) // one minute
             ->forRead($input);
 
         $response = Str::of('');
 
         if ($this->hiddenResponse) {
+            /**
+             * @psalm-suppress ForbiddenCode
+             * @var string
+             */
             $sttyMode = shell_exec('stty -g');
+            /** @psalm-suppress ForbiddenCode */
             shell_exec('stty -echo'); // disable character print
         }
 
@@ -47,12 +53,17 @@ final class Question
             do {
                 $ready = $select();
 
+                /** @psalm-suppress InvalidArgument $input must be a Selectable */
                 if ($ready->toRead()->contains($input)) {
                     $response = $response->append($input->read()->toString());
                 }
             } while (!$response->contains("\n"));
         } finally {
             if ($this->hiddenResponse) {
+                /**
+                 * @psalm-suppress PossiblyUndefinedVariable
+                 * @psalm-suppress ForbiddenCode
+                 */
                 shell_exec('stty '.$sttyMode);
                 $output->write(Str::of("\n")); // to display the new line
             }

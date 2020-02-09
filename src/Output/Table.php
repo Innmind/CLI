@@ -21,6 +21,7 @@ use function Innmind\Immutable\{
 final class Table
 {
     private ?Row $header;
+    /** @var Sequence<Row> */
     private Sequence $rows;
     private string $columnSeparator = '|';
     private string $rowSeparator = '-';
@@ -139,12 +140,14 @@ final class Table
     private function widths(Sequence $rows): Sequence
     {
         $columns = Sequence::ints(...range(0, $rows->first()->size() - 1));
+        /** @var Map<int, int> */
         $defaultWidths = $columns->reduce(
             Map::of('int', 'int'),
             static function(Map $widths, int $column): Map {
                 return $widths->put($column, 0);
             }
         );
+        /** @var Map<int, int> */
         $widthPerColumn = $rows->reduce(
             $defaultWidths,
             static function(Map $widths, Row $row) use ($columns): Map {

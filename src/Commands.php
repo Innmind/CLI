@@ -26,11 +26,14 @@ use function Innmind\Immutable\{
 
 final class Commands
 {
+    /** @var Map<Specification, Command> */
     private Map $commands;
+    /** @var Map<string, Specification> */
     private Map $specifications;
 
     public function __construct(Command $command, Command ...$commands)
     {
+        /** @var Map<Specification, Command> */
         $this->commands = Set::of(Command::class, $command, ...$commands)->toMapOf(
             Specification::class,
             Command::class,
@@ -38,6 +41,7 @@ final class Commands
                 yield new Specification($command) => $command;
             },
         );
+        /** @var Map<string, Specification> */
         $this->specifications = $this->commands->toMapOf(
             'string',
             Specification::class,
@@ -147,14 +151,13 @@ final class Commands
 
     private function displayHelp(Writable $stream): void
     {
-        $rows = $this->commands->keys()->reduce(
-            Sequence::of(Row::class),
-            static function(Sequence $rows, Specification $spec): Sequence {
-                return $rows->add(new Row(
-                    new Cell($spec->name()),
-                    new Cell($spec->shortDescription())
-                ));
-            }
+        /** @var Sequence<Row> */
+        $rows = $this->commands->keys()->toSequenceOf(
+            Row::class,
+            static fn(Specification $spec): \Generator => yield new Row(
+                new Cell($spec->name()),
+                new Cell($spec->shortDescription())
+            ),
         );
         $printTo = Table::borderless(null, ...unwrap($rows));
         $printTo($stream);

@@ -19,6 +19,7 @@ use function Innmind\Immutable\assertMap;
 final class ChoiceQuestion
 {
     private Str $question;
+    /** @var Map<scalar, scalar> */
     private Map $values;
 
     /**
@@ -43,6 +44,7 @@ final class ChoiceQuestion
         });
         $output->write(Str::of('> '));
 
+        /** @psalm-suppress InvalidArgument $input must be a Selectable */
         $select = (new Select(new ElapsedPeriod(60 * 1000))) // one minute
             ->forRead($input);
 
@@ -51,6 +53,7 @@ final class ChoiceQuestion
         do {
             $ready = $select();
 
+            /** @psalm-suppress InvalidArgument $input must be a Selectable */
             if ($ready->toRead()->contains($input)) {
                 $response = $response->append($input->read()->toString());
             }
