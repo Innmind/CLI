@@ -16,7 +16,7 @@ class MainTest extends TestCase
 {
     private $processes;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->processes = (new ServerFactory)
             ->make()

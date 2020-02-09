@@ -24,7 +24,7 @@ class GlobalEnvironmentTest extends TestCase
 {
     private $env;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->env = new GlobalEnvironment;
     }

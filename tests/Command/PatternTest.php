@@ -21,7 +21,7 @@ class PatternTest extends TestCase
 {
     private $pattern;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->pattern = new Pattern(
             Str::of('foo'),
