@@ -6,8 +6,12 @@ namespace Innmind\CLI\Command;
 use Innmind\Immutable\{
     Map,
     Sequence,
+    Exception\NoElementMatchingPredicateFound,
 };
-use function Innmind\Immutable\assertMap;
+use function Innmind\Immutable\{
+    assertMap,
+    assertSequence,
+};
 
 final class Arguments
 {
@@ -15,22 +19,19 @@ final class Arguments
     private ?Sequence $pack = null;
 
     /**
-     * @param Map<string, mixed> $arguments
+     * @param Map<string, string> $arguments
+     * @param Sequence<string> $pack
      */
-    public function __construct(Map $arguments = null)
+    public function __construct(Map $arguments = null, Sequence $pack = null)
     {
-        $arguments ??= Map::of('string', 'mixed');
+        $arguments ??= Map::of('string', 'string');
+        $pack ??= Sequence::strings();
 
-        assertMap('string', 'mixed', $arguments, 1);
+        assertMap('string', 'string', $arguments, 1);
+        assertSequence('string', $pack, 2);
 
         $this->arguments = $arguments;
-        $pack = $arguments->values()->filter(static function($argument): bool {
-            return $argument instanceof Sequence;
-        });
-
-        if (!$pack->empty()) {
-            $this->pack = $pack->first();
-        }
+        $this->pack = $pack;
     }
 
     /**
@@ -41,13 +42,30 @@ final class Arguments
         Sequence $arguments
     ): self {
         $arguments = $specification->pattern()->options()->clean($arguments);
+        $arguments = $specification
+            ->pattern()
+            ->arguments()
+            ->extract($arguments);
 
-        return new self(
-            $specification
-                ->pattern()
-                ->arguments()
-                ->extract($arguments)
-        );
+        try {
+            $pack = $arguments->values()->find(
+                static fn($argument): bool => $argument instanceof Sequence,
+            );
+        } catch (NoElementMatchingPredicateFound $e) {
+            $pack = null;
+        }
+
+        $arguments = $arguments
+            ->filter(static fn(string $_, $argument): bool => \is_string($argument))
+            ->toMapOf(
+                'string',
+                'string',
+                static function(string $key, string $argument): \Generator {
+                    yield $key => $argument;
+                },
+            );
+
+        return new self($arguments, $pack);
     }
 
     /**
@@ -61,20 +79,14 @@ final class Arguments
         return self::of($specification, $arguments);
     }
 
-    /**
-     * @return string Pack is deprecated
-     */
-    public function get(string $argument)
+    public function get(string $argument): string
     {
-        $value =  $this->arguments->get($argument);
-
-        if ($value instanceof Sequence) {
-            @trigger_error('Use self::pack() instead', E_USER_DEPRECATED);
-        }
-
-        return $value;
+        return $this->arguments->get($argument);
     }
 
+    /**
+     * @return Sequence<string>
+     */
     public function pack(): Sequence
     {
         return $this->pack;

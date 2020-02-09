@@ -36,10 +36,17 @@ class OptionsTest extends TestCase
                 ->pattern()
                 ->options()
                 ->extract(Sequence::of('string', '--foo'))
+                ->toMapOf(
+                    'string',
+                    'string',
+                    static function(string $name, string $value): \Generator {
+                        yield $name => $value;
+                    },
+                ),
         );
 
         $this->assertTrue($options->contains('foo'));
-        $this->assertTrue($options->get('foo'));
+        $this->assertSame('', $options->get('foo'));
         $this->assertFalse($options->contains('bar'));
 
         $options = new Options(
@@ -47,10 +54,17 @@ class OptionsTest extends TestCase
                 ->pattern()
                 ->options()
                 ->extract(Sequence::of('string', '--foo', '--bar=baz'))
+                ->toMapOf(
+                    'string',
+                    'string',
+                    static function(string $name, string $value): \Generator {
+                        yield $name => $value;
+                    },
+                ),
         );
 
         $this->assertTrue($options->contains('foo'));
-        $this->assertTrue($options->get('foo'));
+        $this->assertSame('', $options->get('foo'));
         $this->assertTrue($options->contains('bar'));
         $this->assertSame('baz', $options->get('bar'));
     }
@@ -75,7 +89,7 @@ class OptionsTest extends TestCase
 
         $this->assertInstanceOf(Options::class, $options);
         $this->assertTrue($options->contains('foo'));
-        $this->assertTrue($options->get('foo'));
+        $this->assertSame('', $options->get('foo'));
         $this->assertFalse($options->contains('bar'));
     }
 
@@ -87,16 +101,16 @@ class OptionsTest extends TestCase
     public function testThrowWhenInvalidOptionsKeys()
     {
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 1 must be of type Map<string, mixed>');
+        $this->expectExceptionMessage('Argument 1 must be of type Map<string, string>');
 
-        new Options(Map::of('int', 'mixed'));
+        new Options(Map::of('int', 'string'));
     }
 
     public function testThrowWhenInvalidOptionsValues()
     {
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 1 must be of type Map<string, mixed>');
+        $this->expectExceptionMessage('Argument 1 must be of type Map<string, string>');
 
-        new Options(Map::of('string', 'string'));
+        new Options(Map::of('string', 'mixed'));
     }
 }

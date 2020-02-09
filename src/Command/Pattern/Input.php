@@ -14,10 +14,10 @@ interface Input
     public static function of(Str $pattern): self;
 
     /**
-     * @param Map<string, mixed> $parsed
+     * @param Map<string, string|Sequence<string>> $parsed
      * @param Sequence<string> $arguments
      *
-     * @return Map<string, mixed>
+     * @return Map<string, string|Sequence<string>>
      */
     public function extract(
         Map $parsed,

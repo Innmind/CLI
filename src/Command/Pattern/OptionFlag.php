@@ -71,7 +71,7 @@ final class OptionFlag implements Input, Option
             return $parsed;
         }
 
-        return $parsed->put($this->name, true);
+        return $parsed->put($this->name, '');
     }
 
     /**

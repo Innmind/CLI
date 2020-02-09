@@ -103,7 +103,7 @@ final class Pattern
                 }
             )
             ->reduce(
-                Map::of('string', 'mixed'),
+                Map::of('string', 'string|'.Sequence::class),
                 static function(Map $inputs, int $position, Input $input) use ($arguments): Map {
                     return $input->extract($inputs, $position, $arguments);
                 }

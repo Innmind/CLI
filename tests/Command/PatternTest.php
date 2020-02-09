@@ -90,7 +90,7 @@ class PatternTest extends TestCase
 
         $this->assertInstanceOf(Map::class, $arguments);
         $this->assertSame('string', (string) $arguments->keyType());
-        $this->assertSame('mixed', (string) $arguments->valueType());
+        $this->assertSame('string|'.Sequence::class, (string) $arguments->valueType());
         $this->assertCount(3, $arguments);
         $this->assertSame('first', $arguments->get('foo'));
         $this->assertSame('second', $arguments->get('bar'));

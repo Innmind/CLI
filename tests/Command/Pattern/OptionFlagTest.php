@@ -74,7 +74,7 @@ class OptionFlagTest extends TestCase
         $this->assertSame('string', (string) $arguments->keyType());
         $this->assertSame('mixed', (string) $arguments->valueType());
         $this->assertCount(1, $arguments);
-        $this->assertTrue($arguments->get('foo'));
+        $this->assertSame('', $arguments->get('foo'));
     }
 
     public function testDoesNothingWhenNoFlag()

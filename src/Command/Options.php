@@ -14,13 +14,13 @@ final class Options
     private Map $options;
 
     /**
-     * @param Map<string, mixed> $options
+     * @param Map<string, string> $options
      */
     public function __construct(Map $options = null)
     {
-        $options ??= Map::of('string', 'mixed');
+        $options ??= Map::of('string', 'string');
 
-        assertMap('string', 'mixed', $options, 1);
+        assertMap('string', 'string', $options, 1);
 
         $this->options = $options;
     }
@@ -37,6 +37,13 @@ final class Options
                 ->pattern()
                 ->options()
                 ->extract($arguments)
+                ->toMapOf( // simply for a type change
+                    'string',
+                    'string',
+                    static function(string $name, string $value): \Generator {
+                        yield $name => $value;
+                    },
+                ),
         );
     }
 
