@@ -6,8 +6,8 @@ namespace Innmind\CLI\Command\Pattern;
 use Innmind\CLI\Exception\PatternNotRecognized;
 use Innmind\Immutable\{
     Str,
-    StreamInterface,
-    MapInterface,
+    Sequence,
+    Map,
 };
 
 final class OptionalArgument implements Input, Argument
@@ -22,20 +22,20 @@ final class OptionalArgument implements Input, Argument
     public static function fromString(Str $pattern): Input
     {
         if (!$pattern->matches('~^\[[a-zA-Z0-9]+\]$~')) {
-            throw new PatternNotRecognized((string) $pattern);
+            throw new PatternNotRecognized($pattern->toString());
         }
 
-        return new self((string) $pattern->substring(1, -1));
+        return new self($pattern->substring(1, -1)->toString());
     }
 
     /**
      * {@inheritdoc}
      */
     public function extract(
-        MapInterface $parsed,
+        Map $parsed,
         int $position,
-        StreamInterface $arguments
-    ): MapInterface {
+        Sequence $arguments
+    ): Map {
         if (!$arguments->indices()->contains($position)) {
             return $parsed;
         }

@@ -21,22 +21,18 @@ final class ChunkWriteByLine implements Writable
         $this->stream = $stream;
     }
 
-    public function write(Str $data): Writable
+    public function write(Str $data): void
     {
         $lines = $data->split("\n");
         $lines->dropEnd(1)->foreach(function(Str $line): void {
             $this->stream->write($line->append("\n"));
         });
         $this->stream->write($lines->last());
-
-        return $this;
     }
 
-    public function close(): Stream
+    public function close(): void
     {
         $this->stream->close();
-
-        return $this;
     }
 
     public function closed(): bool
@@ -49,18 +45,14 @@ final class ChunkWriteByLine implements Writable
         return $this->stream->position();
     }
 
-    public function seek(Position $position, Mode $mode = null): Stream
+    public function seek(Position $position, Mode $mode = null): void
     {
         $this->stream->seek($position, $mode);
-
-        return $this;
     }
 
-    public function rewind(): Stream
+    public function rewind(): void
     {
         $this->stream->rewind();
-
-        return $this;
     }
 
     public function end(): bool

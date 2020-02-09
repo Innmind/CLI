@@ -6,8 +6,8 @@ namespace Innmind\CLI\Command\Pattern;
 use Innmind\CLI\Exception\PatternNotRecognized;
 use Innmind\Immutable\{
     Str,
-    StreamInterface,
-    MapInterface,
+    Sequence,
+    Map,
 };
 
 final class OptionFlag implements Input, Option
@@ -37,17 +37,17 @@ final class OptionFlag implements Input, Option
     public static function fromString(Str $pattern): Input
     {
         if (!$pattern->matches(self::PATTERN)) {
-            throw new PatternNotRecognized((string) $pattern);
+            throw new PatternNotRecognized($pattern->toString());
         }
 
         $parts = $pattern->capture(self::PATTERN);
 
         if ($parts->contains('short') && !$parts->get('short')->empty()) {
-            $short = (string) $parts->get('short')->substring(1, -1);
+            $short = $parts->get('short')->substring(1, -1)->toString();
         }
 
         return new self(
-            (string) $parts->get('name')->substring(2),
+            $parts->get('name')->substring(2)->toString(),
             $short ?? null
         );
     }
@@ -56,10 +56,10 @@ final class OptionFlag implements Input, Option
      * {@inheritdoc}
      */
     public function extract(
-        MapInterface $parsed,
+        Map $parsed,
         int $position,
-        StreamInterface $arguments
-    ): MapInterface {
+        Sequence $arguments
+    ): Map {
         $exists = $arguments->reduce(
             false,
             function(bool $exists, string $argument): bool {
@@ -77,7 +77,7 @@ final class OptionFlag implements Input, Option
     /**
      * {@inheritdoc}
      */
-    public function clean(StreamInterface $arguments): StreamInterface
+    public function clean(Sequence $arguments): Sequence
     {
         return $arguments->filter(function(string $argument): bool {
             return !Str::of($argument)->matches($this->pattern);

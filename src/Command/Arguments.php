@@ -4,46 +4,45 @@ declare(strict_types = 1);
 namespace Innmind\CLI\Command;
 
 use Innmind\Immutable\{
-    MapInterface,
     Map,
-    StreamInterface,
+    Sequence,
 };
 
 final class Arguments
 {
-    private MapInterface $arguments;
-    private ?StreamInterface $pack = null;
+    private Map $arguments;
+    private ?Sequence $pack = null;
 
     /**
-     * @param MapInterface<string, mixed> $arguments
+     * @param Map<string, mixed> $arguments
      */
-    public function __construct(MapInterface $arguments = null)
+    public function __construct(Map $arguments = null)
     {
-        $arguments = $arguments ?? new Map('string', 'mixed');
+        $arguments = $arguments ?? Map::of('string', 'mixed');
 
         if (
             (string) $arguments->keyType() !== 'string' ||
             (string) $arguments->valueType() !== 'mixed'
         ) {
-            throw new \TypeError('Argument 1 must be of type MapInterface<string, mixed>');
+            throw new \TypeError('Argument 1 must be of type Map<string, mixed>');
         }
 
         $this->arguments = $arguments;
         $pack = $arguments->values()->filter(static function($argument): bool {
-            return $argument instanceof StreamInterface;
+            return $argument instanceof Sequence;
         });
 
         if (!$pack->empty()) {
-            $this->pack = $pack->current();
+            $this->pack = $pack->first();
         }
     }
 
     /**
-     * @param StreamInterface<string> $arguments
+     * @param Sequence<string> $arguments
      */
     public static function of(
         Specification $specification,
-        StreamInterface $arguments
+        Sequence $arguments
     ): self {
         $arguments = $specification->pattern()->options()->clean($arguments);
 
@@ -61,7 +60,7 @@ final class Arguments
      */
     public static function fromSpecification(
         Specification $specification,
-        StreamInterface $arguments
+        Sequence $arguments
     ): self {
         return self::of($specification, $arguments);
     }
@@ -73,14 +72,14 @@ final class Arguments
     {
         $value =  $this->arguments->get($argument);
 
-        if ($value instanceof StreamInterface) {
+        if ($value instanceof Sequence) {
             @trigger_error('Use self::pack() instead', E_USER_DEPRECATED);
         }
 
         return $value;
     }
 
-    public function pack(): StreamInterface
+    public function pack(): Sequence
     {
         return $this->pack;
     }

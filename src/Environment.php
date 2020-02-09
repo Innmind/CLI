@@ -8,10 +8,10 @@ use Innmind\Stream\{
     Readable,
     Writable
 };
-use Innmind\Url\PathInterface;
+use Innmind\Url\Path;
 use Innmind\Immutable\{
-    MapInterface,
-    StreamInterface
+    Map,
+    Sequence
 };
 
 interface Environment
@@ -21,15 +21,15 @@ interface Environment
     public function error(): Writable;
 
     /**
-     * @return StreamInterface<string>
+     * @return Sequence<string>
      */
-    public function arguments(): StreamInterface;
+    public function arguments(): Sequence;
 
     /**
-     * @return MapInterface<string, string>
+     * @return Map<string, string>
      */
-    public function variables(): MapInterface;
+    public function variables(): Map;
     public function exit(int $code): void;
     public function exitCode(): ExitCode;
-    public function workingDirectory(): PathInterface;
+    public function workingDirectory(): Path;
 }

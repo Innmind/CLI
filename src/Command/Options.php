@@ -4,38 +4,37 @@ declare(strict_types = 1);
 namespace Innmind\CLI\Command;
 
 use Innmind\Immutable\{
-    MapInterface,
     Map,
-    StreamInterface,
+    Sequence,
 };
 
 final class Options
 {
-    private MapInterface $options;
+    private Map $options;
 
     /**
-     * @param MapInterface<string, mixed> $options
+     * @param Map<string, mixed> $options
      */
-    public function __construct(MapInterface $options = null)
+    public function __construct(Map $options = null)
     {
-        $options = $options ?? new Map('string', 'mixed');
+        $options = $options ?? Map::of('string', 'mixed');
 
         if (
             (string) $options->keyType() !== 'string' ||
             (string) $options->valueType() !== 'mixed'
         ) {
-            throw new \TypeError('Argument 1 must be of type MapInterface<string, mixed>');
+            throw new \TypeError('Argument 1 must be of type Map<string, mixed>');
         }
 
         $this->options = $options;
     }
 
     /**
-     * @param StreamInterface<string> $arguments
+     * @param Sequence<string> $arguments
      */
     public static function of(
         Specification $specification,
-        StreamInterface $arguments
+        Sequence $arguments
     ): self {
         return new self(
             $specification
@@ -51,7 +50,7 @@ final class Options
      */
     public static function fromSpecification(
         Specification $specification,
-        StreamInterface $arguments
+        Sequence $arguments
     ): self {
         return self::of($specification, $arguments);
     }

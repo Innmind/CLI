@@ -35,7 +35,7 @@ TABLE;
             ->expects($this->once())
             ->method('write')
             ->with($this->callback(static function($str) use ($expected): bool {
-                return (string) $str === $expected;
+                return $str->toString() === $expected;
             }));
         $printTo($output);
     }

@@ -12,11 +12,10 @@ use Innmind\CLI\{
 };
 use Innmind\Immutable\{
     Str,
-    StreamInterface,
-    Stream,
-    MapInterface,
+    Sequence,
     Map,
 };
+use function Innmind\Immutable\unwrap;
 use PHPUnit\Framework\TestCase;
 use Eris\{
     Generator,
@@ -65,18 +64,18 @@ class PackArgumentTest extends TestCase
         $input = PackArgument::fromString(Str::of('...foo'));
 
         $arguments = $input->extract(
-            new Map('string', 'mixed'),
+            Map::of('string', 'mixed'),
             1,
-            Stream::of('string', 'watev', 'foo', 'bar', 'baz')
+            Sequence::of('string', 'watev', 'foo', 'bar', 'baz')
         );
 
-        $this->assertInstanceOf(MapInterface::class, $arguments);
+        $this->assertInstanceOf(Map::class, $arguments);
         $this->assertSame('string', (string) $arguments->keyType());
         $this->assertSame('mixed', (string) $arguments->valueType());
         $this->assertCount(1, $arguments);
-        $this->assertInstanceOf(StreamInterface::class, $arguments->get('foo'));
+        $this->assertInstanceOf(Sequence::class, $arguments->get('foo'));
         $this->assertSame('string', (string) $arguments->get('foo')->type());
-        $this->assertSame(['foo', 'bar', 'baz'], $arguments->get('foo')->toPrimitive());
+        $this->assertSame(['foo', 'bar', 'baz'], unwrap($arguments->get('foo')));
     }
 
     public function testExtractEmptyStreamWhenNotFound()
@@ -84,17 +83,17 @@ class PackArgumentTest extends TestCase
         $input = PackArgument::fromString(Str::of('...foo'));
 
         $arguments = $input->extract(
-            new Map('string', 'mixed'),
+            Map::of('string', 'mixed'),
             42,
-            Stream::of('string', 'watev', 'foo', 'bar', 'baz')
+            Sequence::of('string', 'watev', 'foo', 'bar', 'baz')
         );
 
-        $this->assertInstanceOf(MapInterface::class, $arguments);
+        $this->assertInstanceOf(Map::class, $arguments);
         $this->assertSame('string', (string) $arguments->keyType());
         $this->assertSame('mixed', (string) $arguments->valueType());
         $this->assertCount(1, $arguments);
-        $this->assertInstanceOf(StreamInterface::class, $arguments->get('foo'));
+        $this->assertInstanceOf(Sequence::class, $arguments->get('foo'));
         $this->assertSame('string', (string) $arguments->get('foo')->type());
-        $this->assertSame([], $arguments->get('foo')->toPrimitive());
+        $this->assertTrue($arguments->get('foo')->empty());
     }
 }

@@ -17,7 +17,11 @@ use Innmind\Immutable\{
     Set,
     Map,
     Str,
-    Stream,
+    Sequence,
+};
+use function Innmind\Immutable\{
+    unwrap,
+    first,
 };
 
 final class Commands
@@ -28,7 +32,7 @@ final class Commands
     public function __construct(Command $command, Command ...$commands)
     {
         $this->commands = Set::of(Command::class, $command, ...$commands)->reduce(
-            new Map(Specification::class, Command::class),
+            Map::of(Specification::class, Command::class),
             static function(Map $commands, Command $command): Map {
                 $spec = new Specification($command);
 
@@ -36,7 +40,7 @@ final class Commands
             }
         );
         $this->specifications = $this->commands->reduce(
-            new Map('string', Specification::class),
+            Map::of('string', Specification::class),
             static function(Map $specs, Specification $spec): Map {
                 return $specs->put($spec->name(), $spec);
             }
@@ -46,7 +50,10 @@ final class Commands
     public function __invoke(Environment $env): void
     {
         if ($this->commands->size() === 1) {
-            $this->run($env, $this->specifications->key());
+            $this->run(
+                $env,
+                first($this->specifications->keys()),
+            );
 
             return;
         }
@@ -133,7 +140,7 @@ final class Commands
                 ->append($bin)
                 ->append(' ')
                 ->append((string) $spec)
-                ->append((string) $description)
+                ->append($description->toString())
                 ->append("\n")
         );
     }
@@ -141,15 +148,15 @@ final class Commands
     private function displayHelp(Writable $stream): void
     {
         $rows = $this->commands->keys()->reduce(
-            Stream::of(Row::class),
-            static function(Stream $rows, Specification $spec): Stream {
+            Sequence::of(Row::class),
+            static function(Sequence $rows, Specification $spec): Sequence {
                 return $rows->add(new Row(
                     new Cell($spec->name()),
                     new Cell($spec->shortDescription())
                 ));
             }
         );
-        $printTo = Table::borderless(null, ...$rows);
+        $printTo = Table::borderless(null, ...unwrap($rows));
         $printTo($stream);
         $stream->write(Str::of("\n"));
     }

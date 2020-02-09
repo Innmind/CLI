@@ -5,8 +5,8 @@ namespace Innmind\CLI\Command\Pattern;
 
 use Innmind\Immutable\{
     Str,
-    StreamInterface,
-    MapInterface,
+    Sequence,
+    Map,
 };
 
 interface Input
@@ -14,15 +14,15 @@ interface Input
     public static function fromString(Str $pattern): self;
 
     /**
-     * @param MapInterface<string, mixed> $parsed
-     * @param StreamInterface<string> $arguments
+     * @param Map<string, mixed> $parsed
+     * @param Sequence<string> $arguments
      *
-     * @return MapInterface<string, mixed>
+     * @return Map<string, mixed>
      */
     public function extract(
-        MapInterface $parsed,
+        Map $parsed,
         int $position,
-        StreamInterface $arguments
-    ): MapInterface;
+        Sequence $arguments
+    ): Map;
     public function __toString(): string;
 }

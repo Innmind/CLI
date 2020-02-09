@@ -13,9 +13,9 @@ use Innmind\Stream\{
     Readable,
     Writable,
 };
-use Innmind\Url\PathInterface;
+use Innmind\Url\Path;
 use Innmind\Immutable\{
-    StreamInterface,
+    Sequence,
     Str,
 };
 use PHPUnit\Framework\TestCase;
@@ -50,7 +50,7 @@ class WriteAsASCIITest extends TestCase
         $env = new WriteAsASCII(
             $inner = $this->createMock(Environment::class)
         );
-        $data = new Str('');
+        $data = Str::of('');
         $inner
             ->expects($this->once())
             ->method('output')
@@ -72,7 +72,7 @@ class WriteAsASCIITest extends TestCase
         $env = new WriteAsASCII(
             $inner = $this->createMock(Environment::class)
         );
-        $data = new Str('');
+        $data = Str::of('');
         $inner
             ->expects($this->once())
             ->method('error')
@@ -97,7 +97,7 @@ class WriteAsASCIITest extends TestCase
         $inner
             ->expects($this->once())
             ->method('arguments')
-            ->willReturn($expected = $this->createMock(StreamInterface::class));
+            ->willReturn($expected = Sequence::strings());
 
         $this->assertSame($expected, $env->arguments());
     }
@@ -136,7 +136,7 @@ class WriteAsASCIITest extends TestCase
         $inner
             ->expects($this->once())
             ->method('workingDirectory')
-            ->willReturn($expected = $this->createMock(PathInterface::class));
+            ->willReturn($expected = Path::none());
 
         $this->assertSame($expected, $env->workingDirectory());
     }

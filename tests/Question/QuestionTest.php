@@ -24,9 +24,8 @@ class QuestionTest extends TestCase
         $input = new class implements Readable, Selectable {
                 private $resource;
 
-                public function close(): Stream
+                public function close(): void
                 {
-                    return $this;
                 }
 
                 public function closed(): bool
@@ -38,14 +37,12 @@ class QuestionTest extends TestCase
                 {
                 }
 
-                public function seek(Position $position, Mode $mode = null): Stream
+                public function seek(Position $position, Mode $mode = null): void
                 {
-                    return $this;
                 }
 
-                public function rewind(): Stream
+                public function rewind(): void
                 {
-                    return $this;
                 }
 
                 public function end(): bool
@@ -85,7 +82,7 @@ class QuestionTest extends TestCase
                     return Str::of('not used');
                 }
 
-                public function __toString(): string
+                public function toString(): string
                 {
                     return 'not used';
                 }
@@ -95,13 +92,13 @@ class QuestionTest extends TestCase
             ->expects($this->once())
             ->method('write')
             ->with($this->callback(static function($line): bool {
-                return (string) $line === 'message ';
+                return $line->toString() === 'message ';
             }));
 
         $response = $question($input, $output);
 
         $this->assertInstanceOf(Str::class, $response);
-        $this->assertSame('foo', (string) $response);
+        $this->assertSame('foo', $response->toString());
     }
 
     public function testAskWithHiddenResponse()
@@ -113,9 +110,8 @@ class QuestionTest extends TestCase
         $input = new class implements Readable, Selectable {
                 private $resource;
 
-                public function close(): Stream
+                public function close(): void
                 {
-                    return $this;
                 }
 
                 public function closed(): bool
@@ -127,14 +123,12 @@ class QuestionTest extends TestCase
                 {
                 }
 
-                public function seek(Position $position, Mode $mode = null): Stream
+                public function seek(Position $position, Mode $mode = null): void
                 {
-                    return $this;
                 }
 
-                public function rewind(): Stream
+                public function rewind(): void
                 {
-                    return $this;
                 }
 
                 public function end(): bool
@@ -174,7 +168,7 @@ class QuestionTest extends TestCase
                     return Str::of('not used');
                 }
 
-                public function __toString(): string
+                public function toString(): string
                 {
                     return 'not used';
                 }
@@ -184,18 +178,18 @@ class QuestionTest extends TestCase
             ->expects($this->at(0))
             ->method('write')
             ->with($this->callback(static function($line): bool {
-                return (string) $line === 'message ';
+                return $line->toString() === 'message ';
             }));
         $output
             ->expects($this->at(1))
             ->method('write')
             ->with($this->callback(static function($line): bool {
-                return (string) $line === "\n";
+                return $line->toString() === "\n";
             }));
 
         $response = $question($input, $output);
 
         $this->assertInstanceOf(Str::class, $response);
-        $this->assertSame('foo', (string) $response);
+        $this->assertSame('foo', $response->toString());
     }
 }

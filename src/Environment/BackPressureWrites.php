@@ -7,28 +7,28 @@ use Innmind\CLI\{
     Environment,
     Stream,
 };
-use Innmind\TimeContinuum\TimeContinuumInterface;
+use Innmind\TimeContinuum\Clock;
 use Innmind\TimeWarp\Halt;
 use Innmind\Stream\{
     Readable,
     Writable
 };
-use Innmind\Url\PathInterface;
+use Innmind\Url\Path;
 use Innmind\Immutable\{
-    MapInterface,
-    StreamInterface
+    Map,
+    Sequence,
 };
 
 final class BackPressureWrites implements Environment
 {
     private Environment $environment;
-    private TimeContinuumInterface $clock;
+    private Clock $clock;
     private Halt $halt;
     private ?Writable $error = null;
 
     public function __construct(
         Environment $environment,
-        TimeContinuumInterface $clock,
+        Clock $clock,
         Halt $halt
     ) {
         $this->environment = $environment;
@@ -58,7 +58,7 @@ final class BackPressureWrites implements Environment
     /**
      * {@inheritdoc}
      */
-    public function arguments(): StreamInterface
+    public function arguments(): Sequence
     {
         return $this->environment->arguments();
     }
@@ -66,7 +66,7 @@ final class BackPressureWrites implements Environment
     /**
      * {@inheritdoc}
      */
-    public function variables(): MapInterface
+    public function variables(): Map
     {
         return $this->environment->variables();
     }
@@ -81,7 +81,7 @@ final class BackPressureWrites implements Environment
         return $this->environment->exitCode();
     }
 
-    public function workingDirectory(): PathInterface
+    public function workingDirectory(): Path
     {
         return $this->environment->workingDirectory();
     }

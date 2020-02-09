@@ -13,9 +13,9 @@ use Innmind\Stream\{
     Readable,
     Writable,
 };
-use Innmind\Url\PathInterface;
+use Innmind\Url\Path;
 use Innmind\Immutable\{
-    StreamInterface,
+    Sequence,
     Str,
 };
 use PHPUnit\Framework\TestCase;
@@ -63,7 +63,7 @@ class ChunkWriteByLineTest extends TestCase
         $env = new ChunkWriteByLine(
             $inner = $this->createMock(Environment::class)
         );
-        $data = new Str('');
+        $data = Str::of('');
         $inner
             ->expects($this->once())
             ->method('error')
@@ -88,7 +88,7 @@ class ChunkWriteByLineTest extends TestCase
         $inner
             ->expects($this->once())
             ->method('arguments')
-            ->willReturn($expected = $this->createMock(StreamInterface::class));
+            ->willReturn($expected = Sequence::strings());
 
         $this->assertSame($expected, $env->arguments());
     }
@@ -127,7 +127,7 @@ class ChunkWriteByLineTest extends TestCase
         $inner
             ->expects($this->once())
             ->method('workingDirectory')
-            ->willReturn($expected = $this->createMock(PathInterface::class));
+            ->willReturn($expected = Path::none());
 
         $this->assertSame($expected, $env->workingDirectory());
     }

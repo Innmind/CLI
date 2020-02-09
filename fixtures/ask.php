@@ -21,18 +21,16 @@ new class extends Main {
         $user = new Question('your name please :');
         $pwd = Question::hiddenResponse('password :');
 
-        $env
-            ->output()
-            ->write($user($env->input(), $env->output())->append("\n"))
-            ->write($pwd($env->input(), $env->output())->append("\n"));
+        $env->output()->write($user($env->input(), $env->output())->append("\n"));
+        $env->output()->write($pwd($env->input(), $env->output())->append("\n"));
 
         $ask = new ChoiceQuestion(
             'choices:',
-            (new Map('scalar', 'scalar'))
-                ->put('foo', 'bar')
-                ->put(1, 'baz')
-                ->put(2, 3)
-                ->put(3, 'foo')
+            Map::of('scalar', 'scalar')
+                ('foo', 'bar')
+                (1, 'baz')
+                (2, 3)
+                (3, 'foo')
         );
 
         $choices = $ask($env->input(), $env->output());

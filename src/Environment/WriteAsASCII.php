@@ -11,10 +11,10 @@ use Innmind\Stream\{
     Readable,
     Writable
 };
-use Innmind\Url\PathInterface;
+use Innmind\Url\Path;
 use Innmind\Immutable\{
-    MapInterface,
-    StreamInterface
+    Map,
+    Sequence,
 };
 
 final class WriteAsASCII implements Environment
@@ -50,7 +50,7 @@ final class WriteAsASCII implements Environment
     /**
      * {@inheritdoc}
      */
-    public function arguments(): StreamInterface
+    public function arguments(): Sequence
     {
         return $this->environment->arguments();
     }
@@ -58,7 +58,7 @@ final class WriteAsASCII implements Environment
     /**
      * {@inheritdoc}
      */
-    public function variables(): MapInterface
+    public function variables(): Map
     {
         return $this->environment->variables();
     }
@@ -73,7 +73,7 @@ final class WriteAsASCII implements Environment
         return $this->environment->exitCode();
     }
 
-    public function workingDirectory(): PathInterface
+    public function workingDirectory(): Path
     {
         return $this->environment->workingDirectory();
     }

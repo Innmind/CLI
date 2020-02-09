@@ -15,7 +15,6 @@ use Innmind\Stream\{
 };
 use Innmind\Immutable\{
     Str,
-    MapInterface,
     Map,
 };
 use PHPUnit\Framework\TestCase;
@@ -26,18 +25,17 @@ class ChoiceQuestionTest extends TestCase
     {
         $question = new ChoiceQuestion(
             'message',
-            (new Map('scalar', 'scalar'))
-                ->put('foo', 'bar')
-                ->put(1, 'baz')
-                ->put(2, 3)
-                ->put('bar', 3)
+            Map::of('scalar', 'scalar')
+                ('foo', 'bar')
+                (1, 'baz')
+                (2, 3)
+                ('bar', 3)
         );
         $input = new class implements Readable, Selectable {
                 private $resource;
 
-                public function close(): Stream
+                public function close(): void
                 {
-                    return $this;
                 }
 
                 public function closed(): bool
@@ -49,14 +47,12 @@ class ChoiceQuestionTest extends TestCase
                 {
                 }
 
-                public function seek(Position $position, Mode $mode = null): Stream
+                public function seek(Position $position, Mode $mode = null): void
                 {
-                    return $this;
                 }
 
-                public function rewind(): Stream
+                public function rewind(): void
                 {
-                    return $this;
                 }
 
                 public function end(): bool
@@ -96,7 +92,7 @@ class ChoiceQuestionTest extends TestCase
                     return Str::of('not used');
                 }
 
-                public function __toString(): string
+                public function toString(): string
                 {
                     return 'not used';
                 }
@@ -106,37 +102,37 @@ class ChoiceQuestionTest extends TestCase
             ->expects($this->at(0))
             ->method('write')
             ->with($this->callback(static function($line): bool {
-                return (string) $line === "message\n";
+                return $line->toString() === "message\n";
             }));
         $output
             ->expects($this->at(1))
             ->method('write')
             ->with($this->callback(static function($line): bool {
-                return (string) $line === "[foo] bar\n";
+                return $line->toString() === "[foo] bar\n";
             }));
         $output
             ->expects($this->at(2))
             ->method('write')
             ->with($this->callback(static function($line): bool {
-                return (string) $line === "[1] baz\n";
+                return $line->toString() === "[1] baz\n";
             }));
         $output
             ->expects($this->at(3))
             ->method('write')
             ->with($this->callback(static function($line): bool {
-                return (string) $line === "[2] 3\n";
+                return $line->toString() === "[2] 3\n";
             }));
         $output
             ->expects($this->at(4))
             ->method('write')
             ->with($this->callback(static function($line): bool {
-                return (string) $line === "[bar] 3\n";
+                return $line->toString() === "[bar] 3\n";
             }));
         $output
             ->expects($this->at(5))
             ->method('write')
             ->with($this->callback(static function($line): bool {
-                return (string) $line === '> ';
+                return $line->toString() === '> ';
             }));
         $output
             ->expects($this->exactly(6))
@@ -144,7 +140,7 @@ class ChoiceQuestionTest extends TestCase
 
         $response = $question($input, $output);
 
-        $this->assertInstanceOf(MapInterface::class, $response);
+        $this->assertInstanceOf(Map::class, $response);
         $this->assertSame('scalar', (string) $response->keyType());
         $this->assertSame('scalar', (string) $response->valueType());
         $this->assertCount(2, $response);
@@ -155,22 +151,22 @@ class ChoiceQuestionTest extends TestCase
     public function testThrowWhenInvalidValuesKey()
     {
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 2 must be of type MapInterface<scalar, scalar>');
+        $this->expectExceptionMessage('Argument 2 must be of type Map<scalar, scalar>');
 
         new ChoiceQuestion(
             'foo',
-            new Map('int', 'scalar')
+            Map::of('int', 'scalar')
         );
     }
 
     public function testThrowWhenInvalidValuesValue()
     {
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 2 must be of type MapInterface<scalar, scalar>');
+        $this->expectExceptionMessage('Argument 2 must be of type Map<scalar, scalar>');
 
         new ChoiceQuestion(
             'foo',
-            new Map('scalar', 'int')
+            Map::of('scalar', 'int')
         );
     }
 }

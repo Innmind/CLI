@@ -31,6 +31,6 @@ final class Inputs
             }
         }
 
-        throw new PatternNotRecognized((string) $pattern);
+        throw new PatternNotRecognized($pattern->toString());
     }
 }

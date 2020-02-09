@@ -6,9 +6,9 @@ namespace Innmind\CLI\Question;
 use Innmind\Stream\{
     Readable,
     Writable,
-    Select,
+    Watch\Select,
 };
-use Innmind\TimeContinuum\ElapsedPeriod;
+use Innmind\TimeContinuum\Earth\ElapsedPeriod;
 use Innmind\Immutable\Str;
 
 final class Question
@@ -45,10 +45,10 @@ final class Question
 
         try {
             do {
-                $streams = $select();
+                $ready = $select();
 
-                if ($streams->get('read')->contains($input)) {
-                    $response = $response->append((string) $input->read());
+                if ($ready->toRead()->contains($input)) {
+                    $response = $response->append($input->read()->toString());
                 }
             } while (!$response->contains("\n"));
         } finally {

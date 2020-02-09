@@ -6,9 +6,10 @@ namespace Innmind\CLI\Command\Pattern;
 use Innmind\CLI\Exception\PatternNotRecognized;
 use Innmind\Immutable\{
     Str,
-    StreamInterface,
-    MapInterface,
+    Sequence,
+    Map,
 };
+use function Innmind\Immutable\join;
 
 final class OptionWithValue implements Input, Option
 {
@@ -37,17 +38,17 @@ final class OptionWithValue implements Input, Option
     public static function fromString(Str $pattern): Input
     {
         if (!$pattern->matches(self::PATTERN)) {
-            throw new PatternNotRecognized((string) $pattern);
+            throw new PatternNotRecognized($pattern->toString());
         }
 
         $parts = $pattern->capture(self::PATTERN);
 
         if ($parts->contains('short') && !$parts->get('short')->empty()) {
-            $short = (string) $parts->get('short')->substring(1, -1);
+            $short = $parts->get('short')->substring(1, -1)->toString();
         }
 
         return new self(
-            (string) $parts->get('name')->substring(2),
+            $parts->get('name')->substring(2)->toString(),
             $short ?? null
         );
     }
@@ -56,10 +57,10 @@ final class OptionWithValue implements Input, Option
      * {@inheritdoc}
      */
     public function extract(
-        MapInterface $parsed,
+        Map $parsed,
         int $position,
-        StreamInterface $arguments
-    ): MapInterface {
+        Sequence $arguments
+    ): Map {
         $flag = $arguments->reduce(
             null,
             function(?string $flag, string $argument): ?string {
@@ -71,13 +72,16 @@ final class OptionWithValue implements Input, Option
             return $parsed;
         }
 
-        $parts = Str::of($flag)->split('=');
+        $parts = Str::of($flag)->split('=')->mapTo(
+            'string',
+            static fn(Str $part): string => $part->toString(),
+        );
 
         if ($parts->size() >= 2) {
             //means it's of the form -{option}={value}
             return $parsed->put(
                 $this->name,
-                (string) $parts->drop(1)->join('=') //in case there is an "=" in the value
+                join('=', $parts->drop(1))->toString(), //in case there is an "=" in the value
             );
         }
 
@@ -93,7 +97,7 @@ final class OptionWithValue implements Input, Option
     /**
      * {@inheritdoc}
      */
-    public function clean(StreamInterface $arguments): StreamInterface
+    public function clean(Sequence $arguments): Sequence
     {
         $flag = $arguments->reduce(
             null,

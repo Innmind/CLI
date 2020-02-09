@@ -16,8 +16,7 @@ use Innmind\StackTrace\{
     CallFrame,
 };
 use Innmind\Immutable\{
-    StreamInterface,
-    Stream,
+    Sequence,
     Str,
 };
 
@@ -67,7 +66,7 @@ abstract class Main
             ->previous()
             ->reduce(
                 $this->renderError($stack->throwable()),
-                function(StreamInterface $lines, Throwable $e): StreamInterface {
+                function(Sequence $lines, Throwable $e): Sequence {
                     return $lines
                         ->add(Str::of(''))
                         ->add(Str::of('Caused by'))
@@ -78,23 +77,27 @@ abstract class Main
             ->map(static function(Str $line) use ($bin): Str {
                 return $line->prepend("$bin: ");
             })
-            ->reduce(
-                $stream,
-                static function(Writable $stream, Str $line): Writable {
-                    return $stream->write($line->append("\n"));
-                }
+            ->foreach(
+                static fn(Str $line) => $stream->write($line->append("\n")),
             );
     }
 
     /**
-     * @return StreamInterface<Str>
+     * @return Sequence<Str>
      */
-    private function renderError(Throwable $e): StreamInterface
+    private function renderError(Throwable $e): Sequence
     {
-        $lines = Stream::of(
+        $lines = Sequence::of(
             Str::class,
-            Str::of('%s(%s, %s)')->sprintf($e->class(), $e->message(), $e->code()),
-            Str::of('%s:%s')->sprintf($e->file()->path(), $e->line()),
+            Str::of('%s(%s, %s)')->sprintf(
+                $e->class()->toString(),
+                $e->message()->toString(),
+                (string) $e->code(),
+            ),
+            Str::of('%s:%s')->sprintf(
+                $e->file()->path()->toString(),
+                $e->line()->toString(),
+            ),
             Str::of('')
         );
 
@@ -102,7 +105,7 @@ abstract class Main
             ->callFrames()
             ->reduce(
                 $lines,
-                function(StreamInterface $lines, CallFrame $frame): StreamInterface {
+                function(Sequence $lines, CallFrame $frame): Sequence {
                     return $lines->add($this->renderCallFrame($frame));
                 }
             );
@@ -110,10 +113,10 @@ abstract class Main
 
     private function renderCallFrame(CallFrame $frame): Str
     {
-        $line = Str::of((string) $frame);
+        $line = Str::of($frame->toString());
 
         if ($frame instanceof CallFrame\UserLand) {
-            $line = $line->append(" at {$frame->file()->path()}:{$frame->line()}");
+            $line = $line->append(" at {$frame->file()->path()->toString()}:{$frame->line()->toString()}");
         }
 
         return $line;

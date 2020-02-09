@@ -8,15 +8,10 @@ use Innmind\Stream\{
     Readable,
     Writable
 };
-use Innmind\Url\{
-    PathInterface,
-    Path
-};
+use Innmind\Url\Path;
 use Innmind\Immutable\{
-    StreamInterface,
-    Stream,
-    MapInterface,
-    Map
+    Sequence,
+    Map,
 };
 
 final class GlobalEnvironment implements Environment
@@ -24,7 +19,7 @@ final class GlobalEnvironment implements Environment
     private Readable $input;
     private Writable $output;
     private Writable $error;
-    private Stream $arguments;
+    private Sequence $arguments;
     private Map $variables;
     private ExitCode $exitCode;
     private Path $workingDirectory;
@@ -36,16 +31,16 @@ final class GlobalEnvironment implements Environment
         );
         $this->output = new Writable\Stream(fopen('php://output', 'w'));
         $this->error = new Writable\Stream(STDERR);
-        $this->arguments = Stream::of('string', ...$_SERVER['argv']);
+        $this->arguments = Sequence::strings(...$_SERVER['argv']);
         $variables = getenv();
-        $this->variables = Map::of(
-            'string',
-            'string',
-            array_keys($variables),
-            array_values($variables)
-        );
+        $this->variables = Map::of('string', 'string');
+
+        foreach ($variables as $key => $value) {
+            $this->variables = ($this->variables)($key, $value);
+        }
+
         $this->exitCode = new ExitCode(0);
-        $this->workingDirectory = new Path(getcwd());
+        $this->workingDirectory = Path::of(getcwd());
     }
 
     public function input(): Readable
@@ -66,7 +61,7 @@ final class GlobalEnvironment implements Environment
     /**
      * {@inheritdoc}
      */
-    public function arguments(): StreamInterface
+    public function arguments(): Sequence
     {
         return $this->arguments;
     }
@@ -74,7 +69,7 @@ final class GlobalEnvironment implements Environment
     /**
      * {@inheritdoc}
      */
-    public function variables(): MapInterface
+    public function variables(): Map
     {
         return $this->variables;
     }
@@ -89,7 +84,7 @@ final class GlobalEnvironment implements Environment
         return $this->exitCode;
     }
 
-    public function workingDirectory(): PathInterface
+    public function workingDirectory(): Path
     {
         return $this->workingDirectory;
     }

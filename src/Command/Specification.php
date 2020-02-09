@@ -8,6 +8,10 @@ use Innmind\CLI\{
     Exception\EmptyDeclaration
 };
 use Innmind\Immutable\Str;
+use function Innmind\Immutable\{
+    join,
+    unwrap,
+};
 
 final class Specification
 {
@@ -32,17 +36,21 @@ final class Specification
 
         if ($parts->size() >= 3) {
             //get(2) as there must be a blank line before
-            $this->shortDescription = (string) $parts->get(2)->trim();
+            $this->shortDescription = $parts->get(2)->trim()->toString();
         }
 
         if ($parts->size() >= 5) {
             //drop(4) as there must be a blank line before
-            $this->description = (string) $parts
+            $lines = $parts
                 ->drop(4)
                 ->map(static function(Str $line): Str {
                     return $line->trim();
                 })
-                ->join("\n");
+                ->mapTo(
+                    'string',
+                    static fn(Str $line): string => $line->toString(),
+                );
+            $this->description = join("\n", $lines)->toString();
         }
     }
 
@@ -74,8 +82,8 @@ final class Specification
     private function buildPattern(Str $pattern): array
     {
         $elements = $pattern->trim()->split(' ');
-        $name = (string) $elements->first();
+        $name = $elements->first()->toString();
 
-        return [$name, new Pattern(...$elements->drop(1))];
+        return [$name, new Pattern(...unwrap($elements->drop(1)))];
     }
 }

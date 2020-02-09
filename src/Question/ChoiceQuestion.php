@@ -6,30 +6,30 @@ namespace Innmind\CLI\Question;
 use Innmind\Stream\{
     Readable,
     Writable,
-    Select,
+    Watch\Select,
 };
-use Innmind\TimeContinuum\ElapsedPeriod;
+use Innmind\TimeContinuum\Earth\ElapsedPeriod;
 use Innmind\Immutable\{
     Str,
-    MapInterface,
+    Map,
     Set,
 };
 
 final class ChoiceQuestion
 {
     private Str $question;
-    private MapInterface $values;
+    private Map $values;
 
     /**
-     * @param MapInterface<scalar, scalar> $values
+     * @param Map<scalar, scalar> $values
      */
-    public function __construct(string $question, MapInterface $values)
+    public function __construct(string $question, Map $values)
     {
         if (
             (string) $values->keyType() !== 'scalar' ||
             (string) $values->valueType() !== 'scalar'
         ) {
-            throw new \TypeError('Argument 2 must be of type MapInterface<scalar, scalar>');
+            throw new \TypeError('Argument 2 must be of type Map<scalar, scalar>');
         }
 
         $this->question = Str::of($question);
@@ -37,13 +37,13 @@ final class ChoiceQuestion
     }
 
     /**
-     * @return MapInterface<scalar, scalar>
+     * @return Map<scalar, scalar>
      */
-    public function __invoke(Readable $input, Writable $output): MapInterface
+    public function __invoke(Readable $input, Writable $output): Map
     {
         $output->write($this->question->append("\n"));
         $this->values->foreach(static function($key, $value) use ($output): void {
-            $output->write(Str::of("[%s] %s\n")->sprintf($key, $value));
+            $output->write(Str::of("[%s] %s\n")->sprintf((string) $key, (string) $value));
         });
         $output->write(Str::of('> '));
 
@@ -53,10 +53,10 @@ final class ChoiceQuestion
         $response = Str::of('');
 
         do {
-            $streams = $select();
+            $ready = $select();
 
-            if ($streams->get('read')->contains($input)) {
-                $response = $response->append((string) $input->read());
+            if ($ready->toRead()->contains($input)) {
+                $response = $response->append($input->read()->toString());
             }
         } while (!$response->contains("\n"));
 
@@ -66,7 +66,7 @@ final class ChoiceQuestion
             ->reduce(
                 Set::of('string'),
                 static function(Set $choices, Str $choice): Set {
-                    return $choices->add((string) $choice->trim());
+                    return $choices->add($choice->trim()->toString());
                 }
             );
 

@@ -11,10 +11,10 @@ use Innmind\Stream\{
     Stream\Position\Mode
 };
 use Innmind\TimeContinuum\{
-    TimeContinuumInterface,
-    PointInTimeInterface,
-    ElapsedPeriod,
-    Period\Earth\Millisecond,
+    Clock,
+    PointInTime,
+    Earth\ElapsedPeriod,
+    Earth\Period\Millisecond,
 };
 use Innmind\TimeWarp\Halt;
 use Innmind\Immutable\Str;
@@ -22,15 +22,15 @@ use Innmind\Immutable\Str;
 final class BackPressureWrites implements Writable
 {
     private Writable $stream;
-    private TimeContinuumInterface $clock;
+    private Clock $clock;
     private Halt $halt;
     private ElapsedPeriod $threshold;
     private Millisecond $stall;
-    private PointInTimeInterface $lastHit;
+    private ?PointInTime $lastHit = null;
 
     public function __construct(
         Writable $stream,
-        TimeContinuumInterface $clock,
+        Clock $clock,
         Halt $halt
     ) {
         $this->stream = $stream;
@@ -40,11 +40,11 @@ final class BackPressureWrites implements Writable
         $this->stall = new Millisecond(1);
     }
 
-    public function write(Str $data): Writable
+    public function write(Str $data): void
     {
         try {
             if (is_null($this->lastHit)) {
-                return $this;
+                return;
             }
 
             $pressure = $this->clock->now()->elapsedSince($this->lastHit);
@@ -55,16 +55,12 @@ final class BackPressureWrites implements Writable
         } finally {
             $this->stream->write($data);
             $this->lastHit = $this->clock->now();
-
-            return $this;
         }
     }
 
-    public function close(): Stream
+    public function close(): void
     {
         $this->stream->close();
-
-        return $this;
     }
 
     public function closed(): bool
@@ -77,18 +73,14 @@ final class BackPressureWrites implements Writable
         return $this->stream->position();
     }
 
-    public function seek(Position $position, Mode $mode = null): Stream
+    public function seek(Position $position, Mode $mode = null): void
     {
         $this->stream->seek($position, $mode);
-
-        return $this;
     }
 
-    public function rewind(): Stream
+    public function rewind(): void
     {
         $this->stream->rewind();
-
-        return $this;
     }
 
     public function end(): bool

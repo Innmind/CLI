@@ -12,8 +12,7 @@ use Innmind\CLI\{
 };
 use Innmind\Immutable\{
     Str,
-    Stream,
-    MapInterface,
+    Sequence,
     Map,
 };
 use PHPUnit\Framework\TestCase;
@@ -64,12 +63,12 @@ class RequiredArgumentTest extends TestCase
         $input = RequiredArgument::fromString(Str::of('foo'));
 
         $arguments = $input->extract(
-            new Map('string', 'mixed'),
+            Map::of('string', 'mixed'),
             0,
-            Stream::of('string', 'watev', 'foo', 'bar', 'baz')
+            Sequence::of('string', 'watev', 'foo', 'bar', 'baz')
         );
 
-        $this->assertInstanceOf(MapInterface::class, $arguments);
+        $this->assertInstanceOf(Map::class, $arguments);
         $this->assertSame('string', (string) $arguments->keyType());
         $this->assertSame('mixed', (string) $arguments->valueType());
         $this->assertCount(1, $arguments);
@@ -84,9 +83,9 @@ class RequiredArgumentTest extends TestCase
         $this->expectExceptionMessage('foo');
 
         $input->extract(
-            new Map('string', 'mixed'),
+            Map::of('string', 'mixed'),
             42,
-            Stream::of('string', 'watev', 'foo', 'bar', 'baz')
+            Sequence::of('string', 'watev', 'foo', 'bar', 'baz')
         );
     }
 }

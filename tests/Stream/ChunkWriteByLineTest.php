@@ -30,27 +30,25 @@ class ChunkWriteByLineTest extends TestCase
         $stream = new ChunkWriteByLine(
             $inner = $this->createMock(Writable::class)
         );
-        $data = new Str("foo\nbar\nbaz\n");
+        $data = Str::of("foo\nbar\nbaz\n");
         $inner
             ->expects($this->at(0))
             ->method('write')
-            ->with(new Str("foo\n"));
+            ->with(Str::of("foo\n"));
         $inner
             ->expects($this->at(1))
             ->method('write')
-            ->with(new Str("bar\n"));
+            ->with(Str::of("bar\n"));
         $inner
             ->expects($this->at(2))
             ->method('write')
-            ->with(new Str("baz\n"));
+            ->with(Str::of("baz\n"));
         $inner
             ->expects($this->at(3))
             ->method('write')
-            ->with(new Str(''));
+            ->with(Str::of(''));
 
-        $return = $stream->write($data);
-
-        $this->assertSame($stream, $return);
+        $this->assertNull($stream->write($data));
     }
 
     public function testClose()
@@ -62,7 +60,7 @@ class ChunkWriteByLineTest extends TestCase
             ->expects($this->once())
             ->method('close');
 
-        $this->assertSame($stream, $stream->close());
+        $this->assertNull($stream->close());
     }
 
     public function testClosed()
@@ -104,7 +102,7 @@ class ChunkWriteByLineTest extends TestCase
             ->method('seek')
             ->with($position, $mode);
 
-        $this->assertSame($stream, $stream->seek($position, $mode));
+        $this->assertNull($stream->seek($position, $mode));
     }
 
     public function testRewind()
@@ -116,7 +114,7 @@ class ChunkWriteByLineTest extends TestCase
             ->expects($this->once())
             ->method('rewind');
 
-        $this->assertSame($stream, $stream->rewind());
+        $this->assertNull($stream->rewind());
     }
 
     public function testEnd()

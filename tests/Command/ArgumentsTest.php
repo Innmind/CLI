@@ -11,7 +11,7 @@ use Innmind\CLI\{
     Environment,
 };
 use Innmind\Immutable\{
-    Stream,
+    Sequence,
     Map,
 };
 use PHPUnit\Framework\TestCase;
@@ -35,7 +35,7 @@ class ArgumentsTest extends TestCase
             $spec
                 ->pattern()
                 ->arguments()
-                ->extract(Stream::of('string', 'foo'))
+                ->extract(Sequence::of('string', 'foo'))
         );
 
         $this->assertTrue($arguments->contains('container'));
@@ -46,7 +46,7 @@ class ArgumentsTest extends TestCase
             $spec
                 ->pattern()
                 ->arguments()
-                ->extract(Stream::of('string', 'foo', 'bar'))
+                ->extract(Sequence::of('string', 'foo', 'bar'))
         );
 
         $this->assertTrue($arguments->contains('container'));
@@ -70,7 +70,7 @@ class ArgumentsTest extends TestCase
 
         $arguments = Arguments::fromSpecification(
             $spec,
-            Stream::of('string', 'foo')
+            Sequence::of('string', 'foo')
         );
 
         $this->assertInstanceOf(Arguments::class, $arguments);
@@ -87,24 +87,24 @@ class ArgumentsTest extends TestCase
     public function testThrowWhenInvalidArgumentsKeys()
     {
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 1 must be of type MapInterface<string, mixed>');
+        $this->expectExceptionMessage('Argument 1 must be of type Map<string, mixed>');
 
-        new Arguments(new Map('int', 'mixed'));
+        new Arguments(Map::of('int', 'mixed'));
     }
 
     public function testThrowWhenInvalidArgumentsValues()
     {
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 1 must be of type MapInterface<string, mixed>');
+        $this->expectExceptionMessage('Argument 1 must be of type Map<string, mixed>');
 
-        new Arguments(new Map('string', 'string'));
+        new Arguments(Map::of('string', 'string'));
     }
 
     public function testAccessPackByDedicatedMethod()
     {
         $arguments = new Arguments(
             Map::of('string', 'mixed')
-                ('rest', Stream::of('string', 'foo', 'bar'))
+                ('rest', Sequence::of('string', 'foo', 'bar'))
         );
 
         $this->assertTrue($arguments->contains('rest'));

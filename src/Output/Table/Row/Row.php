@@ -5,17 +5,18 @@ namespace Innmind\CLI\Output\Table\Row;
 
 use Innmind\CLI\Output\Table\Row as RowInterface;
 use Innmind\Immutable\{
-    Stream,
+    Sequence,
     Str,
 };
+use function Innmind\Immutable\join;
 
 final class Row implements RowInterface
 {
-    private Stream $cells;
+    private Sequence $cells;
 
     public function __construct(Cell ...$cells)
     {
-        $this->cells = Stream::of(Cell::class, ...$cells);
+        $this->cells = Sequence::of(Cell::class, ...$cells);
     }
 
     public function size(): int
@@ -30,22 +31,24 @@ final class Row implements RowInterface
 
     public function __invoke(string $separator, int ...$widths): string
     {
-        $widths = Stream::of('int', ...$widths);
+        $widths = Sequence::of('int', ...$widths);
 
-        return (string) $this
+        $cells = $this
             ->cells
             ->reduce(
-                Stream::of(Str::class),
-                static function(Stream $cells, Cell $cell) use ($widths): Stream {
+                Sequence::strings(),
+                static function(Sequence $cells, Cell $cell) use ($widths): Sequence {
                     $cell = Str::of((string) $cell)->rightPad(
                         $widths->get($cells->size())
                     );
 
-                    return $cells->add($cell);
+                    return $cells->add($cell->toString());
                 }
-            )
-            ->join(" $separator ")
+            );
+
+        return join(" $separator ", $cells)
             ->prepend($separator.' ')
-            ->append(' '.$separator);
+            ->append(' '.$separator)
+            ->toString();
     }
 }
