@@ -43,7 +43,7 @@ final class OptionalArgument implements Input, Argument
         return $parsed->put($this->name, $arguments->get($position));
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         return '['.$this->name.']';
     }

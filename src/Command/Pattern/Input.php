@@ -24,5 +24,5 @@ interface Input
         int $position,
         Sequence $arguments
     ): Map;
-    public function __toString(): string;
+    public function toString(): string;
 }

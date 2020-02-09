@@ -22,7 +22,7 @@ final class Specification
 
     public function __construct(Command $command)
     {
-        $declaration = Str::of((string) $command)->trim();
+        $declaration = Str::of($command->toString())->trim();
 
         if ($declaration->empty()) {
             throw new EmptyDeclaration;
@@ -74,9 +74,9 @@ final class Specification
         return $this->pattern;
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
-        return $this->name.' '.$this->pattern;
+        return $this->name.' '.$this->pattern->toString();
     }
 
     private function buildPattern(Str $pattern): array

@@ -58,10 +58,10 @@ final class Table
 
     public function __invoke(Writable $stream): void
     {
-        $stream->write(Str::of((string) $this));
+        $stream->write(Str::of($this->toString()));
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         $widths = $this->widths($this->rows());
         $rows = $this->rows->reduce(

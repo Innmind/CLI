@@ -25,7 +25,7 @@ class ArgumentsTest extends TestCase
             {
             }
 
-            public function __toString(): string
+            public function toString(): string
             {
                 return 'watch container --foo [output]';
             }
@@ -62,7 +62,7 @@ class ArgumentsTest extends TestCase
             {
             }
 
-            public function __toString(): string
+            public function toString(): string
             {
                 return 'watch container --foo [output]';
             }

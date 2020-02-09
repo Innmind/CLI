@@ -29,7 +29,7 @@ class TableTest extends TestCase
 +--------+--------+
 TABLE;
 
-        $this->assertSame($expected, (string) $printTo);
+        $this->assertSame($expected, $printTo->toString());
         $output = $this->createMock(Writable::class);
         $output
             ->expects($this->once())
@@ -57,7 +57,7 @@ TABLE;
 +-----------+------------+
 TABLE;
 
-        $this->assertSame($expected, (string) $printTo);
+        $this->assertSame($expected, $printTo->toString());
     }
 
     public function testBorderlessTable()
@@ -72,7 +72,7 @@ TABLE;
 " foo        foobar     \n".
 " foobar     foo        ";
 
-        $this->assertSame($expected, (string) $printTo);
+        $this->assertSame($expected, $printTo->toString());
     }
 
     public function testThrowWhenAllRowsNotOfSameSize()

@@ -55,7 +55,7 @@ class OptionFlagTest extends TestCase
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,
-                    (string) OptionFlag::fromString(Str::of($string))
+                    OptionFlag::fromString(Str::of($string))->toString(),
                 );
             });
     }

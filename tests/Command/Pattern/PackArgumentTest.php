@@ -54,7 +54,7 @@ class PackArgumentTest extends TestCase
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,
-                    (string) PackArgument::fromString(Str::of($string))
+                    PackArgument::fromString(Str::of($string))->toString(),
                 );
             });
     }

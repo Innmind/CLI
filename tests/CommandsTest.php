@@ -37,7 +37,7 @@ class CommandsTest extends TestCase
                 $env->exit(42);
             }
 
-            public function __toString(): string
+            public function toString(): string
             {
                 return 'watch container [output] --foo';
             }
@@ -64,7 +64,7 @@ class CommandsTest extends TestCase
                     $env->exit(42);
                 }
 
-                public function __toString(): string
+                public function toString(): string
                 {
                     return 'foo';
                 }
@@ -85,7 +85,7 @@ class CommandsTest extends TestCase
                     $env->exit(24);
                 }
 
-                public function __toString(): string
+                public function toString(): string
                 {
                     return 'watch container [output] --foo';
                 }
@@ -113,7 +113,7 @@ class CommandsTest extends TestCase
                     $env->exit(42);
                 }
 
-                public function __toString(): string
+                public function toString(): string
                 {
                     return 'foo';
                 }
@@ -124,7 +124,7 @@ class CommandsTest extends TestCase
                     $env->exit(24);
                 }
 
-                public function __toString(): string
+                public function toString(): string
                 {
                     return 'watch container [output] --foo';
                 }
@@ -169,7 +169,7 @@ class CommandsTest extends TestCase
                 $env->exit(42);
             }
 
-            public function __toString(): string
+            public function toString(): string
             {
                 return <<<USAGE
 watch container [output] --foo
@@ -211,7 +211,7 @@ USAGE;
                 throw new \Exception;
             }
 
-            public function __toString(): string
+            public function toString(): string
             {
                 return 'watch container [output] --foo';
             }
@@ -238,7 +238,7 @@ USAGE;
                 $env->exit(42);
             }
 
-            public function __toString(): string
+            public function toString(): string
             {
                 return <<<USAGE
 watch container [output] --foo
@@ -280,7 +280,7 @@ USAGE;
                     $env->exit(42);
                 }
 
-                public function __toString(): string
+                public function toString(): string
                 {
                     return 'foo'."\n\n".'Description';
                 }
@@ -291,7 +291,7 @@ USAGE;
                     $env->exit(24);
                 }
 
-                public function __toString(): string
+                public function toString(): string
                 {
                     return 'watch container [output] --foo'."\n\n".'Watch dependency injection';
                 }
@@ -336,7 +336,7 @@ USAGE;
                     $env->exit(42);
                 }
 
-                public function __toString(): string
+                public function toString(): string
                 {
                     return 'foo';
                 }
@@ -347,7 +347,7 @@ USAGE;
                     $env->exit(24);
                 }
 
-                public function __toString(): string
+                public function toString(): string
                 {
                     return 'watch container [output] --foo';
                 }

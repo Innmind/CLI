@@ -36,7 +36,7 @@ class PatternTest extends TestCase
     {
         $this->assertSame(
             'foo bar [baz] ...foobar --foo',
-            (string) $this->pattern
+            $this->pattern->toString(),
         );
     }
 
@@ -105,10 +105,10 @@ class PatternTest extends TestCase
 
         $this->assertInstanceOf(Pattern::class, $options);
         $this->assertNotSame($this->pattern, $options);
-        $this->assertSame('--foo', (string) $options);
+        $this->assertSame('--foo', $options->toString());
         $this->assertSame(
             'foo bar [baz] ...foobar --foo',
-            (string) $this->pattern
+            $this->pattern->toString(),
         );
     }
 
@@ -118,10 +118,10 @@ class PatternTest extends TestCase
 
         $this->assertInstanceOf(Pattern::class, $arguments);
         $this->assertNotSame($this->pattern, $arguments);
-        $this->assertSame('foo bar [baz] ...foobar', (string) $arguments);
+        $this->assertSame('foo bar [baz] ...foobar', $arguments->toString());
         $this->assertSame(
             'foo bar [baz] ...foobar --foo',
-            (string) $this->pattern
+            $this->pattern->toString(),
         );
     }
 

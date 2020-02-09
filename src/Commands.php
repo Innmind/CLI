@@ -139,7 +139,7 @@ final class Commands
             Str::of('usage: ')
                 ->append($bin)
                 ->append(' ')
-                ->append((string) $spec)
+                ->append($spec->toString())
                 ->append($description->toString())
                 ->append("\n")
         );

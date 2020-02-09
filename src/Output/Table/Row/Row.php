@@ -38,7 +38,7 @@ final class Row implements RowInterface
             ->reduce(
                 Sequence::strings(),
                 static function(Sequence $cells, Cell $cell) use ($widths): Sequence {
-                    $cell = Str::of((string) $cell)->rightPad(
+                    $cell = Str::of($cell->toString())->rightPad(
                         $widths->get($cells->size())
                     );
 

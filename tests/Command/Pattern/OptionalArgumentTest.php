@@ -53,7 +53,7 @@ class OptionalArgumentTest extends TestCase
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,
-                    (string) OptionalArgument::fromString(Str::of($string))
+                    OptionalArgument::fromString(Str::of($string))->toString(),
                 );
             });
     }

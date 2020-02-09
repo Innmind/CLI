@@ -43,7 +43,7 @@ final class PackArgument implements Input, Argument
         return $parsed->put($this->name, $arguments->drop($position));
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         return '...'.$this->name;
     }

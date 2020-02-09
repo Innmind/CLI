@@ -126,7 +126,7 @@ final class OptionWithValue implements Input, Option
             ->append($arguments->drop($index + 2));
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         if (!is_string($this->short)) {
             return '--'.$this->name.'=';

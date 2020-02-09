@@ -84,7 +84,7 @@ final class OptionFlag implements Input, Option
         });
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         if (!is_string($this->short)) {
             return '--'.$this->name;

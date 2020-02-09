@@ -55,7 +55,7 @@ class OptionWithValueTest extends TestCase
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,
-                    (string) OptionWithValue::fromString(Str::of($string))
+                    OptionWithValue::fromString(Str::of($string))->toString(),
                 );
             });
     }

@@ -20,7 +20,7 @@ final class Cell implements CellInterface
         return Str::of($this->value)->length();
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         return $this->value;
     }

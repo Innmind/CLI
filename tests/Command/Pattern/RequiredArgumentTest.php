@@ -53,7 +53,7 @@ class RequiredArgumentTest extends TestCase
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,
-                    (string) RequiredArgument::fromString(Str::of($string))
+                    RequiredArgument::fromString(Str::of($string))->toString(),
                 );
             });
     }

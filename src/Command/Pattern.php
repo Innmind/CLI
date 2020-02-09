@@ -128,13 +128,13 @@ final class Pattern
         );
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         return join(
             ' ',
             $this->inputs->mapTo(
                 'string',
-                static fn(Input $input): string => (string) $input,
+                static fn(Input $input): string => $input->toString(),
             ),
         )->toString();
     }
