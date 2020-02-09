@@ -25,13 +25,13 @@ final class OptionWithValue implements Input, Option
         $this->name = $name;
         $this->short = $short;
 
-        if (!is_string($short)) {
+        if (!\is_string($short)) {
             $this->pattern = '~^--'.$name.'=~';
         } else {
-            $this->pattern = sprintf(
+            $this->pattern = \sprintf(
                 '~^-%s=?|--%s=~',
                 $short,
-                $this->name
+                $this->name,
             );
         }
     }
@@ -55,9 +55,6 @@ final class OptionWithValue implements Input, Option
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function extract(
         Map $parsed,
         int $position,
@@ -78,7 +75,7 @@ final class OptionWithValue implements Input, Option
 
         if ($parts->size() >= 2) {
             //means it's of the form -{option}={value}
-            return $parsed->put(
+            return ($parsed)(
                 $this->name,
                 join('=', $parts->drop(1))->toString(), //in case there is an "=" in the value
             );
@@ -87,25 +84,19 @@ final class OptionWithValue implements Input, Option
         //if we're here it's that a short flag with its value as the _next_ argument
         $index = $arguments->indexOf($flag);
 
-        return $parsed->put(
+        return ($parsed)(
             $this->name,
-            $arguments->get($index + 1)
+            $arguments->get($index + 1),
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function clean(Sequence $arguments): Sequence
     {
-        $flag = $arguments->reduce(
-            null,
-            function(?string $flag, string $argument): ?string {
-                return $flag ?? (Str::of($argument)->matches($this->pattern) ? $argument : null);
-            }
-        );
-
-        if (is_null($flag)) {
+        try {
+            $flag = $arguments->find(
+                fn(string $argument): bool => Str::of($argument)->matches($this->pattern),
+            );
+        } catch (NoElementMatchingPredicateFound $e) {
             return $arguments;
         }
 
@@ -127,10 +118,10 @@ final class OptionWithValue implements Input, Option
 
     public function toString(): string
     {
-        if (!is_string($this->short)) {
+        if (!\is_string($this->short)) {
             return '--'.$this->name.'=';
         }
 
-        return sprintf('-%s|--%s=', $this->short, $this->name);
+        return \sprintf('-%s|--%s=', $this->short, $this->name);
     }
 }

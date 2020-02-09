@@ -8,7 +8,7 @@ use Innmind\Stream\{
     Writable,
     Stream\Position,
     Stream\Size,
-    Stream\Position\Mode
+    Stream\Position\Mode,
 };
 use Innmind\TimeContinuum\{
     Clock,
@@ -43,7 +43,7 @@ final class BackPressureWrites implements Writable
     public function write(Str $data): void
     {
         try {
-            if (is_null($this->lastHit)) {
+            if (\is_null($this->lastHit)) {
                 return;
             }
 

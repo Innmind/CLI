@@ -33,7 +33,7 @@ function variables(Map $variables, Adapter $config): Map
     return $variables->map(static function(string $name, $value): Pair {
         return new Pair(
             Str::of($name)->toLower()->camelize()->toString(),
-            $value
+            $value,
         );
     });
 }

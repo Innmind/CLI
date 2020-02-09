@@ -44,9 +44,9 @@ final class Question
              * @psalm-suppress ForbiddenCode
              * @var string
              */
-            $sttyMode = shell_exec('stty -g');
+            $sttyMode = \shell_exec('stty -g');
             /** @psalm-suppress ForbiddenCode */
-            shell_exec('stty -echo'); // disable character print
+            \shell_exec('stty -echo'); // disable character print
         }
 
         try {
@@ -64,7 +64,7 @@ final class Question
                  * @psalm-suppress PossiblyUndefinedVariable
                  * @psalm-suppress ForbiddenCode
                  */
-                shell_exec('stty '.$sttyMode);
+                \shell_exec('stty '.$sttyMode);
                 $output->write(Str::of("\n")); // to display the new line
             }
         }

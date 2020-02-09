@@ -28,9 +28,6 @@ final class OptionalArgument implements Input, Argument
         return new self($pattern->substring(1, -1)->toString());
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function extract(
         Map $parsed,
         int $position,
@@ -40,7 +37,7 @@ final class OptionalArgument implements Input, Argument
             return $parsed;
         }
 
-        return $parsed->put($this->name, $arguments->get($position));
+        return ($parsed)($this->name, $arguments->get($position));
     }
 
     public function toString(): string

@@ -39,7 +39,7 @@ final class Table
                 }
 
                 return $size;
-            }
+            },
         );
 
         if ($header && $header->size() !== $this->rows->first()->size()) {
@@ -145,7 +145,7 @@ final class Table
             Map::of('int', 'int'),
             static function(Map $widths, int $column): Map {
                 return $widths->put($column, 0);
-            }
+            },
         );
         /** @var Map<int, int> */
         $widthPerColumn = $rows->reduce(
@@ -161,9 +161,9 @@ final class Table
                         }
 
                         return $widths->put($column, $width);
-                    }
+                    },
                 );
-            }
+            },
         );
 
         return $columns->map(

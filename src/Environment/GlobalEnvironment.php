@@ -6,7 +6,7 @@ namespace Innmind\CLI\Environment;
 use Innmind\CLI\Environment;
 use Innmind\Stream\{
     Readable,
-    Writable
+    Writable,
 };
 use Innmind\Url\Path;
 use Innmind\Immutable\{
@@ -29,15 +29,15 @@ final class GlobalEnvironment implements Environment
     public function __construct()
     {
         $this->input = new Readable\NonBlocking(
-            new Readable\Stream(STDIN)
+            new Readable\Stream(\STDIN),
         );
-        $this->output = new Writable\Stream(fopen('php://output', 'w'));
-        $this->error = new Writable\Stream(STDERR);
+        $this->output = new Writable\Stream(\fopen('php://output', 'w'));
+        $this->error = new Writable\Stream(\STDERR);
         /** @var list<string> */
         $argv = $_SERVER['argv'];
         $this->arguments = Sequence::strings(...$argv);
         /** @var array<string, string> */
-        $variables = getenv();
+        $variables = \getenv();
         /** @var Map<string, string> */
         $this->variables = Map::of('string', 'string');
 
@@ -46,7 +46,7 @@ final class GlobalEnvironment implements Environment
         }
 
         $this->exitCode = new ExitCode(0);
-        $this->workingDirectory = Path::of(getcwd().'/');
+        $this->workingDirectory = Path::of(\getcwd().'/');
     }
 
     public function input(): Readable
@@ -64,17 +64,11 @@ final class GlobalEnvironment implements Environment
         return $this->error;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function arguments(): Sequence
     {
         return $this->arguments;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function variables(): Map
     {
         return $this->variables;

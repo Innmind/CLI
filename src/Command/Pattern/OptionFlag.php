@@ -24,13 +24,13 @@ final class OptionFlag implements Input, Option
         $this->name = $name;
         $this->short = $short;
 
-        if (!is_string($short)) {
+        if (!\is_string($short)) {
             $this->pattern = '~^--'.$name.'$~';
         } else {
-            $this->pattern = sprintf(
+            $this->pattern = \sprintf(
                 '~^-%s|--%s$~',
                 $short,
-                $this->name
+                $this->name,
             );
         }
     }
@@ -54,9 +54,6 @@ final class OptionFlag implements Input, Option
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function extract(
         Map $parsed,
         int $position,
@@ -73,9 +70,6 @@ final class OptionFlag implements Input, Option
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function clean(Sequence $arguments): Sequence
     {
         return $arguments->filter(function(string $argument): bool {
@@ -85,10 +79,10 @@ final class OptionFlag implements Input, Option
 
     public function toString(): string
     {
-        if (!is_string($this->short)) {
+        if (!\is_string($this->short)) {
             return '--'.$this->name;
         }
 
-        return sprintf('-%s|--%s', $this->short, $this->name);
+        return \sprintf('-%s|--%s', $this->short, $this->name);
     }
 }

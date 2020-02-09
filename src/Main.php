@@ -42,7 +42,7 @@ abstract class Main
                 $displayBinInError,
                 $env->arguments()->first(),
                 $e,
-                $env->error()
+                $env->error(),
             );
             $env->exit(1);
         }
@@ -71,7 +71,7 @@ abstract class Main
                         ->add(Str::of('Caused by'))
                         ->add(Str::of(''))
                         ->append($this->renderError($e));
-                }
+                },
             )
             ->map(static function(Str $line) use ($bin, $displayBin): Str {
                 if ($displayBin) {
@@ -102,7 +102,7 @@ abstract class Main
                 $e->file()->path()->toString(),
                 $e->line()->toString(),
             ),
-            Str::of('')
+            Str::of(''),
         );
 
         /** @var Sequence<Str> */

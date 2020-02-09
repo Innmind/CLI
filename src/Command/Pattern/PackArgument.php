@@ -28,19 +28,16 @@ final class PackArgument implements Input, Argument
         return new self($pattern->substring(3)->toString());
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function extract(
         Map $parsed,
         int $position,
         Sequence $arguments
     ): Map {
         if (!$arguments->indices()->contains($position)) {
-            return $parsed->put($this->name, $arguments->clear());
+            return ($parsed)($this->name, $arguments->clear());
         }
 
-        return $parsed->put($this->name, $arguments->drop($position));
+        return ($parsed)($this->name, $arguments->drop($position));
     }
 
     public function toString(): string

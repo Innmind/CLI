@@ -105,7 +105,7 @@ final class Commands
             $this->displayUsage(
                 $env->output(),
                 $env->arguments()->first(),
-                $spec
+                $spec,
             );
 
             return;
@@ -118,7 +118,7 @@ final class Commands
             $this->displayUsage(
                 $env->error(),
                 $env->arguments()->first(),
-                $spec
+                $spec,
             );
             $env->exit(64); //EX_USAGE The command was used incorrectly
 
@@ -145,7 +145,7 @@ final class Commands
                 ->append(' ')
                 ->append($spec->toString())
                 ->append($description->toString())
-                ->append("\n")
+                ->append("\n"),
         );
     }
 
@@ -156,7 +156,7 @@ final class Commands
             Row::class,
             static fn(Specification $spec): \Generator => yield new Row(
                 new Cell($spec->name()),
-                new Cell($spec->shortDescription())
+                new Cell($spec->shortDescription()),
             ),
         );
         $printTo = Table::borderless(null, ...unwrap($rows));

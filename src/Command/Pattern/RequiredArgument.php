@@ -31,9 +31,6 @@ final class RequiredArgument implements Input, Argument
         return new self($pattern->toString());
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function extract(
         Map $parsed,
         int $position,
@@ -43,7 +40,7 @@ final class RequiredArgument implements Input, Argument
             throw new MissingArgument($this->name);
         }
 
-        return $parsed->put($this->name, $arguments->get($position));
+        return ($parsed)($this->name, $arguments->get($position));
     }
 
     public function toString(): string

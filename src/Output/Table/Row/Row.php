@@ -46,7 +46,7 @@ final class Row implements RowInterface
                     );
 
                     return $cells->add($cell->toString());
-                }
+                },
             );
 
         return join(" $separator ", $cells)

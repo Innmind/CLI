@@ -6,12 +6,12 @@ namespace Innmind\CLI;
 use Innmind\CLI\Environment\ExitCode;
 use Innmind\Stream\{
     Readable,
-    Writable
+    Writable,
 };
 use Innmind\Url\Path;
 use Innmind\Immutable\{
     Map,
-    Sequence
+    Sequence,
 };
 
 interface Environment

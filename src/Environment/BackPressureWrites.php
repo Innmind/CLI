@@ -11,7 +11,7 @@ use Innmind\TimeContinuum\Clock;
 use Innmind\OperatingSystem\CurrentProcess;
 use Innmind\Stream\{
     Readable,
-    Writable
+    Writable,
 };
 use Innmind\Url\Path;
 use Innmind\Immutable\{
@@ -55,17 +55,11 @@ final class BackPressureWrites implements Environment
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function arguments(): Sequence
     {
         return $this->environment->arguments();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function variables(): Map
     {
         return $this->environment->variables();

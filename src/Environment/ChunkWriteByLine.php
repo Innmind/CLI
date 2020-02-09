@@ -9,7 +9,7 @@ use Innmind\CLI\{
 };
 use Innmind\Stream\{
     Readable,
-    Writable
+    Writable,
 };
 use Innmind\Url\Path;
 use Innmind\Immutable\{
@@ -44,17 +44,11 @@ final class ChunkWriteByLine implements Environment
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function arguments(): Sequence
     {
         return $this->environment->arguments();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function variables(): Map
     {
         return $this->environment->variables();

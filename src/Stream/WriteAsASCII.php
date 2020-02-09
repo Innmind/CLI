@@ -8,7 +8,7 @@ use Innmind\Stream\{
     Writable,
     Stream\Position,
     Stream\Size,
-    Stream\Position\Mode
+    Stream\Position\Mode,
 };
 use Innmind\Immutable\Str;
 

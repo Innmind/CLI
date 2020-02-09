@@ -61,7 +61,7 @@ final class Pattern
                 }
 
                 return $inputs->add($input);
-            }
+            },
         );
     }
 
@@ -99,14 +99,14 @@ final class Pattern
                 Map::of('int', Input::class),
                 static function(Map $inputs, Input $input): Map {
                     return $inputs->put($inputs->size(), $input); //map value to a position
-                }
+                },
             )
             ->reduce(
                 Map::of('string', 'string|'.Sequence::class),
                 static function(Map $inputs, int $position, Input $input) use ($arguments): Map {
                     /** @var Map<string, string|Sequence<string>> $inputs */
                     return $input->extract($inputs, $position, $arguments);
-                }
+                },
             );
     }
 
@@ -126,7 +126,7 @@ final class Pattern
             static function(Sequence $arguments, Option $option): Sequence {
                 /** @var Sequence<string> $arguments */
                 return $option->clean($arguments);
-            }
+            },
         );
     }
 

@@ -9,7 +9,7 @@ use Innmind\CLI\{
 };
 use Innmind\Stream\{
     Readable,
-    Writable
+    Writable,
 };
 use Innmind\Url\Path;
 use Innmind\Immutable\{
@@ -36,28 +36,22 @@ final class WriteAsASCII implements Environment
     public function output(): Writable
     {
         return $this->output ?? $this->output = new Stream\WriteAsASCII(
-            $this->environment->output()
+            $this->environment->output(),
         );
     }
 
     public function error(): Writable
     {
         return $this->error ?? $this->error = new Stream\WriteAsASCII(
-            $this->environment->error()
+            $this->environment->error(),
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function arguments(): Sequence
     {
         return $this->environment->arguments();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function variables(): Map
     {
         return $this->environment->variables();
