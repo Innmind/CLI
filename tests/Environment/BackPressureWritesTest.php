@@ -9,29 +9,36 @@ use Innmind\CLI\{
     Environment,
     Stream\BackPressureWrites as BackPressureWritesStream,
 };
-use Innmind\TimeContinuum\TimeContinuumInterface;
-use Innmind\TimeWarp\Halt;
+use Innmind\TimeContinuum\Clock;
+use Innmind\OperatingSystem\CurrentProcess;
 use Innmind\Stream\{
     Readable,
     Writable,
 };
-use Innmind\Url\PathInterface;
+use Innmind\Url\Path;
 use Innmind\Immutable\{
-    StreamInterface,
+    Sequence,
     Str,
+    Map,
 };
 use PHPUnit\Framework\TestCase;
+use Eris\{
+    Generator,
+    TestTrait,
+};
 
 class BackPressureWritesTest extends TestCase
 {
+    use TestTrait;
+
     public function testInterface()
     {
         $this->assertInstanceOf(
             Environment::class,
             new BackPressureWrites(
                 $this->createMock(Environment::class),
-                $this->createMock(TimeContinuumInterface::class),
-                $this->createMock(Halt::class)
+                $this->createMock(Clock::class),
+                $this->createMock(CurrentProcess::class),
             )
         );
     }
@@ -40,8 +47,8 @@ class BackPressureWritesTest extends TestCase
     {
         $env = new BackPressureWrites(
             $inner = $this->createMock(Environment::class),
-            $this->createMock(TimeContinuumInterface::class),
-            $this->createMock(Halt::class)
+            $this->createMock(Clock::class),
+            $this->createMock(CurrentProcess::class),
         );
         $inner
             ->expects($this->once())
@@ -55,8 +62,8 @@ class BackPressureWritesTest extends TestCase
     {
         $env = new BackPressureWrites(
             $inner = $this->createMock(Environment::class),
-            $this->createMock(TimeContinuumInterface::class),
-            $this->createMock(Halt::class)
+            $this->createMock(Clock::class),
+            $this->createMock(CurrentProcess::class),
         );
         $inner
             ->expects($this->once())
@@ -70,10 +77,10 @@ class BackPressureWritesTest extends TestCase
     {
         $env = new BackPressureWrites(
             $inner = $this->createMock(Environment::class),
-            $this->createMock(TimeContinuumInterface::class),
-            $this->createMock(Halt::class)
+            $this->createMock(Clock::class),
+            $this->createMock(CurrentProcess::class),
         );
-        $data = new Str('');
+        $data = Str::of('');
         $inner
             ->expects($this->once())
             ->method('error')
@@ -94,13 +101,13 @@ class BackPressureWritesTest extends TestCase
     {
         $env = new BackPressureWrites(
             $inner = $this->createMock(Environment::class),
-            $this->createMock(TimeContinuumInterface::class),
-            $this->createMock(Halt::class)
+            $this->createMock(Clock::class),
+            $this->createMock(CurrentProcess::class),
         );
         $inner
             ->expects($this->once())
             ->method('arguments')
-            ->willReturn($expected = $this->createMock(StreamInterface::class));
+            ->willReturn($expected = Sequence::strings());
 
         $this->assertSame($expected, $env->arguments());
     }
@@ -109,8 +116,8 @@ class BackPressureWritesTest extends TestCase
     {
         $env = new BackPressureWrites(
             $inner = $this->createMock(Environment::class),
-            $this->createMock(TimeContinuumInterface::class),
-            $this->createMock(Halt::class)
+            $this->createMock(Clock::class),
+            $this->createMock(CurrentProcess::class),
         );
         $inner
             ->expects($this->once())
@@ -124,8 +131,8 @@ class BackPressureWritesTest extends TestCase
     {
         $env = new BackPressureWrites(
             $inner = $this->createMock(Environment::class),
-            $this->createMock(TimeContinuumInterface::class),
-            $this->createMock(Halt::class)
+            $this->createMock(Clock::class),
+            $this->createMock(CurrentProcess::class),
         );
         $inner
             ->expects($this->once())
@@ -139,14 +146,48 @@ class BackPressureWritesTest extends TestCase
     {
         $env = new BackPressureWrites(
             $inner = $this->createMock(Environment::class),
-            $this->createMock(TimeContinuumInterface::class),
-            $this->createMock(Halt::class)
+            $this->createMock(Clock::class),
+            $this->createMock(CurrentProcess::class),
         );
         $inner
             ->expects($this->once())
             ->method('workingDirectory')
-            ->willReturn($expected = $this->createMock(PathInterface::class));
+            ->willReturn($expected = Path::none());
 
         $this->assertSame($expected, $env->workingDirectory());
+    }
+
+    public function testVariables()
+    {
+        $env = new BackPressureWrites(
+            $inner = $this->createMock(Environment::class),
+            $this->createMock(Clock::class),
+            $this->createMock(CurrentProcess::class),
+        );
+        $inner
+            ->expects($this->once())
+            ->method('variables')
+            ->willReturn($expected = Map::of('string', 'string'));
+
+        $this->assertSame($expected, $env->variables());
+    }
+
+    public function testInteractive()
+    {
+        $this
+            ->forAll(Generator\elements(true, false))
+            ->then(function($interactive) {
+                $env = new BackPressureWrites(
+                    $inner = $this->createMock(Environment::class),
+                    $this->createMock(Clock::class),
+                    $this->createMock(CurrentProcess::class),
+                );
+                $inner
+                    ->expects($this->once())
+                    ->method('interactive')
+                    ->willReturn($interactive);
+
+                $this->assertSame($interactive, $env->interactive());
+            });
     }
 }

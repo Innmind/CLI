@@ -19,32 +19,30 @@ new class extends Main {
     protected function main(Environment $env, OperatingSystem $os): void
     {
         $user = new Question('your name please :');
-        $pwd = Question::hiddenResponse('password :');
+        $pwd = new Question('password :');
 
-        $env
-            ->output()
-            ->write($user($env->input(), $env->output())->append("\n"))
-            ->write($pwd($env->input(), $env->output())->append("\n"));
+        $env->output()->write($user($env, $os->sockets())->append("\n"));
+        $env->output()->write($pwd($env, $os->sockets())->append("\n"));
 
         $ask = new ChoiceQuestion(
             'choices:',
-            (new Map('scalar', 'scalar'))
-                ->put('foo', 'bar')
-                ->put(1, 'baz')
-                ->put(2, 3)
-                ->put(3, 'foo')
+            Map::of('scalar', 'scalar')
+                ('foo', 'bar')
+                (1, 'baz')
+                (2, 3)
+                (3, 'foo')
         );
 
-        $choices = $ask($env->input(), $env->output());
+        $choices = $ask($env, $os->sockets());
 
         $choices->foreach(static function($key, $value) use ($env): void {
             $env->output()->write(
                 Str::of("%s(%s) => %s(%s)\n")->sprintf(
-                    gettype($key),
-                    $key,
+                    (string) gettype($key),
+                    (string) $key,
                     gettype($value),
-                    $value
-                )
+                    (string) $value,
+                ),
             );
         });
     }

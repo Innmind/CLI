@@ -18,24 +18,20 @@ use Innmind\CLI\{
 use Innmind\Immutable\{
     Str,
     Sequence,
-    StreamInterface,
-    Stream,
-    MapInterface,
     Map,
 };
+use function Innmind\Immutable\join;
 
 final class Pattern
 {
-    private $inputs;
+    private Sequence $inputs;
 
     public function __construct(Str ...$inputs)
     {
-        $loader = new Inputs;
-        $this->inputs = Sequence::of(...$inputs)->reduce(
-            Stream::of(Input::class),
-            static function(Stream $inputs, Str $element) use ($loader): Stream {
-                return $inputs->add($loader->load($element));
-            }
+        $load = new Inputs;
+        $this->inputs = Sequence::of(Str::class, ...$inputs)->mapTo(
+            Input::class,
+            static fn(Str $element): Input => $load($element),
         );
 
         $arguments = $this->inputs->filter(static function(Input $input): bool {
@@ -50,13 +46,13 @@ final class Pattern
             throw new OnlyOnePackArgumentAllowed;
         }
 
-        if ($packs->size() > 0 && !$arguments->last() instanceof PackArgument) {
+        if (!$packs->empty() && !$arguments->last() instanceof PackArgument) {
             throw new PackArgumentMustBeTheLastOne;
         }
 
         $arguments->drop(1)->reduce(
             $arguments->take(1),
-            static function(Stream $inputs, Input $input): Stream {
+            static function(Sequence $inputs, Input $input): Sequence {
                 if (
                     $inputs->last() instanceof OptionalArgument &&
                     $input instanceof RequiredArgument
@@ -65,7 +61,7 @@ final class Pattern
                 }
 
                 return $inputs->add($input);
-            }
+            },
         );
     }
 
@@ -90,25 +86,27 @@ final class Pattern
     }
 
     /**
-     * @param StreamInterface<string> $arguments
+     * @param Sequence<string> $arguments
      *
-     * @return MapInterface<string, mixed>
+     * @return Map<string, string|Sequence<string>>
      */
-    public function extract(StreamInterface $arguments): MapInterface
+    public function extract(Sequence $arguments): Map
     {
+        /** @var Map<string, string|Sequence<string>> */
         return $this
             ->inputs
             ->reduce(
-                new Map('int', Input::class),
+                Map::of('int', Input::class),
                 static function(Map $inputs, Input $input): Map {
                     return $inputs->put($inputs->size(), $input); //map value to a position
-                }
+                },
             )
             ->reduce(
-                new Map('string', 'mixed'),
-                static function(Map $inputs, int $position, Input $input) use ($arguments): MapInterface {
+                Map::of('string', 'string|'.Sequence::class),
+                static function(Map $inputs, int $position, Input $input) use ($arguments): Map {
+                    /** @var Map<string, string|Sequence<string>> $inputs */
                     return $input->extract($inputs, $position, $arguments);
-                }
+                },
             );
     }
 
@@ -116,22 +114,30 @@ final class Pattern
      * Remove all options from the list of arguments so the arguments can be
      * correctly extracted
      *
-     * @param StreamInterface<string> $arguments
+     * @param Sequence<string> $arguments
      *
-     * @return StreamInterface<string>
+     * @return Sequence<string>
      */
-    public function clean(StreamInterface $arguments): StreamInterface
+    public function clean(Sequence $arguments): Sequence
     {
+        /** @var Sequence<string> */
         return $this->inputs->reduce(
             $arguments,
-            static function(StreamInterface $arguments, Option $option): StreamInterface {
+            static function(Sequence $arguments, Option $option): Sequence {
+                /** @var Sequence<string> $arguments */
                 return $option->clean($arguments);
-            }
+            },
         );
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
-        return (string) $this->inputs->join(' ');
+        return join(
+            ' ',
+            $this->inputs->mapTo(
+                'string',
+                static fn(Input $input): string => $input->toString(),
+            ),
+        )->toString();
     }
 }

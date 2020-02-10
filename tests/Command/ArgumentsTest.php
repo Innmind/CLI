@@ -11,7 +11,7 @@ use Innmind\CLI\{
     Environment,
 };
 use Innmind\Immutable\{
-    Stream,
+    Sequence,
     Map,
 };
 use PHPUnit\Framework\TestCase;
@@ -25,7 +25,7 @@ class ArgumentsTest extends TestCase
             {
             }
 
-            public function __toString(): string
+            public function toString(): string
             {
                 return 'watch container --foo [output]';
             }
@@ -35,7 +35,14 @@ class ArgumentsTest extends TestCase
             $spec
                 ->pattern()
                 ->arguments()
-                ->extract(Stream::of('string', 'foo'))
+                ->extract(Sequence::of('string', 'foo'))
+                ->toMapOf(
+                    'string',
+                    'string',
+                    static function($name, $value) {
+                        yield $name => $value;
+                    },
+                ),
         );
 
         $this->assertTrue($arguments->contains('container'));
@@ -46,7 +53,14 @@ class ArgumentsTest extends TestCase
             $spec
                 ->pattern()
                 ->arguments()
-                ->extract(Stream::of('string', 'foo', 'bar'))
+                ->extract(Sequence::of('string', 'foo', 'bar'))
+                ->toMapOf(
+                    'string',
+                    'string',
+                    static function($name, $value) {
+                        yield $name => $value;
+                    },
+                ),
         );
 
         $this->assertTrue($arguments->contains('container'));
@@ -55,22 +69,22 @@ class ArgumentsTest extends TestCase
         $this->assertSame('bar', $arguments->get('output'));
     }
 
-    public function testFromSpecification()
+    public function testOf()
     {
         $spec = new Specification(new class implements Command {
             public function __invoke(Environment $env, Arguments $args, Options $options): void
             {
             }
 
-            public function __toString(): string
+            public function toString(): string
             {
                 return 'watch container --foo [output]';
             }
         });
 
-        $arguments = Arguments::fromSpecification(
+        $arguments = Arguments::of(
             $spec,
-            Stream::of('string', 'foo')
+            Sequence::of('string', 'foo')
         );
 
         $this->assertInstanceOf(Arguments::class, $arguments);
@@ -87,27 +101,27 @@ class ArgumentsTest extends TestCase
     public function testThrowWhenInvalidArgumentsKeys()
     {
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 1 must be of type MapInterface<string, mixed>');
+        $this->expectExceptionMessage('Argument 1 must be of type Map<string, string>');
 
-        new Arguments(new Map('int', 'mixed'));
+        new Arguments(Map::of('int', 'string'));
     }
 
     public function testThrowWhenInvalidArgumentsValues()
     {
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 1 must be of type MapInterface<string, mixed>');
+        $this->expectExceptionMessage('Argument 1 must be of type Map<string, string>');
 
-        new Arguments(new Map('string', 'string'));
+        new Arguments(Map::of('string', 'mixed'));
     }
 
     public function testAccessPackByDedicatedMethod()
     {
         $arguments = new Arguments(
-            Map::of('string', 'mixed')
-                ('rest', Stream::of('string', 'foo', 'bar'))
+            null,
+            $pack = Sequence::of('string', 'foo', 'bar'),
         );
 
-        $this->assertTrue($arguments->contains('rest'));
-        $this->assertSame($arguments->get('rest'), $arguments->pack());
+        $this->assertFalse($arguments->contains('rest'));
+        $this->assertSame($pack, $arguments->pack());
     }
 }

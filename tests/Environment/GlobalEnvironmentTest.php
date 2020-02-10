@@ -13,18 +13,19 @@ use Innmind\Stream\{
     Selectable,
     Writable
 };
-use Innmind\Url\PathInterface;
+use Innmind\Url\Path;
 use Innmind\Immutable\{
-    StreamInterface,
-    MapInterface
+    Sequence,
+    Map,
 };
+use function Innmind\Immutable\unwrap;
 use PHPUnit\Framework\TestCase;
 
 class GlobalEnvironmentTest extends TestCase
 {
     private $env;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->env = new GlobalEnvironment;
     }
@@ -32,6 +33,13 @@ class GlobalEnvironmentTest extends TestCase
     public function testInterface()
     {
         $this->assertInstanceOf(Environment::class, $this->env);
+    }
+
+    public function testInteractive()
+    {
+        // can't prove via a test that the env can be interactive as tests are
+        // always run in an non interactive env
+        $this->assertFalse($this->env->interactive());
     }
 
     public function testInput()
@@ -59,14 +67,14 @@ class GlobalEnvironmentTest extends TestCase
 
     public function testArguments()
     {
-        $this->assertInstanceOf(StreamInterface::class, $this->env->arguments());
+        $this->assertInstanceOf(Sequence::class, $this->env->arguments());
         $this->assertSame('string', (string) $this->env->arguments()->type());
-        $this->assertSame($_SERVER['argv'], $this->env->arguments()->toPrimitive());
+        $this->assertSame($_SERVER['argv'], unwrap($this->env->arguments()));
     }
 
     public function testVariables()
     {
-        $this->assertInstanceOf(MapInterface::class, $this->env->variables());
+        $this->assertInstanceOf(Map::class, $this->env->variables());
         $this->assertSame('string', (string) $this->env->variables()->keyType());
         $this->assertSame('string', (string) $this->env->variables()->valueType());
         $this->assertSame(
@@ -92,7 +100,8 @@ class GlobalEnvironmentTest extends TestCase
 
     public function testWorkingDirectory()
     {
-        $this->assertInstanceOf(PathInterface::class, $this->env->workingDirectory());
-        $this->assertSame(getcwd(), (string) $this->env->workingDirectory());
+        $this->assertInstanceOf(Path::class, $this->env->workingDirectory());
+        $this->assertTrue($this->env->workingDirectory()->directory());
+        $this->assertSame(getcwd().'/', $this->env->workingDirectory()->toString());
     }
 }

@@ -3,71 +3,76 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Question;
 
-use Innmind\Stream\{
-    Readable,
-    Writable,
-    Select,
+use Innmind\CLI\{
+    Environment,
+    Exception\NonInteractiveTerminal,
 };
-use Innmind\TimeContinuum\ElapsedPeriod;
+use Innmind\OperatingSystem\Sockets;
+use Innmind\TimeContinuum\Earth\ElapsedPeriod;
 use Innmind\Immutable\{
     Str,
-    MapInterface,
+    Map,
     Set,
 };
+use function Innmind\Immutable\assertMap;
 
 final class ChoiceQuestion
 {
-    private $question;
-    private $values;
+    private Str $question;
+    /** @var Map<scalar, scalar> */
+    private Map $values;
 
     /**
-     * @param MapInterface<scalar, scalar> $values
+     * @param Map<scalar, scalar> $values
      */
-    public function __construct(string $question, MapInterface $values)
+    public function __construct(string $question, Map $values)
     {
-        if (
-            (string) $values->keyType() !== 'scalar' ||
-            (string) $values->valueType() !== 'scalar'
-        ) {
-            throw new \TypeError('Argument 2 must be of type MapInterface<scalar, scalar>');
-        }
+        assertMap('scalar', 'scalar', $values, 2);
 
         $this->question = Str::of($question);
         $this->values = $values;
     }
 
     /**
-     * @return MapInterface<scalar, scalar>
+     * @throws NonInteractiveTerminal
+     *
+     * @return Map<scalar, scalar>
      */
-    public function __invoke(Readable $input, Writable $output): MapInterface
+    public function __invoke(Environment $env, Sockets $sockets): Map
     {
+        if (!$env->interactive() || $env->arguments()->contains('--no-interaction')) {
+            throw new NonInteractiveTerminal;
+        }
+
+        $input = $env->input();
+        $output = $env->output();
         $output->write($this->question->append("\n"));
         $this->values->foreach(static function($key, $value) use ($output): void {
-            $output->write(Str::of("[%s] %s\n")->sprintf($key, $value));
+            $output->write(Str::of("[%s] %s\n")->sprintf((string) $key, (string) $value));
         });
         $output->write(Str::of('> '));
 
-        $select = (new Select(new ElapsedPeriod(60 * 1000))) // one minute
+        /** @psalm-suppress InvalidArgument $input must be a Selectable */
+        $select = $sockets->watch(new ElapsedPeriod(60 * 1000)) // one minute
             ->forRead($input);
 
         $response = Str::of('');
 
         do {
-            $streams = $select();
+            $ready = $select();
 
-            if ($streams->get('read')->contains($input)) {
-                $response = $response->append((string) $input->read());
+            /** @psalm-suppress InvalidArgument $input must be a Selectable */
+            if ($ready->toRead()->contains($input)) {
+                $response = $response->append($input->read()->toString());
             }
         } while (!$response->contains("\n"));
 
         $choices = $response
             ->substring(0, -1) // remove the new line character
             ->split(',')
-            ->reduce(
-                Set::of('string'),
-                static function(Set $choices, Str $choice): Set {
-                    return $choices->add((string) $choice->trim());
-                }
+            ->toSetOf(
+                'string',
+                static fn(Str $choice): \Generator => yield $choice->trim()->toString(),
             );
 
         return $this->values->filter(static function($key) use ($choices): bool {

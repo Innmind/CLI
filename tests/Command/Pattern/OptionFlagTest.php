@@ -12,11 +12,10 @@ use Innmind\CLI\{
 };
 use Innmind\Immutable\{
     Str,
-    StreamInterface,
-    Stream,
-    MapInterface,
+    Sequence,
     Map,
 };
+use function Innmind\Immutable\unwrap;
 use PHPUnit\Framework\TestCase;
 use Eris\{
     Generator,
@@ -29,8 +28,8 @@ class OptionFlagTest extends TestCase
 
     public function testInterface()
     {
-        $this->assertInstanceOf(Input::class, OptionFlag::fromString(Str::of('--foo')));
-        $this->assertInstanceOf(Option::class, OptionFlag::fromString(Str::of('--foo')));
+        $this->assertInstanceOf(Input::class, OptionFlag::of(Str::of('--foo')));
+        $this->assertInstanceOf(Option::class, OptionFlag::of(Str::of('--foo')));
     }
 
     public function testThrowWhenInvalidPattern()
@@ -45,7 +44,7 @@ class OptionFlagTest extends TestCase
                 $this->expectException(PatternNotRecognized::class);
                 $this->expectExceptionMessage($string);
 
-                OptionFlag::fromString(Str::of($string));
+                OptionFlag::of(Str::of($string));
             });
     }
 
@@ -56,36 +55,36 @@ class OptionFlagTest extends TestCase
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,
-                    (string) OptionFlag::fromString(Str::of($string))
+                    OptionFlag::of(Str::of($string))->toString(),
                 );
             });
     }
 
     public function testExtract()
     {
-        $input = OptionFlag::fromString(Str::of('--foo'));
+        $input = OptionFlag::of(Str::of('--foo'));
 
         $arguments = $input->extract(
-            new Map('string', 'mixed'),
+            Map::of('string', 'mixed'),
             0,
-            Stream::of('string', 'watev', '--foo', 'bar', 'baz')
+            Sequence::of('string', 'watev', '--foo', 'bar', 'baz')
         );
 
-        $this->assertInstanceOf(MapInterface::class, $arguments);
+        $this->assertInstanceOf(Map::class, $arguments);
         $this->assertSame('string', (string) $arguments->keyType());
         $this->assertSame('mixed', (string) $arguments->valueType());
         $this->assertCount(1, $arguments);
-        $this->assertTrue($arguments->get('foo'));
+        $this->assertSame('', $arguments->get('foo'));
     }
 
     public function testDoesNothingWhenNoFlag()
     {
-        $input = OptionFlag::fromString(Str::of('--foo'));
+        $input = OptionFlag::of(Str::of('--foo'));
 
         $arguments = $input->extract(
-            $expected = new Map('string', 'mixed'),
+            $expected = Map::of('string', 'mixed'),
             42,
-            Stream::of('string', 'watev', 'foo', 'bar', 'baz')
+            Sequence::of('string', 'watev', 'foo', 'bar', 'baz')
         );
 
         $this->assertSame($expected, $arguments);
@@ -93,14 +92,14 @@ class OptionFlagTest extends TestCase
 
     public function testClean()
     {
-        $input = OptionFlag::fromString(Str::of('-f|--foo'));
+        $input = OptionFlag::of(Str::of('-f|--foo'));
 
         $arguments = $input->clean(
-            Stream::of('string', 'watev', '--foo', 'bar', 'baz', '-f')
+            Sequence::of('string', 'watev', '--foo', 'bar', 'baz', '-f')
         );
 
-        $this->assertInstanceOf(StreamInterface::class, $arguments);
+        $this->assertInstanceOf(Sequence::class, $arguments);
         $this->assertSame('string', (string) $arguments->type());
-        $this->assertSame(['watev', 'bar', 'baz'], $arguments->toPrimitive());
+        $this->assertSame(['watev', 'bar', 'baz'], unwrap($arguments));
     }
 }

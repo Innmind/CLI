@@ -6,30 +6,34 @@ namespace Innmind\CLI;
 use Innmind\CLI\Environment\ExitCode;
 use Innmind\Stream\{
     Readable,
-    Writable
+    Writable,
 };
-use Innmind\Url\PathInterface;
+use Innmind\Url\Path;
 use Innmind\Immutable\{
-    MapInterface,
-    StreamInterface
+    Map,
+    Sequence,
 };
 
 interface Environment
 {
+    /**
+     * True if the environment running the script is an interactive terminal
+     */
+    public function interactive(): bool;
     public function input(): Readable;
     public function output(): Writable;
     public function error(): Writable;
 
     /**
-     * @return StreamInterface<string>
+     * @return Sequence<string>
      */
-    public function arguments(): StreamInterface;
+    public function arguments(): Sequence;
 
     /**
-     * @return MapInterface<string, string>
+     * @return Map<string, string>
      */
-    public function variables(): MapInterface;
+    public function variables(): Map;
     public function exit(int $code): void;
     public function exitCode(): ExitCode;
-    public function workingDirectory(): PathInterface;
+    public function workingDirectory(): Path;
 }

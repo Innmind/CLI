@@ -13,15 +13,22 @@ use Innmind\Stream\{
     Readable,
     Writable,
 };
-use Innmind\Url\PathInterface;
+use Innmind\Url\Path;
 use Innmind\Immutable\{
-    StreamInterface,
+    Sequence,
     Str,
+    Map,
 };
 use PHPUnit\Framework\TestCase;
+use Eris\{
+    Generator,
+    TestTrait,
+};
 
 class ChunkWriteByLineTest extends TestCase
 {
+    use TestTrait;
+
     public function testInterface()
     {
         $this->assertInstanceOf(
@@ -63,7 +70,7 @@ class ChunkWriteByLineTest extends TestCase
         $env = new ChunkWriteByLine(
             $inner = $this->createMock(Environment::class)
         );
-        $data = new Str('');
+        $data = Str::of('');
         $inner
             ->expects($this->once())
             ->method('error')
@@ -88,7 +95,7 @@ class ChunkWriteByLineTest extends TestCase
         $inner
             ->expects($this->once())
             ->method('arguments')
-            ->willReturn($expected = $this->createMock(StreamInterface::class));
+            ->willReturn($expected = Sequence::strings());
 
         $this->assertSame($expected, $env->arguments());
     }
@@ -127,8 +134,38 @@ class ChunkWriteByLineTest extends TestCase
         $inner
             ->expects($this->once())
             ->method('workingDirectory')
-            ->willReturn($expected = $this->createMock(PathInterface::class));
+            ->willReturn($expected = Path::none());
 
         $this->assertSame($expected, $env->workingDirectory());
+    }
+
+    public function testVariables()
+    {
+        $env = new ChunkWriteByLine(
+            $inner = $this->createMock(Environment::class)
+        );
+        $inner
+            ->expects($this->once())
+            ->method('variables')
+            ->willReturn($expected = Map::of('string', 'string'));
+
+        $this->assertSame($expected, $env->variables());
+    }
+
+    public function testInteractive()
+    {
+        $this
+            ->forAll(Generator\elements(true, false))
+            ->then(function($interactive) {
+                $env = new ChunkWriteByLine(
+                    $inner = $this->createMock(Environment::class),
+                );
+                $inner
+                    ->expects($this->once())
+                    ->method('interactive')
+                    ->willReturn($interactive);
+
+                $this->assertSame($interactive, $env->interactive());
+            });
     }
 }

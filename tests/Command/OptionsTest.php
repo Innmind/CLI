@@ -11,7 +11,7 @@ use Innmind\CLI\{
     Environment,
 };
 use Innmind\Immutable\{
-    Stream,
+    Sequence,
     Map,
 };
 use PHPUnit\Framework\TestCase;
@@ -25,7 +25,7 @@ class OptionsTest extends TestCase
             {
             }
 
-            public function __toString(): string
+            public function toString(): string
             {
                 return 'watch container --foo --bar= [output]';
             }
@@ -35,47 +35,61 @@ class OptionsTest extends TestCase
             $spec
                 ->pattern()
                 ->options()
-                ->extract(Stream::of('string', '--foo'))
+                ->extract(Sequence::of('string', '--foo'))
+                ->toMapOf(
+                    'string',
+                    'string',
+                    static function(string $name, string $value): \Generator {
+                        yield $name => $value;
+                    },
+                ),
         );
 
         $this->assertTrue($options->contains('foo'));
-        $this->assertTrue($options->get('foo'));
+        $this->assertSame('', $options->get('foo'));
         $this->assertFalse($options->contains('bar'));
 
         $options = new Options(
             $spec
                 ->pattern()
                 ->options()
-                ->extract(Stream::of('string', '--foo', '--bar=baz'))
+                ->extract(Sequence::of('string', '--foo', '--bar=baz'))
+                ->toMapOf(
+                    'string',
+                    'string',
+                    static function(string $name, string $value): \Generator {
+                        yield $name => $value;
+                    },
+                ),
         );
 
         $this->assertTrue($options->contains('foo'));
-        $this->assertTrue($options->get('foo'));
+        $this->assertSame('', $options->get('foo'));
         $this->assertTrue($options->contains('bar'));
         $this->assertSame('baz', $options->get('bar'));
     }
 
-    public function testFromSpecification()
+    public function testOf()
     {
         $spec = new Specification(new class implements Command {
             public function __invoke(Environment $env, Arguments $args, Options $options): void
             {
             }
 
-            public function __toString(): string
+            public function toString(): string
             {
                 return 'watch container --foo --bar= [output]';
             }
         });
 
-        $options = Options::fromSpecification(
+        $options = Options::of(
             $spec,
-            Stream::of('string', '--foo')
+            Sequence::of('string', '--foo')
         );
 
         $this->assertInstanceOf(Options::class, $options);
         $this->assertTrue($options->contains('foo'));
-        $this->assertTrue($options->get('foo'));
+        $this->assertSame('', $options->get('foo'));
         $this->assertFalse($options->contains('bar'));
     }
 
@@ -87,16 +101,16 @@ class OptionsTest extends TestCase
     public function testThrowWhenInvalidOptionsKeys()
     {
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 1 must be of type MapInterface<string, mixed>');
+        $this->expectExceptionMessage('Argument 1 must be of type Map<string, string>');
 
-        new Options(new Map('int', 'mixed'));
+        new Options(Map::of('int', 'string'));
     }
 
     public function testThrowWhenInvalidOptionsValues()
     {
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 1 must be of type MapInterface<string, mixed>');
+        $this->expectExceptionMessage('Argument 1 must be of type Map<string, string>');
 
-        new Options(new Map('string', 'string'));
+        new Options(Map::of('string', 'mixed'));
     }
 }

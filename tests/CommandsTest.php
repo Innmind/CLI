@@ -12,7 +12,7 @@ use Innmind\CLI\{
 };
 use Innmind\Stream\Writable;
 use Innmind\Immutable\{
-    Stream,
+    Sequence,
     Str,
 };
 use PHPUnit\Framework\TestCase;
@@ -37,7 +37,7 @@ class CommandsTest extends TestCase
                 $env->exit(42);
             }
 
-            public function __toString(): string
+            public function toString(): string
             {
                 return 'watch container [output] --foo';
             }
@@ -46,7 +46,7 @@ class CommandsTest extends TestCase
         $env
             ->expects($this->once())
             ->method('arguments')
-            ->willReturn(Stream::of('string', 'bin/console', 'foo', '--foo', 'bar'));
+            ->willReturn(Sequence::of('string', 'bin/console', 'foo', '--foo', 'bar'));
         $env
             ->expects($this->once())
             ->method('exit')
@@ -64,7 +64,7 @@ class CommandsTest extends TestCase
                     $env->exit(42);
                 }
 
-                public function __toString(): string
+                public function toString(): string
                 {
                     return 'foo';
                 }
@@ -85,7 +85,7 @@ class CommandsTest extends TestCase
                     $env->exit(24);
                 }
 
-                public function __toString(): string
+                public function toString(): string
                 {
                     return 'watch container [output] --foo';
                 }
@@ -95,7 +95,7 @@ class CommandsTest extends TestCase
         $env
             ->expects($this->exactly(2))
             ->method('arguments')
-            ->willReturn(Stream::of('string', 'bin/console', 'watch', 'foo', '--foo', 'bar'));
+            ->willReturn(Sequence::of('string', 'bin/console', 'watch', 'foo', '--foo', 'bar'));
         $env
             ->expects($this->once())
             ->method('exit')
@@ -113,7 +113,7 @@ class CommandsTest extends TestCase
                     $env->exit(42);
                 }
 
-                public function __toString(): string
+                public function toString(): string
                 {
                     return 'foo';
                 }
@@ -124,7 +124,7 @@ class CommandsTest extends TestCase
                     $env->exit(24);
                 }
 
-                public function __toString(): string
+                public function toString(): string
                 {
                     return 'watch container [output] --foo';
                 }
@@ -134,7 +134,7 @@ class CommandsTest extends TestCase
         $env
             ->expects($this->once())
             ->method('arguments')
-            ->willReturn(Stream::of('string', 'bin/console', 'bar'));
+            ->willReturn(Sequence::of('string', 'bin/console', 'bar'));
         $env
             ->expects($this->once())
             ->method('exit')
@@ -147,14 +147,14 @@ class CommandsTest extends TestCase
             ->expects($this->at(0))
             ->method('write')
             ->with($this->callback(function(Str $value): bool {
-                return (string) $value === " foo     \n watch   ";
+                return $value->toString() === " foo     \n watch   ";
             }))
             ->will($this->returnSelf());
         $output
             ->expects($this->at(1))
             ->method('write')
             ->with($this->callback(function(Str $value): bool {
-                return (string) $value === "\n";
+                return $value->toString() === "\n";
             }))
             ->will($this->returnSelf());
 
@@ -169,7 +169,7 @@ class CommandsTest extends TestCase
                 $env->exit(42);
             }
 
-            public function __toString(): string
+            public function toString(): string
             {
                 return <<<USAGE
 watch container [output] --foo
@@ -184,7 +184,7 @@ USAGE;
         $env
             ->expects($this->exactly(2))
             ->method('arguments')
-            ->willReturn(Stream::of('string', 'bin/console'));
+            ->willReturn(Sequence::of('string', 'bin/console'));
         $env
             ->expects($this->once())
             ->method('exit')
@@ -197,7 +197,7 @@ USAGE;
             ->expects($this->once())
             ->method('write')
             ->with($this->callback(function(Str $value): bool {
-                return (string) $value === 'usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar\n";
+                return $value->toString() === 'usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar\n";
             }));
 
         $this->assertNull($run($env));
@@ -211,7 +211,7 @@ USAGE;
                 throw new \Exception;
             }
 
-            public function __toString(): string
+            public function toString(): string
             {
                 return 'watch container [output] --foo';
             }
@@ -220,7 +220,7 @@ USAGE;
         $env
             ->expects($this->once())
             ->method('arguments')
-            ->willReturn(Stream::of('string', 'bin/console', 'foo', '--foo', 'bar'));
+            ->willReturn(Sequence::of('string', 'bin/console', 'foo', '--foo', 'bar'));
         $env
             ->expects($this->never())
             ->method('exit');
@@ -238,7 +238,7 @@ USAGE;
                 $env->exit(42);
             }
 
-            public function __toString(): string
+            public function toString(): string
             {
                 return <<<USAGE
 watch container [output] --foo
@@ -253,7 +253,7 @@ USAGE;
         $env
             ->expects($this->exactly(2))
             ->method('arguments')
-            ->willReturn(Stream::of('string', 'bin/console', '--help'));
+            ->willReturn(Sequence::of('string', 'bin/console', '--help'));
         $env
             ->expects($this->never())
             ->method('exit');
@@ -265,7 +265,7 @@ USAGE;
             ->expects($this->once())
             ->method('write')
             ->with($this->callback(function(Str $value): bool {
-                return (string) $value === 'usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar\n";
+                return $value->toString() === 'usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar\n";
             }));
 
         $this->assertNull($run($env));
@@ -280,7 +280,7 @@ USAGE;
                     $env->exit(42);
                 }
 
-                public function __toString(): string
+                public function toString(): string
                 {
                     return 'foo'."\n\n".'Description';
                 }
@@ -291,7 +291,7 @@ USAGE;
                     $env->exit(24);
                 }
 
-                public function __toString(): string
+                public function toString(): string
                 {
                     return 'watch container [output] --foo'."\n\n".'Watch dependency injection';
                 }
@@ -301,7 +301,7 @@ USAGE;
         $env
             ->expects($this->once())
             ->method('arguments')
-            ->willReturn(Stream::of('string', 'bin/console', 'help'));
+            ->willReturn(Sequence::of('string', 'bin/console', 'help'));
         $env
             ->expects($this->never())
             ->method('exit');
@@ -313,14 +313,14 @@ USAGE;
             ->expects($this->at(0))
             ->method('write')
             ->with($this->callback(function(Str $value): bool {
-                return (string) $value === " foo    Description                \n watch  Watch dependency injection ";
+                return $value->toString() === " foo    Description                \n watch  Watch dependency injection ";
             }))
             ->will($this->returnSelf());
         $output
             ->expects($this->at(1))
             ->method('write')
             ->with($this->callback(function(Str $value): bool {
-                return (string) $value === "\n";
+                return $value->toString() === "\n";
             }))
             ->will($this->returnSelf());
 
@@ -336,7 +336,7 @@ USAGE;
                     $env->exit(42);
                 }
 
-                public function __toString(): string
+                public function toString(): string
                 {
                     return 'foo';
                 }
@@ -347,7 +347,7 @@ USAGE;
                     $env->exit(24);
                 }
 
-                public function __toString(): string
+                public function toString(): string
                 {
                     return 'watch container [output] --foo';
                 }
@@ -357,7 +357,7 @@ USAGE;
         $env
             ->expects($this->once())
             ->method('arguments')
-            ->willReturn(Stream::of('string', 'bin/console'));
+            ->willReturn(Sequence::of('string', 'bin/console'));
         $env
             ->expects($this->once())
             ->method('exit')
@@ -370,14 +370,14 @@ USAGE;
             ->expects($this->at(0))
             ->method('write')
             ->with($this->callback(function(Str $value): bool {
-                return (string) $value === " foo     \n watch   ";
+                return $value->toString() === " foo     \n watch   ";
             }))
             ->will($this->returnSelf());
         $output
             ->expects($this->at(1))
             ->method('write')
             ->with($this->callback(function(Str $value): bool {
-                return (string) $value === "\n";
+                return $value->toString() === "\n";
             }))
             ->will($this->returnSelf());
 

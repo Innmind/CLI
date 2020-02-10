@@ -23,7 +23,7 @@ class SpecificationTest extends TestCase
             {
             }
 
-            public function __toString(): string
+            public function toString(): string
             {
                 return <<<USAGE
     watch container [output] ...proxy
@@ -56,10 +56,10 @@ DESCRIPTION;
         $this->assertSame($expected, $spec->description());
         $this->assertSame(
             'watch container [output] ...proxy',
-            (string) $spec
+            $spec->toString(),
         );
         $this->assertInstanceOf(Pattern::class, $spec->pattern());
-        $this->assertSame('container [output] ...proxy', (string) $spec->pattern());
+        $this->assertSame('container [output] ...proxy', $spec->pattern()->toString());
     }
 
     public function testThrowWhenEmptyDeclaration()
@@ -69,7 +69,7 @@ DESCRIPTION;
             {
             }
 
-            public function __toString(): string
+            public function toString(): string
             {
                 return '  ';
             }

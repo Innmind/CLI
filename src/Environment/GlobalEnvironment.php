@@ -6,46 +6,54 @@ namespace Innmind\CLI\Environment;
 use Innmind\CLI\Environment;
 use Innmind\Stream\{
     Readable,
-    Writable
+    Writable,
 };
-use Innmind\Url\{
-    PathInterface,
-    Path
-};
+use Innmind\Url\Path;
 use Innmind\Immutable\{
-    StreamInterface,
-    Stream,
-    MapInterface,
-    Map
+    Sequence,
+    Map,
 };
 
 final class GlobalEnvironment implements Environment
 {
-    private $input;
-    private $output;
-    private $error;
-    private $arguments;
-    private $variables;
-    private $exitCode;
-    private $workingDirectory;
+    private bool $interactive;
+    private Readable $input;
+    private Writable $output;
+    private Writable $error;
+    /** @var Sequence<string> */
+    private Sequence $arguments;
+    /** @var Map<string, string> */
+    private Map $variables;
+    private ExitCode $exitCode;
+    private Path $workingDirectory;
 
     public function __construct()
     {
+        $this->interactive = \stream_isatty(\STDIN);
         $this->input = new Readable\NonBlocking(
-            new Readable\Stream(STDIN)
+            new Readable\Stream(\STDIN),
         );
-        $this->output = new Writable\Stream(fopen('php://output', 'w'));
-        $this->error = new Writable\Stream(STDERR);
-        $this->arguments = Stream::of('string', ...$_SERVER['argv']);
-        $variables = getenv();
-        $this->variables = Map::of(
-            'string',
-            'string',
-            array_keys($variables),
-            array_values($variables)
-        );
+        $this->output = new Writable\Stream(\fopen('php://output', 'w'));
+        $this->error = new Writable\Stream(\STDERR);
+        /** @var list<string> */
+        $argv = $_SERVER['argv'];
+        $this->arguments = Sequence::strings(...$argv);
+        /** @var array<string, string> */
+        $variables = \getenv();
+        /** @var Map<string, string> */
+        $this->variables = Map::of('string', 'string');
+
+        foreach ($variables as $key => $value) {
+            $this->variables = ($this->variables)($key, $value);
+        }
+
         $this->exitCode = new ExitCode(0);
-        $this->workingDirectory = new Path(getcwd());
+        $this->workingDirectory = Path::of(\getcwd().'/');
+    }
+
+    public function interactive(): bool
+    {
+        return $this->interactive;
     }
 
     public function input(): Readable
@@ -63,18 +71,12 @@ final class GlobalEnvironment implements Environment
         return $this->error;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function arguments(): StreamInterface
+    public function arguments(): Sequence
     {
         return $this->arguments;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function variables(): MapInterface
+    public function variables(): Map
     {
         return $this->variables;
     }
@@ -89,7 +91,7 @@ final class GlobalEnvironment implements Environment
         return $this->exitCode;
     }
 
-    public function workingDirectory(): PathInterface
+    public function workingDirectory(): Path
     {
         return $this->workingDirectory;
     }

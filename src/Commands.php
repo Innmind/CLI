@@ -17,36 +17,47 @@ use Innmind\Immutable\{
     Set,
     Map,
     Str,
-    Stream,
+    Sequence,
+};
+use function Innmind\Immutable\{
+    unwrap,
+    first,
 };
 
 final class Commands
 {
-    private $commands;
-    private $specifications;
+    /** @var Map<Specification, Command> */
+    private Map $commands;
+    /** @var Map<string, Specification> */
+    private Map $specifications;
 
     public function __construct(Command $command, Command ...$commands)
     {
-        $this->commands = Set::of(Command::class, $command, ...$commands)->reduce(
-            new Map(Specification::class, Command::class),
-            static function(Map $commands, Command $command): Map {
-                $spec = new Specification($command);
-
-                return $commands->put($spec, $command);
-            }
+        /** @var Map<Specification, Command> */
+        $this->commands = Set::of(Command::class, $command, ...$commands)->toMapOf(
+            Specification::class,
+            Command::class,
+            static function(Command $command): \Generator {
+                yield new Specification($command) => $command;
+            },
         );
-        $this->specifications = $this->commands->reduce(
-            new Map('string', Specification::class),
-            static function(Map $specs, Specification $spec): Map {
-                return $specs->put($spec->name(), $spec);
-            }
+        /** @var Map<string, Specification> */
+        $this->specifications = $this->commands->toMapOf(
+            'string',
+            Specification::class,
+            static function(Specification $spec): \Generator {
+                yield $spec->name() => $spec;
+            },
         );
     }
 
     public function __invoke(Environment $env): void
     {
         if ($this->commands->size() === 1) {
-            $this->run($env, $this->specifications->key());
+            $this->run(
+                $env,
+                first($this->specifications->keys()),
+            );
 
             return;
         }
@@ -84,7 +95,7 @@ final class Commands
         $run = $this->commands->get($spec);
         $arguments = $env->arguments()->drop(1); //drop script name
 
-        if ($arguments->size() > 0 && $arguments->first() === $command) {
+        if (!$arguments->empty() && $arguments->first() === $command) {
             //drop command name, conditional as it can be omitted when only one
             //command defined
             $arguments = $arguments->drop(1);
@@ -94,20 +105,20 @@ final class Commands
             $this->displayUsage(
                 $env->output(),
                 $env->arguments()->first(),
-                $spec
+                $spec,
             );
 
             return;
         }
 
         try {
-            $options = Options::fromSpecification($spec, $arguments);
-            $arguments = Arguments::fromSpecification($spec, $arguments);
+            $options = Options::of($spec, $arguments);
+            $arguments = Arguments::of($spec, $arguments);
         } catch (Exception $e) {
             $this->displayUsage(
                 $env->error(),
                 $env->arguments()->first(),
-                $spec
+                $spec,
             );
             $env->exit(64); //EX_USAGE The command was used incorrectly
 
@@ -132,24 +143,23 @@ final class Commands
             Str::of('usage: ')
                 ->append($bin)
                 ->append(' ')
-                ->append((string) $spec)
-                ->append((string) $description)
-                ->append("\n")
+                ->append($spec->toString())
+                ->append($description->toString())
+                ->append("\n"),
         );
     }
 
     private function displayHelp(Writable $stream): void
     {
-        $rows = $this->commands->keys()->reduce(
-            Stream::of(Row::class),
-            static function(Stream $rows, Specification $spec): Stream {
-                return $rows->add(new Row(
-                    new Cell($spec->name()),
-                    new Cell($spec->shortDescription())
-                ));
-            }
+        /** @var Sequence<Row> */
+        $rows = $this->commands->keys()->toSequenceOf(
+            Row::class,
+            static fn(Specification $spec): \Generator => yield new Row(
+                new Cell($spec->name()),
+                new Cell($spec->shortDescription()),
+            ),
         );
-        $printTo = Table::borderless(null, ...$rows);
+        $printTo = Table::borderless(null, ...unwrap($rows));
         $printTo($stream);
         $stream->write(Str::of("\n"));
     }

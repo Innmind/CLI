@@ -9,24 +9,28 @@ use Innmind\CLI\{
 };
 use Innmind\Stream\Writable;
 use Innmind\Immutable\{
-    Stream,
+    Sequence,
     Str,
     Map,
-    Sequence,
+};
+use function Innmind\Immutable\{
+    unwrap,
+    join,
 };
 
 final class Table
 {
-    private $header;
-    private $rows;
-    private $columnSeparator = '|';
-    private $rowSeparator = '-';
-    private $crossingSeparator = '+';
+    private ?Row $header;
+    /** @var Sequence<Row> */
+    private Sequence $rows;
+    private string $columnSeparator = '|';
+    private string $rowSeparator = '-';
+    private string $crossingSeparator = '+';
 
     public function __construct(?Row $header, Row $row, Row ...$rows)
     {
         $this->header = $header;
-        $this->rows = Stream::of(Row::class, $row, ...$rows);
+        $this->rows = Sequence::of(Row::class, $row, ...$rows);
         $this->rows->drop(1)->reduce(
             $this->rows->first()->size(),
             static function(int $size, Row $row): int {
@@ -35,7 +39,7 @@ final class Table
                 }
 
                 return $size;
-            }
+            },
         );
 
         if ($header && $header->size() !== $this->rows->first()->size()) {
@@ -55,83 +59,95 @@ final class Table
 
     public function __invoke(Writable $stream): void
     {
-        $stream->write(Str::of((string) $this));
+        $stream->write(Str::of($this->toString()));
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         $widths = $this->widths($this->rows());
-        $rows = $this->rows->reduce(
-            Stream::of(Str::class),
-            function(Stream $rows, Row $row) use ($widths): Stream {
-                return $rows->add(Str::of($row(
-                    $this->columnSeparator,
-                    ...$widths
-                )));
-            }
+        $rows = $this->rows->mapTo(
+            Str::class,
+            fn(Row $row): Str => Str::of($row(
+                $this->columnSeparator,
+                ...unwrap($widths),
+            )),
         );
 
-        $bound = $rows
+        $explodedFirstRow = $rows
             ->first()
             ->split()
             ->map(function(Str $char): Str {
-                if ((string) $char === $this->columnSeparator) {
+                if ($char->toString() === $this->columnSeparator) {
                     return Str::of($this->crossingSeparator);
                 }
 
                 return Str::of($this->rowSeparator);
             })
-            ->join('')
-            ->trim();
+            ->mapTo(
+                'string',
+                static fn(Str $char): string => $char->toString(),
+            );
+        $bound = join('', $explodedFirstRow)->trim();
         $header = Str::of('');
-        $rows = $rows->join("\n");
+        $rows = join(
+            "\n",
+            $rows->mapTo(
+                'string',
+                static fn(Str $row): string => $row->toString(),
+            ),
+        );
 
 
         if ($this->header instanceof Row) {
             $header = Str::of(($this->header)(
                 $this->columnSeparator,
-                ...$widths
+                ...unwrap($widths),
             ));
 
             if (!$bound->empty()) {
                 $header = $header
                     ->append("\n")
-                    ->append((string) $bound);
+                    ->append($bound->toString());
             }
         }
 
-        return (string) Sequence::of($bound, $header, $rows, $bound)
-            ->filter(static function(Str $line): bool {
-                return !$line->empty();
-            })
-            ->join("\n");
+        $lines = Sequence::of(Str::class, $bound, $header, $rows, $bound)
+            ->filter(static fn(Str $line): bool => !$line->empty())
+            ->mapTo(
+                'string',
+                static fn(Str $line): string => $line->toString(),
+            );
+
+        return join("\n", $lines)->toString();
     }
 
     /**
-     * @return Stream<Row>
+     * @return Sequence<Row>
      */
-    private function rows(): Stream
+    private function rows(): Sequence
     {
         if ($this->header instanceof Row) {
-            return Stream::of(Row::class, $this->header, ...$this->rows);
+            return Sequence::of(Row::class, $this->header, ...unwrap($this->rows));
         }
 
         return $this->rows;
     }
 
     /**
-     * @param Stream<Row> $rows
-     * @return Stream<int>
+     * @param Sequence<Row> $rows
+     * @return Sequence<int>
      */
-    private function widths(Stream $rows): Stream
+    private function widths(Sequence $rows): Sequence
     {
-        $columns = Stream::of('int', ...range(0, $rows->first()->size() - 1));
+        $columns = Sequence::ints(...range(0, $rows->first()->size() - 1));
+        /** @var Map<int, int> */
         $defaultWidths = $columns->reduce(
-            new Map('int', 'int'),
+            Map::of('int', 'int'),
             static function(Map $widths, int $column): Map {
                 return $widths->put($column, 0);
-            }
+            },
         );
+        /** @var Map<int, int> */
         $widthPerColumn = $rows->reduce(
             $defaultWidths,
             static function(Map $widths, Row $row) use ($columns): Map {
@@ -145,16 +161,13 @@ final class Table
                         }
 
                         return $widths->put($column, $width);
-                    }
+                    },
                 );
-            }
+            },
         );
 
-        return $columns->reduce(
-            Stream::of('int'),
-            static function(Stream $widths, int $column) use ($widthPerColumn): Stream {
-                return $widths->add($widthPerColumn->get($column));
-            }
+        return $columns->map(
+            static fn(int $column): int => $widthPerColumn->get($column),
         );
     }
 }

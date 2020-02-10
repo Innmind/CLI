@@ -4,83 +4,83 @@ declare(strict_types = 1);
 namespace Innmind\CLI\Command;
 
 use Innmind\Immutable\{
-    MapInterface,
     Map,
-    StreamInterface,
+    Sequence,
+    Exception\NoElementMatchingPredicateFound,
+};
+use function Innmind\Immutable\{
+    assertMap,
+    assertSequence,
 };
 
 final class Arguments
 {
-    private $arguments;
-    private $pack;
+    /** @var Map<string, string> */
+    private Map $arguments;
+    /** @var Sequence<string> */
+    private Sequence $pack;
 
     /**
-     * @param MapInterface<string, mixed> $arguments
+     * @param Map<string, string> $arguments
+     * @param Sequence<string> $pack
      */
-    public function __construct(MapInterface $arguments = null)
+    public function __construct(Map $arguments = null, Sequence $pack = null)
     {
-        $arguments = $arguments ?? new Map('string', 'mixed');
+        $arguments ??= Map::of('string', 'string');
+        $pack ??= Sequence::strings();
 
-        if (
-            (string) $arguments->keyType() !== 'string' ||
-            (string) $arguments->valueType() !== 'mixed'
-        ) {
-            throw new \TypeError('Argument 1 must be of type MapInterface<string, mixed>');
-        }
+        assertMap('string', 'string', $arguments, 1);
+        assertSequence('string', $pack, 2);
 
         $this->arguments = $arguments;
-        $pack = $arguments->values()->filter(static function($argument): bool {
-            return $argument instanceof StreamInterface;
-        });
-
-        if (!$pack->empty()) {
-            $this->pack = $pack->current();
-        }
+        $this->pack = $pack;
     }
 
     /**
-     * @param StreamInterface<string> $arguments
+     * @param Sequence<string> $arguments
      */
     public static function of(
         Specification $specification,
-        StreamInterface $arguments
+        Sequence $arguments
     ): self {
         $arguments = $specification->pattern()->options()->clean($arguments);
+        $arguments = $specification
+            ->pattern()
+            ->arguments()
+            ->extract($arguments);
 
-        return new self(
-            $specification
-                ->pattern()
-                ->arguments()
-                ->extract($arguments)
-        );
-    }
-
-    /**
-     * @deprecated
-     * @see self::of()
-     */
-    public static function fromSpecification(
-        Specification $specification,
-        StreamInterface $arguments
-    ): self {
-        return self::of($specification, $arguments);
-    }
-
-    /**
-     * @return string Pack is deprecated
-     */
-    public function get(string $argument)
-    {
-        $value =  $this->arguments->get($argument);
-
-        if ($value instanceof StreamInterface) {
-            @trigger_error('Use self::pack() instead', E_USER_DEPRECATED);
+        try {
+            /** @var Sequence<string> */
+            $pack = $arguments->values()->find(
+                static fn($argument): bool => $argument instanceof Sequence,
+            );
+        } catch (NoElementMatchingPredicateFound $e) {
+            $pack = null;
         }
 
-        return $value;
+        /** @var Map<string, string> */
+        $arguments = $arguments
+            ->filter(static fn(string $_, $argument): bool => \is_string($argument))
+            ->toMapOf(
+                'string',
+                'string',
+                static function(string $key, $argument): \Generator {
+                    yield $key => $argument;
+                },
+            );
+
+        return new self($arguments, $pack);
     }
 
-    public function pack(): StreamInterface
+    public function get(string $argument): string
+    {
+        return $this->arguments->get($argument);
+    }
+
+    /**
+     * @return Sequence<string>
+     */
+    public function pack(): Sequence
     {
         return $this->pack;
     }

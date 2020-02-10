@@ -4,62 +4,52 @@ declare(strict_types = 1);
 namespace Innmind\CLI\Command;
 
 use Innmind\Immutable\{
-    MapInterface,
     Map,
-    StreamInterface,
+    Sequence,
 };
+use function Innmind\Immutable\assertMap;
 
 final class Options
 {
-    private $options;
+    /** @var Map<string, string> */
+    private Map $options;
 
     /**
-     * @param MapInterface<string, mixed> $options
+     * @param Map<string, string> $options
      */
-    public function __construct(MapInterface $options = null)
+    public function __construct(Map $options = null)
     {
-        $options = $options ?? new Map('string', 'mixed');
+        $options ??= Map::of('string', 'string');
 
-        if (
-            (string) $options->keyType() !== 'string' ||
-            (string) $options->valueType() !== 'mixed'
-        ) {
-            throw new \TypeError('Argument 1 must be of type MapInterface<string, mixed>');
-        }
+        assertMap('string', 'string', $options, 1);
 
         $this->options = $options;
     }
 
     /**
-     * @param StreamInterface<string> $arguments
+     * @param Sequence<string> $arguments
      */
     public static function of(
         Specification $specification,
-        StreamInterface $arguments
+        Sequence $arguments
     ): self {
-        return new self(
-            $specification
-                ->pattern()
-                ->options()
-                ->extract($arguments)
-        );
+        /** @var Map<string, string> */
+        $options = $specification
+            ->pattern()
+            ->options()
+            ->extract($arguments)
+            ->toMapOf( // simply for a type change
+                'string',
+                'string',
+                static function(string $name, $value): \Generator {
+                    yield $name => $value;
+                },
+            );
+
+        return new self($options);
     }
 
-    /**
-     * @deprecated
-     * @see self::of()
-     */
-    public static function fromSpecification(
-        Specification $specification,
-        StreamInterface $arguments
-    ): self {
-        return self::of($specification, $arguments);
-    }
-
-    /**
-     * @return string|bool
-     */
-    public function get(string $argument)
+    public function get(string $argument): string
     {
         return $this->options->get($argument);
     }

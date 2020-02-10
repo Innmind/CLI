@@ -3,60 +3,50 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Question;
 
-use Innmind\Stream\{
-    Readable,
-    Writable,
-    Select,
+use Innmind\CLI\{
+    Environment,
+    Exception\NonInteractiveTerminal,
 };
-use Innmind\TimeContinuum\ElapsedPeriod;
+use Innmind\OperatingSystem\Sockets;
+use Innmind\TimeContinuum\Earth\ElapsedPeriod;
 use Innmind\Immutable\Str;
 
 final class Question
 {
-    private $question;
-    private $hiddenResponse = false;
+    private Str $question;
 
     public function __construct(string $question)
     {
         $this->question = Str::of($question)->append(' ');
     }
 
-    public static function hiddenResponse(string $question): self
+    /**
+     * @throws NonInteractiveTerminal
+     */
+    public function __invoke(Environment $env, Sockets $sockets): Str
     {
-        $self = new self($question);
-        $self->hiddenResponse = true;
+        if (!$env->interactive() || $env->arguments()->contains('--no-interaction')) {
+            throw new NonInteractiveTerminal;
+        }
 
-        return $self;
-    }
-
-    public function __invoke(Readable $input, Writable $output): Str
-    {
+        $input = $env->input();
+        $output = $env->output();
         $output->write($this->question);
 
-        $select = (new Select(new ElapsedPeriod(60 * 1000))) // one minute
+        /** @psalm-suppress InvalidArgument $input must be a Selectable */
+        $watch = $sockets->watch(new ElapsedPeriod(60 * 1000)) // one minute
             ->forRead($input);
 
         $response = Str::of('');
 
-        if ($this->hiddenResponse) {
-            $sttyMode = shell_exec('stty -g');
-            shell_exec('stty -echo'); // disable character print
-        }
+        do {
+            $ready = $watch();
 
-        try {
-            do {
-                $streams = $select();
-
-                if ($streams->get('read')->contains($input)) {
-                    $response = $response->append((string) $input->read());
-                }
-            } while (!$response->contains("\n"));
-        } finally {
-            if ($this->hiddenResponse) {
-                shell_exec('stty '.$sttyMode);
-                $output->write(Str::of("\n")); // to display the new line
+            /** @psalm-suppress InvalidArgument $input must be a Selectable */
+            if ($ready->toRead()->contains($input)) {
+                $response = $response->append($input->read()->toString());
             }
-        }
+        } while (!$response->contains("\n"));
 
         return $response->substring(0, -1); // remove the new line character
     }

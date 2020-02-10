@@ -5,20 +5,24 @@ namespace Innmind\CLI\Command;
 
 use Innmind\CLI\{
     Command,
-    Exception\EmptyDeclaration
+    Exception\EmptyDeclaration,
 };
 use Innmind\Immutable\Str;
+use function Innmind\Immutable\{
+    join,
+    unwrap,
+};
 
 final class Specification
 {
-    private $name;
-    private $shortDescription = '';
-    private $description = '';
-    private $pattern;
+    private string $name;
+    private string $shortDescription = '';
+    private string $description = '';
+    private Pattern $pattern;
 
     public function __construct(Command $command)
     {
-        $declaration = Str::of((string) $command)->trim();
+        $declaration = Str::of($command->toString())->trim();
 
         if ($declaration->empty()) {
             throw new EmptyDeclaration;
@@ -26,23 +30,25 @@ final class Specification
 
         $parts = $declaration->split("\n");
 
-        if ($parts->size() >= 1) {
-            [$this->name, $this->pattern] = $this->buildPattern($parts->first());
-        }
+        [$this->name, $this->pattern] = $this->buildPattern($parts->first());
 
         if ($parts->size() >= 3) {
             //get(2) as there must be a blank line before
-            $this->shortDescription = (string) $parts->get(2)->trim();
+            $this->shortDescription = $parts->get(2)->trim()->toString();
         }
 
         if ($parts->size() >= 5) {
             //drop(4) as there must be a blank line before
-            $this->description = (string) $parts
+            $lines = $parts
                 ->drop(4)
                 ->map(static function(Str $line): Str {
                     return $line->trim();
                 })
-                ->join("\n");
+                ->mapTo(
+                    'string',
+                    static fn(Str $line): string => $line->toString(),
+                );
+            $this->description = join("\n", $lines)->toString();
         }
     }
 
@@ -66,16 +72,16 @@ final class Specification
         return $this->pattern;
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
-        return $this->name.' '.$this->pattern;
+        return $this->name.' '.$this->pattern->toString();
     }
 
     private function buildPattern(Str $pattern): array
     {
         $elements = $pattern->trim()->split(' ');
-        $name = (string) $elements->first();
+        $name = $elements->first()->toString();
 
-        return [$name, new Pattern(...$elements->drop(1))];
+        return [$name, new Pattern(...unwrap($elements->drop(1)))];
     }
 }

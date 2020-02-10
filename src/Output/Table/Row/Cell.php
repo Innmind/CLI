@@ -6,5 +6,5 @@ namespace Innmind\CLI\Output\Table\Row;
 interface Cell
 {
     public function width(): int;
-    public function __toString(): string;
+    public function toString(): string;
 }

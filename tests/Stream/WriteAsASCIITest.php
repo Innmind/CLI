@@ -30,15 +30,13 @@ class WriteAsASCIITest extends TestCase
         $stream = new WriteAsASCII(
             $inner = $this->createMock(Writable::class)
         );
-        $data = new Str("foo\nbar\nbaz\n");
+        $data = Str::of("foo\nbar\nbaz\n");
         $inner
             ->expects($this->once())
             ->method('write')
             ->with($data->toEncoding('ASCII'));
 
-        $return = $stream->write($data);
-
-        $this->assertSame($stream, $return);
+        $this->assertNull($stream->write($data));
     }
 
     public function testClose()
@@ -50,7 +48,7 @@ class WriteAsASCIITest extends TestCase
             ->expects($this->once())
             ->method('close');
 
-        $this->assertSame($stream, $stream->close());
+        $this->assertNull($stream->close());
     }
 
     public function testClosed()
@@ -92,7 +90,7 @@ class WriteAsASCIITest extends TestCase
             ->method('seek')
             ->with($position, $mode);
 
-        $this->assertSame($stream, $stream->seek($position, $mode));
+        $this->assertNull($stream->seek($position, $mode));
     }
 
     public function testRewind()
@@ -104,7 +102,7 @@ class WriteAsASCIITest extends TestCase
             ->expects($this->once())
             ->method('rewind');
 
-        $this->assertSame($stream, $stream->rewind());
+        $this->assertNull($stream->rewind());
     }
 
     public function testEnd()

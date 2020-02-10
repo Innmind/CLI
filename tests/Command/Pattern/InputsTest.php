@@ -21,11 +21,11 @@ class InputsTest extends TestCase
     {
         $inputs = new Inputs;
 
-        $this->assertInstanceOf(RequiredArgument::class, $inputs->load(Str::of('foo')));
-        $this->assertInstanceOf(OptionalArgument::class, $inputs->load(Str::of('[foo]')));
-        $this->assertInstanceOf(PackArgument::class, $inputs->load(Str::of('...foo')));
-        $this->assertInstanceOf(OptionFlag::class, $inputs->load(Str::of('-f|--foo')));
-        $this->assertInstanceOf(OptionWithValue::class, $inputs->load(Str::of('-f|--foo=')));
+        $this->assertInstanceOf(RequiredArgument::class, $inputs(Str::of('foo')));
+        $this->assertInstanceOf(OptionalArgument::class, $inputs(Str::of('[foo]')));
+        $this->assertInstanceOf(PackArgument::class, $inputs(Str::of('...foo')));
+        $this->assertInstanceOf(OptionFlag::class, $inputs(Str::of('-f|--foo')));
+        $this->assertInstanceOf(OptionWithValue::class, $inputs(Str::of('-f|--foo=')));
     }
 
     public function testThrowWhenPatternNotRecognized()
@@ -33,6 +33,6 @@ class InputsTest extends TestCase
         $this->expectException(PatternNotRecognized::class);
         $this->expectExceptionMessage('_foo_');
 
-        (new Inputs)->load(Str::of('_foo_'));
+        (new Inputs)(Str::of('_foo_'));
     }
 }

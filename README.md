@@ -1,12 +1,10 @@
 # CLI
 
-| `master` | `develop` |
-|----------|-----------|
-| [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Innmind/CLI/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/Innmind/CLI/?branch=master) | [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Innmind/CLI/badges/quality-score.png?b=develop)](https://scrutinizer-ci.com/g/Innmind/CLI/?branch=develop) |
-| [![Code Coverage](https://scrutinizer-ci.com/g/Innmind/CLI/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/Innmind/CLI/?branch=master) | [![Code Coverage](https://scrutinizer-ci.com/g/Innmind/CLI/badges/coverage.png?b=develop)](https://scrutinizer-ci.com/g/Innmind/CLI/?branch=develop) |
-| [![Build Status](https://scrutinizer-ci.com/g/Innmind/CLI/badges/build.png?b=master)](https://scrutinizer-ci.com/g/Innmind/CLI/build-status/master) | [![Build Status](https://scrutinizer-ci.com/g/Innmind/CLI/badges/build.png?b=develop)](https://scrutinizer-ci.com/g/Innmind/CLI/build-status/develop) |
+[![Build Status](https://github.com/Innmind/CLI/workflows/CI/badge.svg)](https://github.com/Innmind/CLI/actions?query=workflow%3ACI)
+[![codecov](https://codecov.io/gh/Innmind/CLI/branch/develop/graph/badge.svg)](https://codecov.io/gh/Innmind/CLI)
+[![Type Coverage](https://shepherd.dev/github/Innmind/CLI/coverage.svg)](https://shepherd.dev/github/Innmind/CLI)
 
-CLI is a small library to wrap all the needed informations to build a command line tool. The idea to build this came while reading the [ponylang](https://www.ponylang.org/) [documentation](https://tutorial.ponylang.org/getting-started/how-it-works.html) realising that other languages use a similar approach for the entry point of the app, so I decided to have a something similar for PHP.
+CLI is a small library to wrap all the needed informations to build a command line tool. The idea to build this came while reading the [ponylang](https://www.ponylang.org/) [documentation](https://tutorial.ponylang.org/getting-started/how-it-works.html) realising that other languages use a similar approach for the entry point of the app, so I decided to have something similar for PHP.
 
 The said approach is to have a `main` function as the starting point of execution of your code. This function has a the environment it runs in passed as argument so there's no need for global variables. However since not everything can be passed down as argument (it would complicate the interface), [ambient authority](https://en.wikipedia.org/wiki/Ambient_authority) can be exercised (as in regular PHP script).
 
@@ -41,7 +39,7 @@ new class extends Main {
 }
 ```
 
-This will directly call the `main` function. The `$env` variable gives you access to the 3 standard streams (`stdin`, `stdout`, `stderr`), the list of arguments passed in the cli, all the environment variables, the working directory and a method to specify the exit code.
+This will directly call the `main` function. The `$env` variable gives you access to the 3 standard streams (`stdin`, `stdout`, `stderr`), the list of arguments passed in the cli, all the environment variables, the working directory, if the terminal is interactive and a method to specify the exit code.
 
 **Note**: Calling `$env->exit(1)` will _not_ exit directly your program, you _must_ call `return;` in order to make the `main` function to stop.
 
@@ -66,7 +64,7 @@ function main(Environment $env, OperatingSystem $os): void
                 //your code here
             }
 
-            public function __toString(): string
+            public function toString(): string
             {
                 return 'foo';
             }
@@ -80,7 +78,7 @@ In your terminal you would call this command like this `php cli.php foo`. But si
 
 Here the command is an anonymous class to simplify the example, but it can be a normal class implementing `Command`. Since the command simply needs to implement an interface, you have full control of the dependencies you can inject into it. Meaning your commands instances can comme from a dependency injection container. The other advantage since the interface is simple is that you can easily unit test your commands.
 
-The `Command` interface requires you to implement 2 methods: `__invoke` and `__toString`. The first one is the one that will be called if it's the desired command to be called. `__toString` is the place where you define the _structure_ of your command, by that I mean the name of the command, the list of its arguments/options, its short description and full description.
+The `Command` interface requires you to implement 2 methods: `__invoke` and `toString`. The first one is the one that will be called if it's the desired command to be called. `toString` is the place where you define the _structure_ of your command, by that I mean the name of the command, the list of its arguments/options, its short description and full description.
 
 To define all properties of your command it would ressemble to this:
 
@@ -98,7 +96,7 @@ To define arguments you have access to 3 patterns:
 
 * `foo` with this you ask for a required argument that will be accessed like so `$arguments->get('foo')`
 * `[bar]` with this you ask for an optional argument, you must verify its presence via `$arguments->contains('bar')` before accessing it. Optional arguments can't be followed by required ones
-* `...baz` with this you ask that all extra arguments will be regrouped as a list with the name `baz`, it will provide a `Stream<string>` of any length. You can only have one argument of this type and must be the last one
+* `...baz` with this you ask that all extra arguments will be regrouped as a list with the name `baz`, it will provide a `Sequence<string>` of any length. You can only have one argument of this type and must be the last one, you access via `$arguments->pack()`
 
 To define options you have access to 2 patterns:
 

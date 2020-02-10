@@ -5,10 +5,10 @@ namespace Tests\Innmind\CLI;
 
 use function Innmind\CLI\variables;
 use Innmind\Filesystem\{
-    Adapter\MemoryAdapter,
+    Adapter\InMemory,
     File\File,
-    Stream\StringStream,
 };
+use Innmind\Stream\Readable\Stream;
 use Innmind\Immutable\Map;
 use PHPUnit\Framework\TestCase;
 
@@ -19,7 +19,7 @@ class FunctionsTest extends TestCase
         $variables = variables(
             Map::of('string', 'string')
                 ('FOO_BAR', '42'),
-            new MemoryAdapter
+            new InMemory
         );
 
         $this->assertTrue(
@@ -32,10 +32,10 @@ class FunctionsTest extends TestCase
 
     public function testVariablesWithDotEnvFile()
     {
-        $adapter = new MemoryAdapter;
-        $adapter->add(new File(
+        $adapter = new InMemory;
+        $adapter->add(File::named(
             '.env',
-            new StringStream("BAZ=fOo")
+            Stream::ofContent("BAZ=fOo")
         ));
 
         $variables = variables(

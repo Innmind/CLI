@@ -12,11 +12,10 @@ use Innmind\CLI\{
 };
 use Innmind\Immutable\{
     Str,
-    StreamInterface,
-    Stream,
-    MapInterface,
+    Sequence,
     Map,
 };
+use function Innmind\Immutable\unwrap;
 use PHPUnit\Framework\TestCase;
 use Eris\{
     Generator,
@@ -29,8 +28,8 @@ class OptionWithValueTest extends TestCase
 
     public function testInterface()
     {
-        $this->assertInstanceOf(Input::class, OptionWithValue::fromString(Str::of('--foo=')));
-        $this->assertInstanceOf(Option::class, OptionWithValue::fromString(Str::of('--foo=')));
+        $this->assertInstanceOf(Input::class, OptionWithValue::of(Str::of('--foo=')));
+        $this->assertInstanceOf(Option::class, OptionWithValue::of(Str::of('--foo=')));
     }
 
     public function testThrowWhenInvalidPattern()
@@ -45,7 +44,7 @@ class OptionWithValueTest extends TestCase
                 $this->expectException(PatternNotRecognized::class);
                 $this->expectExceptionMessage($string);
 
-                OptionWithValue::fromString(Str::of($string));
+                OptionWithValue::of(Str::of($string));
             });
     }
 
@@ -56,22 +55,22 @@ class OptionWithValueTest extends TestCase
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,
-                    (string) OptionWithValue::fromString(Str::of($string))
+                    OptionWithValue::of(Str::of($string))->toString(),
                 );
             });
     }
 
     public function testExtract()
     {
-        $input = OptionWithValue::fromString(Str::of('--foo='));
+        $input = OptionWithValue::of(Str::of('--foo='));
 
         $arguments = $input->extract(
-            new Map('string', 'mixed'),
+            Map::of('string', 'mixed'),
             0,
-            Stream::of('string', 'watev', '--foo=42', 'bar', 'baz')
+            Sequence::of('string', 'watev', '--foo=42', 'bar', 'baz')
         );
 
-        $this->assertInstanceOf(MapInterface::class, $arguments);
+        $this->assertInstanceOf(Map::class, $arguments);
         $this->assertSame('string', (string) $arguments->keyType());
         $this->assertSame('mixed', (string) $arguments->valueType());
         $this->assertCount(1, $arguments);
@@ -80,15 +79,15 @@ class OptionWithValueTest extends TestCase
 
     public function testExtractShortOptionWithValueRightAfterIt()
     {
-        $input = OptionWithValue::fromString(Str::of('-f|--foo='));
+        $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->extract(
-            new Map('string', 'mixed'),
+            Map::of('string', 'mixed'),
             0,
-            Stream::of('string', 'watev', '-f=42', 'bar', 'baz')
+            Sequence::of('string', 'watev', '-f=42', 'bar', 'baz')
         );
 
-        $this->assertInstanceOf(MapInterface::class, $arguments);
+        $this->assertInstanceOf(Map::class, $arguments);
         $this->assertSame('string', (string) $arguments->keyType());
         $this->assertSame('mixed', (string) $arguments->valueType());
         $this->assertCount(1, $arguments);
@@ -97,15 +96,15 @@ class OptionWithValueTest extends TestCase
 
     public function testExtractShortOptionWithValueAsNextArgument()
     {
-        $input = OptionWithValue::fromString(Str::of('-f|--foo='));
+        $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->extract(
-            new Map('string', 'mixed'),
+            Map::of('string', 'mixed'),
             0,
-            Stream::of('string', 'watev', '-f', 'bar', 'baz')
+            Sequence::of('string', 'watev', '-f', 'bar', 'baz')
         );
 
-        $this->assertInstanceOf(MapInterface::class, $arguments);
+        $this->assertInstanceOf(Map::class, $arguments);
         $this->assertSame('string', (string) $arguments->keyType());
         $this->assertSame('mixed', (string) $arguments->valueType());
         $this->assertCount(1, $arguments);
@@ -114,12 +113,12 @@ class OptionWithValueTest extends TestCase
 
     public function testDoesNothingWhenNoOption()
     {
-        $input = OptionWithValue::fromString(Str::of('--foo='));
+        $input = OptionWithValue::of(Str::of('--foo='));
 
         $arguments = $input->extract(
-            $expected = new Map('string', 'mixed'),
+            $expected = Map::of('string', 'mixed'),
             42,
-            Stream::of('string', 'watev', 'foo', 'bar', 'baz')
+            Sequence::of('string', 'watev', 'foo', 'bar', 'baz')
         );
 
         $this->assertSame($expected, $arguments);
@@ -127,12 +126,12 @@ class OptionWithValueTest extends TestCase
 
     public function testDoesNothingWhenNoShortOption()
     {
-        $input = OptionWithValue::fromString(Str::of('-f|--foo='));
+        $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->extract(
-            $expected = new Map('string', 'mixed'),
+            $expected = Map::of('string', 'mixed'),
             42,
-            Stream::of('string', 'watev', 'f', 'bar', 'baz')
+            Sequence::of('string', 'watev', 'f', 'bar', 'baz')
         );
 
         $this->assertSame($expected, $arguments);
@@ -140,10 +139,10 @@ class OptionWithValueTest extends TestCase
 
     public function testCleanWhenNoOption()
     {
-        $input = OptionWithValue::fromString(Str::of('-f|--foo='));
+        $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->clean(
-            $expected = Stream::of('string', 'watev', 'f', 'bar', 'baz')
+            $expected = Sequence::of('string', 'watev', 'f', 'bar', 'baz')
         );
 
         $this->assertSame($expected, $arguments);
@@ -151,40 +150,40 @@ class OptionWithValueTest extends TestCase
 
     public function testCleanWhenOptionWithValueAttached()
     {
-        $input = OptionWithValue::fromString(Str::of('-f|--foo='));
+        $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->clean(
-            Stream::of('string', 'watev', '--foo=foo', 'bar', 'baz')
+            Sequence::of('string', 'watev', '--foo=foo', 'bar', 'baz')
         );
 
-        $this->assertInstanceOf(StreamInterface::class, $arguments);
+        $this->assertInstanceOf(Sequence::class, $arguments);
         $this->assertSame('string', (string) $arguments->type());
-        $this->assertSame(['watev', 'bar', 'baz'], $arguments->toPrimitive());
+        $this->assertSame(['watev', 'bar', 'baz'], unwrap($arguments));
     }
 
     public function testCleanWhenShortOptionWithValueAttached()
     {
-        $input = OptionWithValue::fromString(Str::of('-f|--foo='));
+        $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->clean(
-            Stream::of('string', 'watev', '-f=foo', 'bar', 'baz')
+            Sequence::of('string', 'watev', '-f=foo', 'bar', 'baz')
         );
 
-        $this->assertInstanceOf(StreamInterface::class, $arguments);
+        $this->assertInstanceOf(Sequence::class, $arguments);
         $this->assertSame('string', (string) $arguments->type());
-        $this->assertSame(['watev', 'bar', 'baz'], $arguments->toPrimitive());
+        $this->assertSame(['watev', 'bar', 'baz'], unwrap($arguments));
     }
 
     public function testCleanWhenShortOptionWithValueAsNextArgument()
     {
-        $input = OptionWithValue::fromString(Str::of('-f|--foo='));
+        $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->clean(
-            Stream::of('string', 'watev', '-f', 'bar', 'baz')
+            Sequence::of('string', 'watev', '-f', 'bar', 'baz')
         );
 
-        $this->assertInstanceOf(StreamInterface::class, $arguments);
+        $this->assertInstanceOf(Sequence::class, $arguments);
         $this->assertSame('string', (string) $arguments->type());
-        $this->assertSame(['watev', 'baz'], $arguments->toPrimitive());
+        $this->assertSame(['watev', 'baz'], unwrap($arguments));
     }
 }

@@ -7,33 +7,38 @@ use Innmind\CLI\{
     Environment,
     Stream,
 };
-use Innmind\TimeContinuum\TimeContinuumInterface;
-use Innmind\TimeWarp\Halt;
+use Innmind\TimeContinuum\Clock;
+use Innmind\OperatingSystem\CurrentProcess;
 use Innmind\Stream\{
     Readable,
-    Writable
+    Writable,
 };
-use Innmind\Url\PathInterface;
+use Innmind\Url\Path;
 use Innmind\Immutable\{
-    MapInterface,
-    StreamInterface
+    Map,
+    Sequence,
 };
 
 final class BackPressureWrites implements Environment
 {
-    private $environment;
-    private $clock;
-    private $halt;
-    private $error;
+    private Environment $environment;
+    private Clock $clock;
+    private CurrentProcess $process;
+    private ?Writable $error = null;
 
     public function __construct(
         Environment $environment,
-        TimeContinuumInterface $clock,
-        Halt $halt
+        Clock $clock,
+        CurrentProcess $process
     ) {
         $this->environment = $environment;
         $this->clock = $clock;
-        $this->halt = $halt;
+        $this->process = $process;
+    }
+
+    public function interactive(): bool
+    {
+        return $this->environment->interactive();
     }
 
     public function input(): Readable
@@ -48,25 +53,19 @@ final class BackPressureWrites implements Environment
 
     public function error(): Writable
     {
-        return $this->error ?? $this->error = new Stream\BackPressureWrites(
+        return $this->error ??= new Stream\BackPressureWrites(
             $this->environment->error(),
             $this->clock,
-            $this->halt
+            $this->process,
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function arguments(): StreamInterface
+    public function arguments(): Sequence
     {
         return $this->environment->arguments();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function variables(): MapInterface
+    public function variables(): Map
     {
         return $this->environment->variables();
     }
@@ -81,7 +80,7 @@ final class BackPressureWrites implements Environment
         return $this->environment->exitCode();
     }
 
-    public function workingDirectory(): PathInterface
+    public function workingDirectory(): Path
     {
         return $this->environment->workingDirectory();
     }

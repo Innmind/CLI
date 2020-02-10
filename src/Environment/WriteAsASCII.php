@@ -9,23 +9,28 @@ use Innmind\CLI\{
 };
 use Innmind\Stream\{
     Readable,
-    Writable
+    Writable,
 };
-use Innmind\Url\PathInterface;
+use Innmind\Url\Path;
 use Innmind\Immutable\{
-    MapInterface,
-    StreamInterface
+    Map,
+    Sequence,
 };
 
 final class WriteAsASCII implements Environment
 {
-    private $environment;
-    private $output;
-    private $error;
+    private Environment $environment;
+    private ?Writable $output = null;
+    private ?Writable $error = null;
 
     public function __construct(Environment $environment)
     {
         $this->environment = $environment;
+    }
+
+    public function interactive(): bool
+    {
+        return $this->environment->interactive();
     }
 
     public function input(): Readable
@@ -36,29 +41,23 @@ final class WriteAsASCII implements Environment
     public function output(): Writable
     {
         return $this->output ?? $this->output = new Stream\WriteAsASCII(
-            $this->environment->output()
+            $this->environment->output(),
         );
     }
 
     public function error(): Writable
     {
         return $this->error ?? $this->error = new Stream\WriteAsASCII(
-            $this->environment->error()
+            $this->environment->error(),
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function arguments(): StreamInterface
+    public function arguments(): Sequence
     {
         return $this->environment->arguments();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function variables(): MapInterface
+    public function variables(): Map
     {
         return $this->environment->variables();
     }
@@ -73,7 +72,7 @@ final class WriteAsASCII implements Environment
         return $this->environment->exitCode();
     }
 
-    public function workingDirectory(): PathInterface
+    public function workingDirectory(): Path
     {
         return $this->environment->workingDirectory();
     }

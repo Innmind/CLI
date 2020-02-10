@@ -8,31 +8,27 @@ use Innmind\Stream\{
     Writable,
     Stream\Position,
     Stream\Size,
-    Stream\Position\Mode
+    Stream\Position\Mode,
 };
 use Innmind\Immutable\Str;
 
 final class WriteAsASCII implements Writable
 {
-    private $stream;
+    private Writable $stream;
 
     public function __construct(Writable $stream)
     {
         $this->stream = $stream;
     }
 
-    public function write(Str $data): Writable
+    public function write(Str $data): void
     {
         $this->stream->write($data->toEncoding('ASCII'));
-
-        return $this;
     }
 
-    public function close(): Stream
+    public function close(): void
     {
         $this->stream->close();
-
-        return $this;
     }
 
     public function closed(): bool
@@ -45,18 +41,14 @@ final class WriteAsASCII implements Writable
         return $this->stream->position();
     }
 
-    public function seek(Position $position, Mode $mode = null): Stream
+    public function seek(Position $position, Mode $mode = null): void
     {
         $this->stream->seek($position, $mode);
-
-        return $this;
     }
 
-    public function rewind(): Stream
+    public function rewind(): void
     {
         $this->stream->rewind();
-
-        return $this;
     }
 
     public function end(): bool

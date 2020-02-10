@@ -5,24 +5,24 @@ namespace Innmind\CLI\Command\Pattern;
 
 use Innmind\Immutable\{
     Str,
-    StreamInterface,
-    MapInterface,
+    Sequence,
+    Map,
 };
 
 interface Input
 {
-    public static function fromString(Str $pattern): self;
+    public static function of(Str $pattern): self;
 
     /**
-     * @param MapInterface<string, mixed> $parsed
-     * @param StreamInterface<string> $arguments
+     * @param Map<string, string|Sequence<string>> $parsed
+     * @param Sequence<string> $arguments
      *
-     * @return MapInterface<string, mixed>
+     * @return Map<string, string|Sequence<string>>
      */
     public function extract(
-        MapInterface $parsed,
+        Map $parsed,
         int $position,
-        StreamInterface $arguments
-    ): MapInterface;
-    public function __toString(): string;
+        Sequence $arguments
+    ): Map;
+    public function toString(): string;
 }

@@ -3,16 +3,16 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Command\Pattern;
 
-use Innmind\Immutable\StreamInterface;
+use Innmind\Immutable\Sequence;
 
 interface Option
 {
     /**
      * Remove the option from the list of arguments
      *
-     * @param StreamInterface<string> $arguments
+     * @param Sequence<string> $arguments
      *
-     * @return StreamInterface<string>
+     * @return Sequence<string>
      */
-    public function clean(StreamInterface $arguments): StreamInterface;
+    public function clean(Sequence $arguments): Sequence;
 }
