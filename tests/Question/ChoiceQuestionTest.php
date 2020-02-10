@@ -3,7 +3,10 @@ declare(strict_types = 1);
 
 namespace Tests\Innmind\CLI\Question;
 
-use Innmind\CLI\Question\ChoiceQuestion;
+use Innmind\CLI\{
+    Question\ChoiceQuestion,
+    Environment,
+};
 use Innmind\Stream\{
     Readable,
     Writable,
@@ -137,8 +140,17 @@ class ChoiceQuestionTest extends TestCase
         $output
             ->expects($this->exactly(6))
             ->method('write');
+        $env = $this->createMock(Environment::class);
+        $env
+            ->expects($this->any())
+            ->method('input')
+            ->willReturn($input);
+        $env
+            ->expects($this->any())
+            ->method('output')
+            ->willReturn($output);
 
-        $response = $question($input, $output);
+        $response = $question($env);
 
         $this->assertInstanceOf(Map::class, $response);
         $this->assertSame('scalar', (string) $response->keyType());

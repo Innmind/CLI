@@ -3,6 +3,7 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Question;
 
+use Innmind\CLI\Environment;
 use Innmind\Stream\{
     Readable,
     Writable,
@@ -36,8 +37,10 @@ final class ChoiceQuestion
     /**
      * @return Map<scalar, scalar>
      */
-    public function __invoke(Readable $input, Writable $output): Map
+    public function __invoke(Environment $env): Map
     {
+        $input = $env->input();
+        $output = $env->output();
         $output->write($this->question->append("\n"));
         $this->values->foreach(static function($key, $value) use ($output): void {
             $output->write(Str::of("[%s] %s\n")->sprintf((string) $key, (string) $value));

@@ -3,6 +3,7 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Question;
 
+use Innmind\CLI\Environment;
 use Innmind\Stream\{
     Readable,
     Writable,
@@ -29,8 +30,10 @@ final class Question
         return $self;
     }
 
-    public function __invoke(Readable $input, Writable $output): Str
+    public function __invoke(Environment $env): Str
     {
+        $input = $env->input();
+        $output = $env->output();
         $output->write($this->question);
 
         /** @psalm-suppress InvalidArgument $input must be a Selectable */

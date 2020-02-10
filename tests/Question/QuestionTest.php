@@ -3,7 +3,10 @@ declare(strict_types = 1);
 
 namespace Tests\Innmind\CLI\Question;
 
-use Innmind\CLI\Question\Question;
+use Innmind\CLI\{
+    Question\Question,
+    Environment,
+};
 use Innmind\Stream\{
     Readable,
     Writable,
@@ -94,8 +97,17 @@ class QuestionTest extends TestCase
             ->with($this->callback(static function($line): bool {
                 return $line->toString() === 'message ';
             }));
+        $env = $this->createMock(Environment::class);
+        $env
+            ->expects($this->any())
+            ->method('input')
+            ->willReturn($input);
+        $env
+            ->expects($this->any())
+            ->method('output')
+            ->willReturn($output);
 
-        $response = $question($input, $output);
+        $response = $question($env);
 
         $this->assertInstanceOf(Str::class, $response);
         $this->assertSame('foo', $response->toString());
@@ -186,8 +198,17 @@ class QuestionTest extends TestCase
             ->with($this->callback(static function($line): bool {
                 return $line->toString() === "\n";
             }));
+        $env = $this->createMock(Environment::class);
+        $env
+            ->expects($this->any())
+            ->method('input')
+            ->willReturn($input);
+        $env
+            ->expects($this->any())
+            ->method('output')
+            ->willReturn($output);
 
-        $response = $question($input, $output);
+        $response = $question($env);
 
         $this->assertInstanceOf(Str::class, $response);
         $this->assertSame('foo', $response->toString());

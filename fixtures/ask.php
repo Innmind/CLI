@@ -21,8 +21,8 @@ new class extends Main {
         $user = new Question('your name please :');
         $pwd = Question::hiddenResponse('password :');
 
-        $env->output()->write($user($env->input(), $env->output())->append("\n"));
-        $env->output()->write($pwd($env->input(), $env->output())->append("\n"));
+        $env->output()->write($user($env)->append("\n"));
+        $env->output()->write($pwd($env)->append("\n"));
 
         $ask = new ChoiceQuestion(
             'choices:',
@@ -33,7 +33,7 @@ new class extends Main {
                 (3, 'foo')
         );
 
-        $choices = $ask($env->input(), $env->output());
+        $choices = $ask($env);
 
         $choices->foreach(static function($key, $value) use ($env): void {
             $env->output()->write(
