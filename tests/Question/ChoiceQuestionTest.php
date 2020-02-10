@@ -6,6 +6,7 @@ namespace Tests\Innmind\CLI\Question;
 use Innmind\CLI\{
     Question\ChoiceQuestion,
     Environment,
+    Exception\NonInteractiveTerminal,
 };
 use Innmind\Stream\{
     Readable,
@@ -19,6 +20,7 @@ use Innmind\Stream\{
 use Innmind\Immutable\{
     Str,
     Map,
+    Sequence,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -149,6 +151,14 @@ class ChoiceQuestionTest extends TestCase
             ->expects($this->any())
             ->method('output')
             ->willReturn($output);
+        $env
+            ->expects($this->once())
+            ->method('interactive')
+            ->willReturn(true);
+        $env
+            ->expects($this->once())
+            ->method('arguments')
+            ->willReturn(Sequence::strings());
 
         $response = $question($env);
 
@@ -180,5 +190,39 @@ class ChoiceQuestionTest extends TestCase
             'foo',
             Map::of('scalar', 'int')
         );
+    }
+
+    public function testThrowWhenEnvNonInteractive()
+    {
+        $question = new ChoiceQuestion('watev', Map::of('scalar', 'scalar'));
+
+        $env = $this->createMock(Environment::class);
+        $env
+            ->expects($this->once())
+            ->method('interactive')
+            ->willReturn(false);
+
+        $this->expectException(NonInteractiveTerminal::class);
+
+        $question($env);
+    }
+
+    public function testThrowWhenOptionToSpecifyNoInteractionIsRequired()
+    {
+        $question = new ChoiceQuestion('watev', Map::of('scalar', 'scalar'));
+
+        $env = $this->createMock(Environment::class);
+        $env
+            ->expects($this->once())
+            ->method('interactive')
+            ->willReturn(true);
+        $env
+            ->expects($this->once())
+            ->method('arguments')
+            ->willReturn(Sequence::strings('foo', '--no-interaction', 'bar'));
+
+        $this->expectException(NonInteractiveTerminal::class);
+
+        $question($env);
     }
 }

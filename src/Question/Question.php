@@ -3,7 +3,10 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Question;
 
-use Innmind\CLI\Environment;
+use Innmind\CLI\{
+    Environment,
+    Exception\NonInteractiveTerminal,
+};
 use Innmind\Stream\{
     Readable,
     Writable,
@@ -30,8 +33,15 @@ final class Question
         return $self;
     }
 
+    /**
+     * @throws NonInteractiveTerminal
+     */
     public function __invoke(Environment $env): Str
     {
+        if (!$env->interactive() || $env->arguments()->contains('--no-interaction')) {
+            throw new NonInteractiveTerminal;
+        }
+
         $input = $env->input();
         $output = $env->output();
         $output->write($this->question);

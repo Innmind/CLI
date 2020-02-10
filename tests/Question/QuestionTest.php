@@ -6,6 +6,7 @@ namespace Tests\Innmind\CLI\Question;
 use Innmind\CLI\{
     Question\Question,
     Environment,
+    Exception\NonInteractiveTerminal,
 };
 use Innmind\Stream\{
     Readable,
@@ -16,7 +17,10 @@ use Innmind\Stream\{
     Stream\Position\Mode,
     Stream\Size,
 };
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Sequence,
+};
 use PHPUnit\Framework\TestCase;
 
 class QuestionTest extends TestCase
@@ -106,6 +110,14 @@ class QuestionTest extends TestCase
             ->expects($this->any())
             ->method('output')
             ->willReturn($output);
+        $env
+            ->expects($this->once())
+            ->method('interactive')
+            ->willReturn(true);
+        $env
+            ->expects($this->once())
+            ->method('arguments')
+            ->willReturn(Sequence::strings());
 
         $response = $question($env);
 
@@ -207,10 +219,52 @@ class QuestionTest extends TestCase
             ->expects($this->any())
             ->method('output')
             ->willReturn($output);
+        $env
+            ->expects($this->once())
+            ->method('interactive')
+            ->willReturn(true);
+        $env
+            ->expects($this->once())
+            ->method('arguments')
+            ->willReturn(Sequence::strings());
 
         $response = $question($env);
 
         $this->assertInstanceOf(Str::class, $response);
         $this->assertSame('foo', $response->toString());
+    }
+
+    public function testThrowWhenEnvNonInteractive()
+    {
+        $question = new Question('watev');
+
+        $env = $this->createMock(Environment::class);
+        $env
+            ->expects($this->once())
+            ->method('interactive')
+            ->willReturn(false);
+
+        $this->expectException(NonInteractiveTerminal::class);
+
+        $question($env);
+    }
+
+    public function testThrowWhenOptionToSpecifyNoInteractionIsRequired()
+    {
+        $question = new Question('watev');
+
+        $env = $this->createMock(Environment::class);
+        $env
+            ->expects($this->once())
+            ->method('interactive')
+            ->willReturn(true);
+        $env
+            ->expects($this->once())
+            ->method('arguments')
+            ->willReturn(Sequence::strings('foo', '--no-interaction', 'bar'));
+
+        $this->expectException(NonInteractiveTerminal::class);
+
+        $question($env);
     }
 }
