@@ -22,9 +22,15 @@ use Innmind\Immutable\{
     Map,
 };
 use PHPUnit\Framework\TestCase;
+use Eris\{
+    Generator,
+    TestTrait,
+};
 
 class BackPressureWritesTest extends TestCase
 {
+    use TestTrait;
+
     public function testInterface()
     {
         $this->assertInstanceOf(
@@ -164,5 +170,24 @@ class BackPressureWritesTest extends TestCase
             ->willReturn($expected = Map::of('string', 'string'));
 
         $this->assertSame($expected, $env->variables());
+    }
+
+    public function testInteractive()
+    {
+        $this
+            ->forAll(Generator\elements(true, false))
+            ->then(function($interactive) {
+                $env = new BackPressureWrites(
+                    $inner = $this->createMock(Environment::class),
+                    $this->createMock(Clock::class),
+                    $this->createMock(CurrentProcess::class),
+                );
+                $inner
+                    ->expects($this->once())
+                    ->method('interactive')
+                    ->willReturn($interactive);
+
+                $this->assertSame($interactive, $env->interactive());
+            });
     }
 }

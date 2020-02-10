@@ -20,9 +20,15 @@ use Innmind\Immutable\{
     Map,
 };
 use PHPUnit\Framework\TestCase;
+use Eris\{
+    Generator,
+    TestTrait,
+};
 
 class WriteAsASCIITest extends TestCase
 {
+    use TestTrait;
+
     public function testInterface()
     {
         $this->assertInstanceOf(
@@ -153,5 +159,22 @@ class WriteAsASCIITest extends TestCase
             ->willReturn($expected = Map::of('string', 'string'));
 
         $this->assertSame($expected, $env->variables());
+    }
+
+    public function testInteractive()
+    {
+        $this
+            ->forAll(Generator\elements(true, false))
+            ->then(function($interactive) {
+                $env = new WriteAsASCII(
+                    $inner = $this->createMock(Environment::class),
+                );
+                $inner
+                    ->expects($this->once())
+                    ->method('interactive')
+                    ->willReturn($interactive);
+
+                $this->assertSame($interactive, $env->interactive());
+            });
     }
 }

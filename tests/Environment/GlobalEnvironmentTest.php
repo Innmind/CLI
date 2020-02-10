@@ -35,6 +35,13 @@ class GlobalEnvironmentTest extends TestCase
         $this->assertInstanceOf(Environment::class, $this->env);
     }
 
+    public function testInteractive()
+    {
+        // can't prove via a test that the env can be interactive as tests are
+        // always run in an non interactive env
+        $this->assertFalse($this->env->interactive());
+    }
+
     public function testInput()
     {
         $this->assertInstanceOf(Readable::class, $this->env->input());

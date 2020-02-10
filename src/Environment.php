@@ -16,6 +16,10 @@ use Innmind\Immutable\{
 
 interface Environment
 {
+    /**
+     * True if the environment running the script is an interactive terminal
+     */
+    public function interactive(): bool;
     public function input(): Readable;
     public function output(): Writable;
     public function error(): Writable;

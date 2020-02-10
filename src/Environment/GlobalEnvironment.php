@@ -16,6 +16,7 @@ use Innmind\Immutable\{
 
 final class GlobalEnvironment implements Environment
 {
+    private bool $interactive;
     private Readable $input;
     private Writable $output;
     private Writable $error;
@@ -28,6 +29,7 @@ final class GlobalEnvironment implements Environment
 
     public function __construct()
     {
+        $this->interactive = \stream_isatty(\STDIN);
         $this->input = new Readable\NonBlocking(
             new Readable\Stream(\STDIN),
         );
@@ -47,6 +49,11 @@ final class GlobalEnvironment implements Environment
 
         $this->exitCode = new ExitCode(0);
         $this->workingDirectory = Path::of(\getcwd().'/');
+    }
+
+    public function interactive(): bool
+    {
+        return $this->interactive;
     }
 
     public function input(): Readable

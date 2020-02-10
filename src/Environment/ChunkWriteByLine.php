@@ -27,6 +27,11 @@ final class ChunkWriteByLine implements Environment
         $this->environment = $environment;
     }
 
+    public function interactive(): bool
+    {
+        return $this->environment->interactive();
+    }
+
     public function input(): Readable
     {
         return $this->environment->input();
