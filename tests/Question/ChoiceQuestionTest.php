@@ -8,6 +8,7 @@ use Innmind\CLI\{
     Environment,
     Exception\NonInteractiveTerminal,
 };
+use Innmind\OperatingSystem\Sockets;
 use Innmind\Stream\{
     Readable,
     Writable,
@@ -16,7 +17,9 @@ use Innmind\Stream\{
     Stream\Position,
     Stream\Position\Mode,
     Stream\Size,
+    Watch\Select,
 };
+use Innmind\TimeContinuum\Earth\ElapsedPeriod;
 use Innmind\Immutable\{
     Str,
     Map,
@@ -159,8 +162,13 @@ class ChoiceQuestionTest extends TestCase
             ->expects($this->once())
             ->method('arguments')
             ->willReturn(Sequence::strings());
+        $sockets = $this->createMock(Sockets::class);
+        $sockets
+            ->expects($this->once())
+            ->method('watch')
+            ->willReturn(new Select(new ElapsedPeriod(1000)));
 
-        $response = $question($env);
+        $response = $question($env, $sockets);
 
         $this->assertInstanceOf(Map::class, $response);
         $this->assertSame('scalar', (string) $response->keyType());
@@ -204,7 +212,7 @@ class ChoiceQuestionTest extends TestCase
 
         $this->expectException(NonInteractiveTerminal::class);
 
-        $question($env);
+        $question($env, $this->createMock(Sockets::class));
     }
 
     public function testThrowWhenOptionToSpecifyNoInteractionIsRequired()
@@ -223,6 +231,6 @@ class ChoiceQuestionTest extends TestCase
 
         $this->expectException(NonInteractiveTerminal::class);
 
-        $question($env);
+        $question($env, $this->createMock(Sockets::class));
     }
 }

@@ -7,11 +7,7 @@ use Innmind\CLI\{
     Environment,
     Exception\NonInteractiveTerminal,
 };
-use Innmind\Stream\{
-    Readable,
-    Writable,
-    Watch\Select,
-};
+use Innmind\OperatingSystem\Sockets;
 use Innmind\TimeContinuum\Earth\ElapsedPeriod;
 use Innmind\Immutable\Str;
 
@@ -36,7 +32,7 @@ final class Question
     /**
      * @throws NonInteractiveTerminal
      */
-    public function __invoke(Environment $env): Str
+    public function __invoke(Environment $env, Sockets $sockets): Str
     {
         if (!$env->interactive() || $env->arguments()->contains('--no-interaction')) {
             throw new NonInteractiveTerminal;
@@ -47,7 +43,7 @@ final class Question
         $output->write($this->question);
 
         /** @psalm-suppress InvalidArgument $input must be a Selectable */
-        $select = (new Select(new ElapsedPeriod(60 * 1000))) // one minute
+        $watch = $sockets->watch(new ElapsedPeriod(60 * 1000)) // one minute
             ->forRead($input);
 
         $response = Str::of('');
@@ -64,7 +60,7 @@ final class Question
 
         try {
             do {
-                $ready = $select();
+                $ready = $watch();
 
                 /** @psalm-suppress InvalidArgument $input must be a Selectable */
                 if ($ready->toRead()->contains($input)) {
