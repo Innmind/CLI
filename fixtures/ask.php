@@ -38,11 +38,11 @@ new class extends Main {
         $choices->foreach(static function($key, $value) use ($env): void {
             $env->output()->write(
                 Str::of("%s(%s) => %s(%s)\n")->sprintf(
-                    gettype($key),
-                    $key,
+                    (string) gettype($key),
+                    (string) $key,
                     gettype($value),
-                    $value
-                )
+                    (string) $value,
+                ),
             );
         });
     }
