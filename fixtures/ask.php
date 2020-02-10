@@ -19,7 +19,7 @@ new class extends Main {
     protected function main(Environment $env, OperatingSystem $os): void
     {
         $user = new Question('your name please :');
-        $pwd = Question::hiddenResponse('password :');
+        $pwd = new Question('password :');
 
         $env->output()->write($user($env, $os->sockets())->append("\n"));
         $env->output()->write($pwd($env, $os->sockets())->append("\n"));

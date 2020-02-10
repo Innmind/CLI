@@ -14,19 +14,10 @@ use Innmind\Immutable\Str;
 final class Question
 {
     private Str $question;
-    private bool $hiddenResponse = false;
 
     public function __construct(string $question)
     {
         $this->question = Str::of($question)->append(' ');
-    }
-
-    public static function hiddenResponse(string $question): self
-    {
-        $self = new self($question);
-        $self->hiddenResponse = true;
-
-        return $self;
     }
 
     /**
@@ -48,35 +39,14 @@ final class Question
 
         $response = Str::of('');
 
-        if ($this->hiddenResponse) {
-            /**
-             * @psalm-suppress ForbiddenCode
-             * @var string
-             */
-            $sttyMode = \shell_exec('stty -g');
-            /** @psalm-suppress ForbiddenCode */
-            \shell_exec('stty -echo'); // disable character print
-        }
+        do {
+            $ready = $watch();
 
-        try {
-            do {
-                $ready = $watch();
-
-                /** @psalm-suppress InvalidArgument $input must be a Selectable */
-                if ($ready->toRead()->contains($input)) {
-                    $response = $response->append($input->read()->toString());
-                }
-            } while (!$response->contains("\n"));
-        } finally {
-            if ($this->hiddenResponse) {
-                /**
-                 * @psalm-suppress PossiblyUndefinedVariable
-                 * @psalm-suppress ForbiddenCode
-                 */
-                \shell_exec('stty '.$sttyMode);
-                $output->write(Str::of("\n")); // to display the new line
+            /** @psalm-suppress InvalidArgument $input must be a Selectable */
+            if ($ready->toRead()->contains($input)) {
+                $response = $response->append($input->read()->toString());
             }
-        }
+        } while (!$response->contains("\n"));
 
         return $response->substring(0, -1); // remove the new line character
     }
