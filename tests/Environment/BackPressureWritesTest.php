@@ -19,6 +19,7 @@ use Innmind\Url\Path;
 use Innmind\Immutable\{
     Sequence,
     Str,
+    Map,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -148,5 +149,20 @@ class BackPressureWritesTest extends TestCase
             ->willReturn($expected = Path::none());
 
         $this->assertSame($expected, $env->workingDirectory());
+    }
+
+    public function testVariables()
+    {
+        $env = new BackPressureWrites(
+            $inner = $this->createMock(Environment::class),
+            $this->createMock(Clock::class),
+            $this->createMock(CurrentProcess::class),
+        );
+        $inner
+            ->expects($this->once())
+            ->method('variables')
+            ->willReturn($expected = Map::of('string', 'string'));
+
+        $this->assertSame($expected, $env->variables());
     }
 }

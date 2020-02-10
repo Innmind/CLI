@@ -17,6 +17,7 @@ use Innmind\Url\Path;
 use Innmind\Immutable\{
     Sequence,
     Str,
+    Map,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -130,5 +131,18 @@ class ChunkWriteByLineTest extends TestCase
             ->willReturn($expected = Path::none());
 
         $this->assertSame($expected, $env->workingDirectory());
+    }
+
+    public function testVariables()
+    {
+        $env = new ChunkWriteByLine(
+            $inner = $this->createMock(Environment::class)
+        );
+        $inner
+            ->expects($this->once())
+            ->method('variables')
+            ->willReturn($expected = Map::of('string', 'string'));
+
+        $this->assertSame($expected, $env->variables());
     }
 }
