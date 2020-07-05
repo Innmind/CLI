@@ -13,9 +13,15 @@ use Innmind\CLI\{
     Exception\EmptyDeclaration,
 };
 use PHPUnit\Framework\TestCase;
+use Innmind\BlackBox\{
+    PHPUnit\BlackBox,
+    Set,
+};
 
 class SpecificationTest extends TestCase
 {
+    use BlackBox;
+
     public function testInterface()
     {
         $command = new class implements Command {
@@ -62,6 +68,40 @@ DESCRIPTION;
         $this->assertSame('container [output] ...proxy', $spec->pattern()->toString());
     }
 
+    public function testMatchesItsOwnName()
+    {
+        $this
+            ->forAll(
+                $this->name(),
+                $this->name(),
+            )
+            ->filter(fn($a, $b) => $a !== $b)
+            ->then(function($a, $b) {
+                $command = new class($a) implements Command {
+                    private $usage;
+
+                    public function __construct(string $usage)
+                    {
+                        $this->usage = $usage;
+                    }
+
+                    public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                    {
+                    }
+
+                    public function toString(): string
+                    {
+                        return $this->usage;
+                    }
+                };
+
+                $spec = new Specification($command);
+
+                $this->assertTrue($spec->matches($a));
+                $this->assertFalse($spec->matches($b));
+            });
+    }
+
     public function testThrowWhenEmptyDeclaration()
     {
         $command = new class implements Command {
@@ -78,5 +118,14 @@ DESCRIPTION;
         $this->expectException(EmptyDeclaration::class);
 
         new Specification($command);
+    }
+
+    private function name(): Set
+    {
+        return Set\Unicode::strings()
+            ->filter(fn($s) => strpos($s, ' ') === false)
+            ->filter(fn($s) => strpos($s, "\n") === false)
+            ->filter(fn($s) => strpos($s, "\r") === false)
+            ->filter(fn($s) => $s !== '');
     }
 }
