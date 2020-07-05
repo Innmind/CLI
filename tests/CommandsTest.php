@@ -104,6 +104,84 @@ class CommandsTest extends TestCase
         $this->assertNull($run($env));
     }
 
+    public function testRunCommandBySpecifyingOnlyTheStartOfItsName()
+    {
+        $run = new Commands(
+            new class implements Command {
+                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                {
+                    $env->exit(42);
+                }
+
+                public function toString(): string
+                {
+                    return 'foo';
+                }
+            },
+            new class implements Command {
+                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                {
+                    $env->exit(24);
+                }
+
+                public function toString(): string
+                {
+                    return 'watch';
+                }
+            }
+        );
+        $env = $this->createMock(Environment::class);
+        $env
+            ->expects($this->any())
+            ->method('arguments')
+            ->willReturn(Sequence::of('string', 'bin/console', 'w'));
+        $env
+            ->expects($this->once())
+            ->method('exit')
+            ->with(24);
+
+        $this->assertNull($run($env));
+    }
+
+    public function testRunCommandBySpecifyingOnlyTheStartOfTheSectionsOfItsName()
+    {
+        $run = new Commands(
+            new class implements Command {
+                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                {
+                    $env->exit(42);
+                }
+
+                public function toString(): string
+                {
+                    return 'foo:bar:baz';
+                }
+            },
+            new class implements Command {
+                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                {
+                    $env->exit(24);
+                }
+
+                public function toString(): string
+                {
+                    return 'watch';
+                }
+            }
+        );
+        $env = $this->createMock(Environment::class);
+        $env
+            ->expects($this->any())
+            ->method('arguments')
+            ->willReturn(Sequence::of('string', 'bin/console', 'f:b:b'));
+        $env
+            ->expects($this->once())
+            ->method('exit')
+            ->with(42);
+
+        $this->assertNull($run($env));
+    }
+
     public function testExitWhenCommandNotFound()
     {
         $run = new Commands(
@@ -148,6 +226,63 @@ class CommandsTest extends TestCase
             ->method('write')
             ->with($this->callback(function(Str $value): bool {
                 return $value->toString() === " foo     \n watch   ";
+            }))
+            ->will($this->returnSelf());
+        $output
+            ->expects($this->at(1))
+            ->method('write')
+            ->with($this->callback(function(Str $value): bool {
+                return $value->toString() === "\n";
+            }))
+            ->will($this->returnSelf());
+
+        $this->assertNull($run($env));
+    }
+
+    public function testExitWhenMultipleCommandsMatchTheGivenName()
+    {
+        $run = new Commands(
+            new class implements Command {
+                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                {
+                    $env->exit(42);
+                }
+
+                public function toString(): string
+                {
+                    return 'bar';
+                }
+            },
+            new class implements Command {
+                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                {
+                    $env->exit(24);
+                }
+
+                public function toString(): string
+                {
+                    return 'baz';
+                }
+            }
+        );
+        $env = $this->createMock(Environment::class);
+        $env
+            ->expects($this->once())
+            ->method('arguments')
+            ->willReturn(Sequence::of('string', 'bin/console', 'ba'));
+        $env
+            ->expects($this->once())
+            ->method('exit')
+            ->with(64);
+        $env
+            ->expects($this->once())
+            ->method('error')
+            ->willReturn ($output = $this->createMock(Writable::class));
+        $output
+            ->expects($this->at(0))
+            ->method('write')
+            ->with($this->callback(function(Str $value): bool {
+                return $value->toString() === " bar   \n baz   ";
             }))
             ->will($this->returnSelf());
         $output

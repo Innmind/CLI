@@ -9,22 +9,22 @@ use Innmind\CLI\Output\Table\{
     Row\Cell\Cell,
 };
 use PHPUnit\Framework\TestCase;
-use Eris\{
-    Generator,
-    TestTrait,
+use Innmind\BlackBox\{
+    PHPUnit\BlackBox,
+    Set,
 };
 
 class RowTest extends TestCase
 {
-    use TestTrait;
+    use BlackBox;
 
     public function testInterface()
     {
         $this
             ->forAll(
-                Generator\string(),
-                Generator\string(),
-                Generator\string()
+                Set\Unicode::strings(),
+                Set\Unicode::strings(),
+                Set\Unicode::strings()
             )
             ->then(function(string $f, string $s, string $t): void {
                 $row = new Row(

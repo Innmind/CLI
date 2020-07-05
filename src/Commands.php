@@ -28,8 +28,8 @@ final class Commands
 {
     /** @var Map<Specification, Command> */
     private Map $commands;
-    /** @var Map<string, Specification> */
-    private Map $specifications;
+    /** @var Set<Specification> */
+    private Set $specifications;
 
     public function __construct(Command $command, Command ...$commands)
     {
@@ -41,14 +41,7 @@ final class Commands
                 yield new Specification($command) => $command;
             },
         );
-        /** @var Map<string, Specification> */
-        $this->specifications = $this->commands->toMapOf(
-            'string',
-            Specification::class,
-            static function(Specification $spec): \Generator {
-                yield $spec->name() => $spec;
-            },
-        );
+        $this->specifications = $this->commands->keys();
     }
 
     public function __invoke(Environment $env): void
@@ -56,7 +49,7 @@ final class Commands
         if ($this->commands->size() === 1) {
             $this->run(
                 $env,
-                first($this->specifications->keys()),
+                first($this->specifications),
             );
 
             return;
@@ -79,23 +72,26 @@ final class Commands
             return;
         }
 
-        if (!$this->specifications->contains($command)) {
+        $specifications = $this->specifications->filter(
+            static fn(Specification $spec): bool => $spec->matches($command),
+        );
+
+        if ($specifications->size() !== 1) {
             $this->displayHelp($env->error());
             $env->exit(64); //EX_USAGE The command was used incorrectly
 
             return;
         }
 
-        $this->run($env, $command);
+        $this->run($env, first($specifications));
     }
 
-    private function run(Environment $env, string $command): void
+    private function run(Environment $env, Specification $spec): void
     {
-        $spec = $this->specifications->get($command);
         $run = $this->commands->get($spec);
         $arguments = $env->arguments()->drop(1); //drop script name
 
-        if (!$arguments->empty() && $arguments->first() === $command) {
+        if (!$arguments->empty() && $spec->matches($arguments->first())) {
             //drop command name, conditional as it can be omitted when only one
             //command defined
             $arguments = $arguments->drop(1);

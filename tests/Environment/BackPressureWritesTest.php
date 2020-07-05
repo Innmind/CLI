@@ -22,14 +22,14 @@ use Innmind\Immutable\{
     Map,
 };
 use PHPUnit\Framework\TestCase;
-use Eris\{
-    Generator,
-    TestTrait,
+use Innmind\BlackBox\{
+    PHPUnit\BlackBox,
+    Set,
 };
 
 class BackPressureWritesTest extends TestCase
 {
-    use TestTrait;
+    use BlackBox;
 
     public function testInterface()
     {
@@ -175,7 +175,7 @@ class BackPressureWritesTest extends TestCase
     public function testInteractive()
     {
         $this
-            ->forAll(Generator\elements(true, false))
+            ->forAll(Set\Elements::of(true, false))
             ->then(function($interactive) {
                 $env = new BackPressureWrites(
                     $inner = $this->createMock(Environment::class),

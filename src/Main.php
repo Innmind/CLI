@@ -61,18 +61,18 @@ abstract class Main
     {
         $stack = new StackTrace($e);
 
-        $stack
-            ->previous()
-            ->reduce(
-                $this->renderError($stack->throwable()),
-                function(Sequence $lines, Throwable $e): Sequence {
-                    return $lines
-                        ->add(Str::of(''))
-                        ->add(Str::of('Caused by'))
-                        ->add(Str::of(''))
-                        ->append($this->renderError($e));
-                },
-            )
+        /** @var Sequence<Str> */
+        $chunks = $stack->previous()->reduce(
+            $this->renderError($stack->throwable()),
+            function(Sequence $lines, Throwable $e): Sequence {
+                return $lines
+                    ->add(Str::of(''))
+                    ->add(Str::of('Caused by'))
+                    ->add(Str::of(''))
+                    ->append($this->renderError($e));
+            },
+        );
+        $chunks
             ->map(static function(Str $line) use ($bin, $displayBin): Str {
                 if ($displayBin) {
                     return $line->prepend("$bin: ");

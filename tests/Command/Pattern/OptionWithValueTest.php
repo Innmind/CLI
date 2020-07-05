@@ -17,14 +17,14 @@ use Innmind\Immutable\{
 };
 use function Innmind\Immutable\unwrap;
 use PHPUnit\Framework\TestCase;
-use Eris\{
-    Generator,
-    TestTrait,
+use Innmind\BlackBox\{
+    PHPUnit\BlackBox,
+    Set,
 };
 
 class OptionWithValueTest extends TestCase
 {
-    use TestTrait;
+    use BlackBox;
 
     public function testInterface()
     {
@@ -35,10 +35,9 @@ class OptionWithValueTest extends TestCase
     public function testThrowWhenInvalidPattern()
     {
         $this
-            ->forAll(Generator\string())
-            ->when(static function(string $string): bool {
-                return !preg_match('~^[a-zA-Z0-9\-]+$~', $string);
-            })
+            ->forAll(Set\Strings::any()->filter(
+                static fn(string $s) => !preg_match('~^[a-zA-Z0-9\-]+$~', $s),
+            ))
             ->then(function(string $string): void {
                 $string = '--'.$string.'=';
                 $this->expectException(PatternNotRecognized::class);
@@ -51,7 +50,7 @@ class OptionWithValueTest extends TestCase
     public function testStringCast()
     {
         $this
-            ->forAll(Generator\elements('--foo=', '-b|--bar=', '--baz='))
+            ->forAll(Set\Elements::of('--foo=', '-b|--bar=', '--baz='))
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,

@@ -5,19 +5,19 @@ namespace Tests\Innmind\CLI\Environment;
 
 use Innmind\CLI\Environment\ExitCode;
 use PHPUnit\Framework\TestCase;
-use Eris\{
-    Generator,
-    TestTrait
+use Innmind\BlackBox\{
+    PHPUnit\BlackBox,
+    Set,
 };
 
 class ExitCodeTest extends TestCase
 {
-    use TestTrait;
+    use BlackBox;
 
     public function testToInt()
     {
         $this
-            ->forAll(Generator\choose(0, 254))
+            ->forAll(Set\Integers::between(0, 254))
             ->then(function(int $code): void {
                 $this->assertSame($code, (new ExitCode($code))->toInt());
             });
@@ -27,7 +27,7 @@ class ExitCodeTest extends TestCase
     {
         $this->assertTrue((new ExitCode(0))->successful());
         $this
-            ->forAll(Generator\choose(1, 254))
+            ->forAll(Set\Integers::between(1, 254))
             ->then(function(int $code): void {
                 $this->assertFalse((new ExitCode($code))->successful());
             });
@@ -36,7 +36,7 @@ class ExitCodeTest extends TestCase
     public function testNegativeCodesAreReplacedByZero()
     {
         $this
-            ->forAll(Generator\neg())
+            ->forAll(Set\Integers::below(0))
             ->then(function(int $code): void {
                 $this->assertSame(0, (new ExitCode($code))->toInt());
             });
@@ -45,7 +45,7 @@ class ExitCodeTest extends TestCase
     public function testCodesHigherThan254AreReplacedBy254()
     {
         $this
-            ->forAll(Generator\choose(255, 10000))
+            ->forAll(Set\Integers::between(255, 10000))
             ->then(function(int $code): void {
                 $this->assertSame(254, (new ExitCode($code))->toInt());
             });

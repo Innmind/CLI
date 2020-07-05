@@ -20,14 +20,14 @@ use Innmind\Immutable\{
     Map,
 };
 use PHPUnit\Framework\TestCase;
-use Eris\{
-    Generator,
-    TestTrait,
+use Innmind\BlackBox\{
+    PHPUnit\BlackBox,
+    Set,
 };
 
 class WriteAsASCIITest extends TestCase
 {
-    use TestTrait;
+    use BlackBox;
 
     public function testInterface()
     {
@@ -164,7 +164,7 @@ class WriteAsASCIITest extends TestCase
     public function testInteractive()
     {
         $this
-            ->forAll(Generator\elements(true, false))
+            ->forAll(Set\Elements::of(true, false))
             ->then(function($interactive) {
                 $env = new WriteAsASCII(
                     $inner = $this->createMock(Environment::class),

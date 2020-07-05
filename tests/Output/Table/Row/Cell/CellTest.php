@@ -8,19 +8,19 @@ use Innmind\CLI\Output\Table\Row\{
     Cell as CellInterface,
 };
 use PHPUnit\Framework\TestCase;
-use Eris\{
-    Generator,
-    TestTrait,
+use Innmind\BlackBox\{
+    PHPUnit\BlackBox,
+    Set,
 };
 
 class CellTest extends TestCase
 {
-    use TestTrait;
+    use BlackBox;
 
     public function testInterface()
     {
         $this
-            ->forAll(Generator\string())
+            ->forAll(Set\Unicode::strings())
             ->then(function(string $string): void {
                 $cell = new Cell($string);
 
