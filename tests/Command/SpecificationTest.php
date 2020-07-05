@@ -107,7 +107,7 @@ DESCRIPTION;
         $this
             ->forAll(
                 $this->name(),
-                Set\Integers::between(1, 200),
+                Set\Integers::between(1, 10),
             )
             ->then(function($name, $shrink) {
                 $command = new class($name) implements Command {
@@ -135,13 +135,77 @@ DESCRIPTION;
             });
     }
 
+    public function testMatchesStartOfSectionsOfItsOwnName()
+    {
+        $this
+            ->forAll($this->chunks())
+            ->then(function($chunks) {
+                $name = \implode(':', \array_column($chunks, 'name'));
+                $shrunk = \implode(':', \array_column($chunks, 'shrunk'));
+
+                $command = new class($name) implements Command {
+                    private $usage;
+
+                    public function __construct(string $usage)
+                    {
+                        $this->usage = $usage;
+                    }
+
+                    public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                    {
+                    }
+
+                    public function toString(): string
+                    {
+                        return $this->usage;
+                    }
+                };
+
+                $spec = new Specification($command);
+
+                $this->assertTrue($spec->matches($shrunk));
+            });
+    }
+
+    public function testDoesnMatchLessSectionProvidedThanExpected()
+    {
+        $this
+            ->forAll($this->chunks(2))
+            ->then(function($chunks) {
+                $name = \implode(':', \array_column($chunks, 'name'));
+                $shrunk = $chunks[0]['shrunk'];
+
+                $command = new class($name) implements Command {
+                    private $usage;
+
+                    public function __construct(string $usage)
+                    {
+                        $this->usage = $usage;
+                    }
+
+                    public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                    {
+                    }
+
+                    public function toString(): string
+                    {
+                        return $this->usage;
+                    }
+                };
+
+                $spec = new Specification($command);
+
+                $this->assertFalse($spec->matches($shrunk));
+            });
+    }
+
     public function testDoesntMatchWhenOwnNameDoesntExplicitlyStartWithSubset()
     {
         $this
             ->forAll(
                 $this->name(),
-                Set\Integers::between(1, 200),
-                Set\Integers::between(1, 200),
+                Set\Integers::between(1, 10),
+                Set\Integers::between(1, 10),
             )
             ->then(function($name, $start, $shrink) {
                 $command = new class($name) implements Command {
@@ -189,10 +253,25 @@ DESCRIPTION;
 
     private function name(): Set
     {
-        return Set\Unicode::strings()
+        return Set\Unicode::lengthBetween(1, 10)
             ->filter(fn($s) => strpos($s, ' ') === false)
             ->filter(fn($s) => strpos($s, "\n") === false)
             ->filter(fn($s) => strpos($s, "\r") === false)
-            ->filter(fn($s) => $s !== '');
+            ->filter(fn($s) => strpos($s, "\t") === false);
+    }
+
+    private function chunks(int $min = 1): Set
+    {
+        return Set\Sequence::of(
+            Set\Composite::immutable(
+                static fn($name, $shrink) => [
+                    'name' => $name,
+                    'shrunk' => \mb_substr($name, 0, $shrink),
+                ],
+                $this->name(),
+                Set\Integers::between(1, 9),
+            ),
+            Set\Integers::between($min, 5),
+        );
     }
 }

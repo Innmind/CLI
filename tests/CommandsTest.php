@@ -143,6 +143,45 @@ class CommandsTest extends TestCase
         $this->assertNull($run($env));
     }
 
+    public function testRunCommandBySpecifyingOnlyTheStartOfTheSectionsOfItsName()
+    {
+        $run = new Commands(
+            new class implements Command {
+                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                {
+                    $env->exit(42);
+                }
+
+                public function toString(): string
+                {
+                    return 'foo:bar:baz';
+                }
+            },
+            new class implements Command {
+                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                {
+                    $env->exit(24);
+                }
+
+                public function toString(): string
+                {
+                    return 'watch';
+                }
+            }
+        );
+        $env = $this->createMock(Environment::class);
+        $env
+            ->expects($this->any())
+            ->method('arguments')
+            ->willReturn(Sequence::of('string', 'bin/console', 'f:b:b'));
+        $env
+            ->expects($this->once())
+            ->method('exit')
+            ->with(42);
+
+        $this->assertNull($run($env));
+    }
+
     public function testExitWhenCommandNotFound()
     {
         $run = new Commands(

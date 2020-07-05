@@ -7,7 +7,10 @@ use Innmind\CLI\{
     Command,
     Exception\EmptyDeclaration,
 };
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Sequence,
+    Str,
+};
 use function Innmind\Immutable\{
     join,
     unwrap,
@@ -70,7 +73,32 @@ final class Specification
             return true;
         }
 
-        return $name->take($command->length())->equals($command);
+        $commandChunks = $command->split(':');
+        $nameChunks = $name->split(':');
+
+        if ($commandChunks->size() !== $nameChunks->size()) {
+            return false;
+        }
+
+        try {
+            $nameChunks->reduce(
+                $commandChunks,
+                static function(Sequence $command, Str $chunk): Sequence {
+                    /** @var Str */
+                    $current = $command->first();
+
+                    if (!$chunk->take($current->length())->equals($current)) {
+                        throw new \Exception('Chunks don\'t match');
+                    }
+
+                    return $command->drop(1);
+                },
+            );
+
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     public function shortDescription(): string
