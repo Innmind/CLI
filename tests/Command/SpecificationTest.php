@@ -257,6 +257,8 @@ DESCRIPTION;
             ->filter(fn($s) => strpos($s, ' ') === false)
             ->filter(fn($s) => strpos($s, "\n") === false)
             ->filter(fn($s) => strpos($s, "\r") === false)
+            ->filter(fn($s) => strpos($s, \chr(11)) === false)
+            ->filter(fn($s) => strpos($s, \chr(0)) === false)
             ->filter(fn($s) => strpos($s, "\t") === false);
     }
 
