@@ -59,7 +59,18 @@ final class Specification
 
     public function matches(string $command): bool
     {
-        return $this->name === $command;
+        if ($command === '') {
+            return false;
+        }
+
+        $command = Str::of($command);
+        $name = Str::of($this->name);
+
+        if ($name->equals($command)) {
+            return true;
+        }
+
+        return $name->take($command->length())->equals($command);
     }
 
     public function shortDescription(): string

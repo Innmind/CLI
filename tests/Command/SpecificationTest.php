@@ -102,6 +102,73 @@ DESCRIPTION;
             });
     }
 
+    public function testMatchesStartOfItsOwnName()
+    {
+        $this
+            ->forAll(
+                $this->name(),
+                Set\Integers::between(1, 200),
+            )
+            ->then(function($name, $shrink) {
+                $command = new class($name) implements Command {
+                    private $usage;
+
+                    public function __construct(string $usage)
+                    {
+                        $this->usage = $usage;
+                    }
+
+                    public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                    {
+                    }
+
+                    public function toString(): string
+                    {
+                        return $this->usage;
+                    }
+                };
+
+                $spec = new Specification($command);
+                $shrunk = \mb_substr($name, 0, $shrink);
+
+                $this->assertTrue($spec->matches($shrunk));
+            });
+    }
+
+    public function testDoesntMatchWhenOwnNameDoesntExplicitlyStartWithSubset()
+    {
+        $this
+            ->forAll(
+                $this->name(),
+                Set\Integers::between(1, 200),
+                Set\Integers::between(1, 200),
+            )
+            ->then(function($name, $start, $shrink) {
+                $command = new class($name) implements Command {
+                    private $usage;
+
+                    public function __construct(string $usage)
+                    {
+                        $this->usage = $usage;
+                    }
+
+                    public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                    {
+                    }
+
+                    public function toString(): string
+                    {
+                        return $this->usage;
+                    }
+                };
+
+                $spec = new Specification($command);
+                $shrunk = \mb_substr($name, $start, $shrink);
+
+                $this->assertFalse($spec->matches($shrunk));
+            });
+    }
+
     public function testThrowWhenEmptyDeclaration()
     {
         $command = new class implements Command {
