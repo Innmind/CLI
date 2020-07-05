@@ -24,11 +24,13 @@ use function Innmind\Immutable\join;
 
 final class Pattern
 {
+    /** @var Sequence<Input> */
     private Sequence $inputs;
 
     public function __construct(Str ...$inputs)
     {
         $load = new Inputs;
+        /** @var Sequence<Input> */
         $this->inputs = Sequence::of(Str::class, ...$inputs)->mapTo(
             Input::class,
             static fn(Str $element): Input => $load($element),
@@ -92,22 +94,22 @@ final class Pattern
      */
     public function extract(Sequence $arguments): Map
     {
+        /** @var Map<int, Input> */
+        $valueToPosition = $this->inputs->reduce(
+            Map::of('int', Input::class),
+            static function(Map $inputs, Input $input): Map {
+                return $inputs->put($inputs->size(), $input); //map value to a position
+            },
+        );
+
         /** @var Map<string, string|Sequence<string>> */
-        return $this
-            ->inputs
-            ->reduce(
-                Map::of('int', Input::class),
-                static function(Map $inputs, Input $input): Map {
-                    return $inputs->put($inputs->size(), $input); //map value to a position
-                },
-            )
-            ->reduce(
-                Map::of('string', 'string|'.Sequence::class),
-                static function(Map $inputs, int $position, Input $input) use ($arguments): Map {
-                    /** @var Map<string, string|Sequence<string>> $inputs */
-                    return $input->extract($inputs, $position, $arguments);
-                },
-            );
+        return $valueToPosition->reduce(
+            Map::of('string', 'string|'.Sequence::class),
+            static function(Map $inputs, int $position, Input $input) use ($arguments): Map {
+                /** @var Map<string, string|Sequence<string>> $inputs */
+                return $input->extract($inputs, $position, $arguments);
+            },
+        );
     }
 
     /**
@@ -120,7 +122,10 @@ final class Pattern
      */
     public function clean(Sequence $arguments): Sequence
     {
-        /** @var Sequence<string> */
+        /**
+         * @psalm-suppress InvalidArgument Would need refactoring to correctly isolate options before clean
+         * @var Sequence<string>
+         */
         return $this->inputs->reduce(
             $arguments,
             static function(Sequence $arguments, Option $option): Sequence {
