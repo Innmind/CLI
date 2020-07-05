@@ -20,14 +20,14 @@ use Innmind\Immutable\{
     Map,
 };
 use PHPUnit\Framework\TestCase;
-use Eris\{
-    Generator,
-    TestTrait,
+use Innmind\BlackBox\{
+    PHPUnit\BlackBox,
+    Set,
 };
 
 class ChunkWriteByLineTest extends TestCase
 {
-    use TestTrait;
+    use BlackBox;
 
     public function testInterface()
     {
@@ -155,7 +155,7 @@ class ChunkWriteByLineTest extends TestCase
     public function testInteractive()
     {
         $this
-            ->forAll(Generator\elements(true, false))
+            ->forAll(Set\Elements::of(true, false))
             ->then(function($interactive) {
                 $env = new ChunkWriteByLine(
                     $inner = $this->createMock(Environment::class),

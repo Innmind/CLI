@@ -16,14 +16,14 @@ use Innmind\Immutable\{
     Map,
 };
 use PHPUnit\Framework\TestCase;
-use Eris\{
-    Generator,
-    TestTrait,
+use Innmind\BlackBox\{
+    PHPUnit\BlackBox,
+    Set,
 };
 
 class RequiredArgumentTest extends TestCase
 {
-    use TestTrait;
+    use BlackBox;
 
     public function testInterface()
     {
@@ -34,10 +34,9 @@ class RequiredArgumentTest extends TestCase
     public function testThrowWhenInvalidPattern()
     {
         $this
-            ->forAll(Generator\string())
-            ->when(static function(string $string): bool {
-                return !preg_match('~^[a-zA-Z0-9]+$~', $string);
-            })
+            ->forAll(Set\Strings::any()->filter(
+                static fn(string $s) => !preg_match('~^[a-zA-Z0-9]+$~', $s),
+            ))
             ->then(function(string $string): void {
                 $this->expectException(PatternNotRecognized::class);
                 $this->expectExceptionMessage($string);
@@ -49,7 +48,7 @@ class RequiredArgumentTest extends TestCase
     public function testStringCast()
     {
         $this
-            ->forAll(Generator\elements('foo', 'bar', 'baz'))
+            ->forAll(Set\Elements::of('foo', 'bar', 'baz'))
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,
