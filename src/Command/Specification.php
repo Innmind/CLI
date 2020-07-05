@@ -57,6 +57,11 @@ final class Specification
         return $this->name;
     }
 
+    public function matches(string $command): bool
+    {
+        return $this->name === $command;
+    }
+
     public function shortDescription(): string
     {
         return $this->shortDescription;

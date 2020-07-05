@@ -17,7 +17,7 @@
     "require": {
         "php": "~7.4",
         "innmind/stream": "~2.0",
-        "innmind/immutable": "~3.3",
+        "innmind/immutable": "~3.6",
         "innmind/url": "~3.0",
         "innmind/operating-system": "~2.0",
         "innmind/stack-trace": "~3.0",
