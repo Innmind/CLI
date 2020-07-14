@@ -60,6 +60,11 @@ final class Specification
         return $this->name;
     }
 
+    public function is(string $command): bool
+    {
+        return $this->name === $command;
+    }
+
     public function matches(string $command): bool
     {
         if ($command === '') {

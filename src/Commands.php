@@ -18,6 +18,7 @@ use Innmind\Immutable\{
     Map,
     Str,
     Sequence,
+    Exception\NoElementMatchingPredicateFound,
 };
 use function Innmind\Immutable\{
     unwrap,
@@ -76,14 +77,25 @@ final class Commands
             static fn(Specification $spec): bool => $spec->matches($command),
         );
 
-        if ($specifications->size() !== 1) {
-            $this->displayHelp($env->error());
-            $env->exit(64); //EX_USAGE The command was used incorrectly
+        if ($specifications->size() === 1) {
+            $this->run($env, first($specifications));
 
             return;
         }
 
-        $this->run($env, first($specifications));
+        try {
+            $specification = $specifications->find(
+                static fn(Specification $spec): bool => $spec->is($command),
+            );
+            $this->run($env, $specification);
+
+            return;
+        } catch (NoElementMatchingPredicateFound $e) {
+            // display the help menu
+        }
+
+        $this->displayHelp($env->error());
+        $env->exit(64); //EX_USAGE The command was used incorrectly
     }
 
     private function run(Environment $env, Specification $spec): void
