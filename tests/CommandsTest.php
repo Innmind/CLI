@@ -104,6 +104,45 @@ class CommandsTest extends TestCase
         $this->assertNull($run($env));
     }
 
+    public function testRunCommandByNameEvenWhenAnotherCommandStartsWithTheSameName()
+    {
+        $run = new Commands(
+            new class implements Command {
+                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                {
+                    $env->exit(42);
+                }
+
+                public function toString(): string
+                {
+                    return 'foo';
+                }
+            },
+            new class implements Command {
+                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                {
+                    $env->exit(24);
+                }
+
+                public function toString(): string
+                {
+                    return 'foobar';
+                }
+            }
+        );
+        $env = $this->createMock(Environment::class);
+        $env
+            ->expects($this->exactly(2))
+            ->method('arguments')
+            ->willReturn(Sequence::of('string', 'bin/console', 'foo'));
+        $env
+            ->expects($this->once())
+            ->method('exit')
+            ->with(42);
+
+        $this->assertNull($run($env));
+    }
+
     public function testRunCommandBySpecifyingOnlyTheStartOfItsName()
     {
         $run = new Commands(
