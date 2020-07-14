@@ -59,7 +59,10 @@ final class Commands
         $arguments = $env->arguments();
 
         if (!$arguments->indices()->contains(1)) {
-            $this->displayHelp($env->error());
+            $this->displayHelp(
+                $env->error(),
+                $this->specifications,
+            );
             $env->exit(64); //EX_USAGE The command was used incorrectly
 
             return;
@@ -68,7 +71,10 @@ final class Commands
         $command = $arguments->get(1); //0 being the tool name
 
         if ($command === 'help') {
-            $this->displayHelp($env->output());
+            $this->displayHelp(
+                $env->output(),
+                $this->specifications,
+            );
 
             return;
         }
@@ -94,7 +100,10 @@ final class Commands
             // display the help menu
         }
 
-        $this->displayHelp($env->error());
+        $this->displayHelp(
+            $env->error(),
+            $specifications->empty() ? $this->specifications : $specifications,
+        );
         $env->exit(64); //EX_USAGE The command was used incorrectly
     }
 
@@ -157,10 +166,15 @@ final class Commands
         );
     }
 
-    private function displayHelp(Writable $stream): void
-    {
+    /**
+     * @param Set<Specification> $specifications
+     */
+    private function displayHelp(
+        Writable $stream,
+        Set $specifications
+    ): void {
         /** @var Sequence<Row> */
-        $rows = $this->commands->keys()->toSequenceOf(
+        $rows = $specifications->toSequenceOf(
             Row::class,
             static fn(Specification $spec): \Generator => yield new Row(
                 new Cell($spec->name()),
