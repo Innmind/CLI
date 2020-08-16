@@ -18,51 +18,26 @@ use function Innmind\Immutable\{
 
 final class Specification
 {
-    private string $name;
-    private string $shortDescription = '';
-    private string $description = '';
-    private Pattern $pattern;
+    private Command $command;
 
     public function __construct(Command $command)
     {
-        $declaration = Str::of($command->toString())->trim();
-
-        if ($declaration->empty()) {
-            throw new EmptyDeclaration;
-        }
-
-        $parts = $declaration->split("\n");
-
-        [$this->name, $this->pattern] = $this->buildPattern($parts->first());
-
-        if ($parts->size() >= 3) {
-            //get(2) as there must be a blank line before
-            $this->shortDescription = $parts->get(2)->trim()->toString();
-        }
-
-        if ($parts->size() >= 5) {
-            //drop(4) as there must be a blank line before
-            $lines = $parts
-                ->drop(4)
-                ->map(static function(Str $line): Str {
-                    return $line->trim();
-                })
-                ->mapTo(
-                    'string',
-                    static fn(Str $line): string => $line->toString(),
-                );
-            $this->description = join("\n", $lines)->toString();
-        }
+        $this->command = $command;
     }
 
     public function name(): string
     {
-        return $this->name;
+        return $this
+            ->lines()
+            ->first()
+            ->split(' ')
+            ->first()
+            ->toString();
     }
 
     public function is(string $command): bool
     {
-        return $this->name === $command;
+        return $this->name() === $command;
     }
 
     public function matches(string $command): bool
@@ -72,7 +47,7 @@ final class Specification
         }
 
         $command = Str::of($command);
-        $name = Str::of($this->name);
+        $name = Str::of($this->name());
 
         if ($name->equals($command)) {
             return true;
@@ -108,29 +83,68 @@ final class Specification
 
     public function shortDescription(): string
     {
-        return $this->shortDescription;
+        $lines = $this->lines();
+
+        // there must be a blank line before the short description
+        if ($lines->size() < 3) {
+            return '';
+        }
+
+        return $lines->get(2)->trim()->toString();
     }
 
     public function description(): string
     {
-        return $this->description;
+        $lines = $this->lines();
+
+        // there must be a blank line before the description
+        if ($lines->size() < 5) {
+            return '';
+        }
+
+        $lines = $lines
+            ->drop(4)
+            ->map(static function(Str $line): Str {
+                return $line->trim();
+            })
+            ->mapTo(
+                'string',
+                static fn(Str $line): string => $line->toString(),
+            );
+
+        return join("\n", $lines)->toString();
     }
 
     public function pattern(): Pattern
     {
-        return $this->pattern;
+        return new Pattern(...unwrap(
+            $this
+                ->lines()
+                ->first()
+                ->split(' ')
+                ->drop(1)
+        ));
     }
 
     public function toString(): string
     {
-        return $this->name.' '.$this->pattern->toString();
+        return $this
+            ->lines()
+            ->first()
+            ->toString();
     }
 
-    private function buildPattern(Str $pattern): array
+    /**
+     * @return Sequence<Str>
+     */
+    private function lines(): Sequence
     {
-        $elements = $pattern->trim()->split(' ');
-        $name = $elements->first()->toString();
+        $declaration = Str::of($this->command->toString())->trim();
 
-        return [$name, new Pattern(...unwrap($elements->drop(1)))];
+        if ($declaration->empty()) {
+            throw new EmptyDeclaration(\get_class($this->command));
+        }
+
+        return $declaration->split("\n");
     }
 }

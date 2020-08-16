@@ -248,7 +248,7 @@ DESCRIPTION;
 
         $this->expectException(EmptyDeclaration::class);
 
-        new Specification($command);
+        (new Specification($command))->toString();
     }
 
     private function name(): Set
