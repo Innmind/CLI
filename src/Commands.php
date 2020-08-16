@@ -79,6 +79,17 @@ final class Commands
             return;
         }
 
+        try {
+            $specification = $this->specifications->find(
+                static fn(Specification $spec): bool => $spec->is($command),
+            );
+            $this->run($env, $specification);
+
+            return;
+        } catch (NoElementMatchingPredicateFound $e) {
+            // attempt pattern matching
+        }
+
         $specifications = $this->specifications->filter(
             static fn(Specification $spec): bool => $spec->matches($command),
         );
@@ -87,17 +98,6 @@ final class Commands
             $this->run($env, first($specifications));
 
             return;
-        }
-
-        try {
-            $specification = $specifications->find(
-                static fn(Specification $spec): bool => $spec->is($command),
-            );
-            $this->run($env, $specification);
-
-            return;
-        } catch (NoElementMatchingPredicateFound $e) {
-            // display the help menu
         }
 
         $this->displayHelp(
