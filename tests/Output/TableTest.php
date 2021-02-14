@@ -70,7 +70,7 @@ TABLE;
 
         $expected = " first col  second col \n".
 " foo        foobar     \n".
-" foobar     foo        ";
+' foobar     foo        ';
 
         $this->assertSame($expected, $printTo->toString());
     }

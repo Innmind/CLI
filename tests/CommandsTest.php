@@ -264,10 +264,10 @@ class CommandsTest extends TestCase
             ->expects($this->exactly(2))
             ->method('write')
             ->withConsecutive(
-                [$this->callback(function(Str $value): bool {
+                [$this->callback(static function(Str $value): bool {
                     return $value->toString() === " foo     \n watch   ";
                 })],
-                [$this->callback(function(Str $value): bool {
+                [$this->callback(static function(Str $value): bool {
                     return $value->toString() === "\n";
                 })],
             );
@@ -318,10 +318,10 @@ class CommandsTest extends TestCase
             ->expects($this->exactly(2))
             ->method('write')
             ->withConsecutive(
-                [$this->callback(function(Str $value): bool {
+                [$this->callback(static function(Str $value): bool {
                     return $value->toString() === " bar   \n baz   ";
                 })],
-                [$this->callback(function(Str $value): bool {
+                [$this->callback(static function(Str $value): bool {
                     return $value->toString() === "\n";
                 })],
             );
@@ -364,7 +364,7 @@ USAGE;
         $output
             ->expects($this->once())
             ->method('write')
-            ->with($this->callback(function(Str $value): bool {
+            ->with($this->callback(static function(Str $value): bool {
                 return $value->toString() === 'usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar\n";
             }));
 
@@ -432,7 +432,7 @@ USAGE;
         $output
             ->expects($this->once())
             ->method('write')
-            ->with($this->callback(function(Str $value): bool {
+            ->with($this->callback(static function(Str $value): bool {
                 return $value->toString() === 'usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar\n";
             }));
 
@@ -481,10 +481,10 @@ USAGE;
             ->expects($this->exactly(2))
             ->method('write')
             ->withConsecutive(
-                [$this->callback(function(Str $value): bool {
+                [$this->callback(static function(Str $value): bool {
                     return $value->toString() === " foo    Description                \n watch  Watch dependency injection ";
                 })],
-                [$this->callback(function(Str $value): bool {
+                [$this->callback(static function(Str $value): bool {
                     return $value->toString() === "\n";
                 })],
             );
@@ -535,10 +535,10 @@ USAGE;
             ->expects($this->exactly(2))
             ->method('write')
             ->withConsecutive(
-                [$this->callback(function(Str $value): bool {
+                [$this->callback(static function(Str $value): bool {
                     return $value->toString() === " foo     \n watch   ";
                 })],
-                [$this->callback(function(Str $value): bool {
+                [$this->callback(static function(Str $value): bool {
                     return $value->toString() === "\n";
                 })],
             );

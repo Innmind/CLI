@@ -3,8 +3,6 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI;
 
-use Innmind\TimeContinuum\TimeContinuumInterface;
-use Innmind\TimeWarp\Halt\Usleep;
 use Innmind\OperatingSystem\{
     Factory,
     OperatingSystem,
@@ -50,12 +48,12 @@ abstract class Main
         exit($env->exitCode()->toInt());
     }
 
-    abstract protected function main(Environment $env, OperatingSystem $os): void;
-
     final public function __destruct()
     {
         //main() is the only place to run code
     }
+
+    abstract protected function main(Environment $env, OperatingSystem $os): void;
 
     private function print(bool $displayBin, string $bin, \Throwable $e, Writable $stream): void
     {

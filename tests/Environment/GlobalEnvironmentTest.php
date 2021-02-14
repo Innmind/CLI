@@ -46,14 +46,14 @@ class GlobalEnvironmentTest extends TestCase
     {
         $this->assertInstanceOf(Readable::class, $this->env->input());
         $this->assertInstanceOf(Selectable::class, $this->env->input());
-        $this->assertSame(STDIN, $this->env->input()->resource());
+        $this->assertSame(\STDIN, $this->env->input()->resource());
     }
 
     public function testOutput()
     {
         $this->assertInstanceOf(Writable::class, $this->env->output());
         $this->assertInstanceOf(Selectable::class, $this->env->output());
-        $info = stream_get_meta_data($this->env->output()->resource());
+        $info = \stream_get_meta_data($this->env->output()->resource());
         $this->assertSame('php://output', $info['uri']);
         $this->assertSame('wb', $info['mode']);
     }
@@ -62,7 +62,7 @@ class GlobalEnvironmentTest extends TestCase
     {
         $this->assertInstanceOf(Writable::class, $this->env->error());
         $this->assertInstanceOf(Selectable::class, $this->env->error());
-        $this->assertSame(STDERR, $this->env->error()->resource());
+        $this->assertSame(\STDERR, $this->env->error()->resource());
     }
 
     public function testArguments()
@@ -78,7 +78,7 @@ class GlobalEnvironmentTest extends TestCase
         $this->assertSame('string', (string) $this->env->variables()->keyType());
         $this->assertSame('string', (string) $this->env->variables()->valueType());
         $this->assertSame(
-            getenv(),
+            \getenv(),
             $this->env->variables()->reduce(
                 [],
                 static function(array $variables, string $key, string $value): array {
@@ -102,6 +102,6 @@ class GlobalEnvironmentTest extends TestCase
     {
         $this->assertInstanceOf(Path::class, $this->env->workingDirectory());
         $this->assertTrue($this->env->workingDirectory()->directory());
-        $this->assertSame(getcwd().'/', $this->env->workingDirectory()->toString());
+        $this->assertSame(\getcwd().'/', $this->env->workingDirectory()->toString());
     }
 }

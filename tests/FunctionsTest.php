@@ -35,7 +35,7 @@ class FunctionsTest extends TestCase
         $adapter = new InMemory;
         $adapter->add(File::named(
             '.env',
-            Stream::ofContent("BAZ=fOo")
+            Stream::ofContent('BAZ=fOo')
         ));
 
         $variables = variables(

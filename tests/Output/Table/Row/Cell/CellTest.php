@@ -25,7 +25,7 @@ class CellTest extends TestCase
                 $cell = new Cell($string);
 
                 $this->assertInstanceOf(CellInterface::class, $cell);
-                $this->assertSame(mb_strlen($string), $cell->width());
+                $this->assertSame(\mb_strlen($string), $cell->width());
                 $this->assertSame($string, $cell->toString());
             });
     }
