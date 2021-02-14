@@ -91,10 +91,19 @@ class MainTest extends TestCase
             'fixtures/thrower.php: ',
             $output->get(2)->toString()
         );
-        $this->assertSame(
-            'fixtures/thrower.php: class@anonymous',
-            $output->get(3)->substring(0, 37)->toString()
-        );
+
+        if (\PHP_MAJOR_VERSION === 7) {
+            $this->assertSame(
+                'fixtures/thrower.php: class@anonymous',
+                $output->get(3)->substring(0, 37)->toString()
+            );
+        } else {
+            $this->assertSame(
+                'fixtures/thrower.php: Innmind\CLI\Main',
+                $output->get(3)->substring(0, 38)->toString()
+            );
+        }
+
         $this->assertSame(
             "$cwd",
             $output->get(3)->substring(38, \strlen($cwd))->toString()
