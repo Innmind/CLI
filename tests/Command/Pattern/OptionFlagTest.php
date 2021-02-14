@@ -36,7 +36,7 @@ class OptionFlagTest extends TestCase
     {
         $this
             ->forAll(Set\Strings::any()->filter(
-                static fn(string $s) => !preg_match('~^[a-zA-Z0-9\-]+$~', $s),
+                static fn(string $s) => !\preg_match('~^[a-zA-Z0-9\-]+$~', $s),
             ))
             ->then(function(string $string): void {
                 $string = '--'.$string;

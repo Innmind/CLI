@@ -47,6 +47,11 @@ final class Table
         }
     }
 
+    public function __invoke(Writable $stream): void
+    {
+        $stream->write(Str::of($this->toString()));
+    }
+
     public static function borderless(?Row $header, Row $row, Row ...$rows): self
     {
         $self = new self($header, $row, ...$rows);
@@ -55,11 +60,6 @@ final class Table
         $self->crossingSeparator = '';
 
         return $self;
-    }
-
-    public function __invoke(Writable $stream): void
-    {
-        $stream->write(Str::of($this->toString()));
     }
 
     public function toString(): string
@@ -96,7 +96,6 @@ final class Table
                 static fn(Str $row): string => $row->toString(),
             ),
         );
-
 
         if ($this->header instanceof Row) {
             $header = Str::of(($this->header)(
@@ -139,7 +138,7 @@ final class Table
      */
     private function widths(Sequence $rows): Sequence
     {
-        $columns = Sequence::ints(...range(0, $rows->first()->size() - 1));
+        $columns = Sequence::ints(...\range(0, $rows->first()->size() - 1));
         /** @var Map<int, int> */
         $defaultWidths = $columns->reduce(
             Map::of('int', 'int'),

@@ -21,16 +21,6 @@ final class Row implements RowInterface
         $this->cells = Sequence::of(Cell::class, ...$cells);
     }
 
-    public function size(): int
-    {
-        return $this->cells->size();
-    }
-
-    public function width(int $column): int
-    {
-        return $this->cells->get($column)->width();
-    }
-
     public function __invoke(string $separator, int ...$widths): string
     {
         $widths = Sequence::ints(...$widths);
@@ -53,5 +43,15 @@ final class Row implements RowInterface
             ->prepend($separator.' ')
             ->append(' '.$separator)
             ->toString();
+    }
+
+    public function size(): int
+    {
+        return $this->cells->size();
+    }
+
+    public function width(int $column): int
+    {
+        return $this->cells->get($column)->width();
     }
 }

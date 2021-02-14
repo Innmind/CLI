@@ -30,7 +30,7 @@ class MainTest extends TestCase
                 Command::foreground('php')
                     ->withArgument('fixtures/exiter.php')
                     ->withArgument('10')
-                    ->withWorkingDirectory(Path::of(getcwd()))
+                    ->withWorkingDirectory(Path::of(\getcwd()))
             );
         $process->wait();
 
@@ -51,7 +51,7 @@ class MainTest extends TestCase
                     ->withArgument('fixtures/echo.php')
                     ->withArgument('10')
                     ->withInput(Stream::ofContent('foobar'."\n".'baz'))
-                    ->withWorkingDirectory(Path::of(getcwd()))
+                    ->withWorkingDirectory(Path::of(\getcwd()))
             );
         $process->wait();
 
@@ -66,7 +66,7 @@ class MainTest extends TestCase
             ->execute(
                 Command::foreground('php')
                     ->withArgument('fixtures/thrower.php')
-                    ->withWorkingDirectory(Path::of(getcwd()))
+                    ->withWorkingDirectory(Path::of(\getcwd()))
             );
         $process->output()->foreach(function(Str $line, Type $type): void {
             $this->assertSame(Type::error(), $type);
@@ -75,7 +75,7 @@ class MainTest extends TestCase
 
         $this->assertSame(1, $process->exitCode()->toInt());
 
-        $cwd = getcwd();
+        $cwd = \getcwd();
         $output = Str::of($process->output()->toString())->split("\n");
 
         $this->assertCount(6, $output);
@@ -88,25 +88,46 @@ class MainTest extends TestCase
             $output->get(1)->toString()
         );
         $this->assertSame(
-            "fixtures/thrower.php: ",
+            'fixtures/thrower.php: ',
             $output->get(2)->toString()
         );
-        $this->assertSame(
-            "fixtures/thrower.php: class@anonymous",
-            $output->get(3)->substring(0, 37)->toString()
-        );
-        $this->assertSame(
-            "$cwd",
-            $output->get(3)->substring(38, strlen($cwd))->toString()
-        );
-        $this->assertSame(
-            "/fixtures/thrower.php",
-            $output->get(3)->substring(38 + strlen($cwd), 21)->toString()
-        );
-        $this->assertRegExp(
-            "~^->main\(\) at $cwd/src/Main.php:(48|39)$~",
-            $output->get(3)->substring(-28 - strlen($cwd))->toString()
-        );
+
+        if (\PHP_MAJOR_VERSION === 7) {
+            $this->assertSame(
+                'fixtures/thrower.php: class@anonymous',
+                $output->get(3)->substring(0, 37)->toString()
+            );
+            $this->assertSame(
+                "$cwd",
+                $output->get(3)->substring(38, \strlen($cwd))->toString()
+            );
+            $this->assertSame(
+                '/fixtures/thrower.php',
+                $output->get(3)->substring(38 + \strlen($cwd), 21)->toString()
+            );
+            $this->assertMatchesRegularExpression(
+                "~^->main\(\) at $cwd/src/Main.php:(46|37)$~",
+                $output->get(3)->substring(-28 - \strlen($cwd))->toString()
+            );
+        } else {
+            $this->assertSame(
+                'fixtures/thrower.php: Innmind\CLI\Main@anonymous',
+                $output->get(3)->substring(0, 48)->toString()
+            );
+            $this->assertSame(
+                "$cwd",
+                $output->get(3)->substring(49, \strlen($cwd))->toString()
+            );
+            $this->assertSame(
+                '/fixtures/thrower.php',
+                $output->get(3)->substring(49 + \strlen($cwd), 21)->toString()
+            );
+            $this->assertMatchesRegularExpression(
+                "~^->main\(\) at $cwd/src/Main.php:(46|37)$~",
+                $output->get(3)->substring(-28 - \strlen($cwd))->toString()
+            );
+        }
+
         $this->assertSame(
             "fixtures/thrower.php: Innmind\CLI\Main->__construct() at $cwd/fixtures/thrower.php:15",
             $output->get(4)->toString()

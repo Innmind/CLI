@@ -1,6 +1,6 @@
 # CLI
 
-[![Build Status](https://github.com/Innmind/CLI/workflows/CI/badge.svg)](https://github.com/Innmind/CLI/actions?query=workflow%3ACI)
+[![Build Status](https://github.com/Innmind/CLI/workflows/CI/badge.svg?branch=master)](https://github.com/Innmind/CLI/actions?query=workflow%3ACI)
 [![codecov](https://codecov.io/gh/Innmind/CLI/branch/develop/graph/badge.svg)](https://codecov.io/gh/Innmind/CLI)
 [![Type Coverage](https://shepherd.dev/github/Innmind/CLI/coverage.svg)](https://shepherd.dev/github/Innmind/CLI)
 

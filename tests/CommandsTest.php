@@ -261,19 +261,16 @@ class CommandsTest extends TestCase
             ->method('error')
             ->willReturn ($output = $this->createMock(Writable::class));
         $output
-            ->expects($this->at(0))
+            ->expects($this->exactly(2))
             ->method('write')
-            ->with($this->callback(function(Str $value): bool {
-                return $value->toString() === " foo     \n watch   ";
-            }))
-            ->will($this->returnSelf());
-        $output
-            ->expects($this->at(1))
-            ->method('write')
-            ->with($this->callback(function(Str $value): bool {
-                return $value->toString() === "\n";
-            }))
-            ->will($this->returnSelf());
+            ->withConsecutive(
+                [$this->callback(static function(Str $value): bool {
+                    return $value->toString() === " foo     \n watch   ";
+                })],
+                [$this->callback(static function(Str $value): bool {
+                    return $value->toString() === "\n";
+                })],
+            );
 
         $this->assertNull($run($env));
     }
@@ -318,19 +315,16 @@ class CommandsTest extends TestCase
             ->method('error')
             ->willReturn ($output = $this->createMock(Writable::class));
         $output
-            ->expects($this->at(0))
+            ->expects($this->exactly(2))
             ->method('write')
-            ->with($this->callback(function(Str $value): bool {
-                return $value->toString() === " bar   \n baz   ";
-            }))
-            ->will($this->returnSelf());
-        $output
-            ->expects($this->at(1))
-            ->method('write')
-            ->with($this->callback(function(Str $value): bool {
-                return $value->toString() === "\n";
-            }))
-            ->will($this->returnSelf());
+            ->withConsecutive(
+                [$this->callback(static function(Str $value): bool {
+                    return $value->toString() === " bar   \n baz   ";
+                })],
+                [$this->callback(static function(Str $value): bool {
+                    return $value->toString() === "\n";
+                })],
+            );
 
         $this->assertNull($run($env));
     }
@@ -370,7 +364,7 @@ USAGE;
         $output
             ->expects($this->once())
             ->method('write')
-            ->with($this->callback(function(Str $value): bool {
+            ->with($this->callback(static function(Str $value): bool {
                 return $value->toString() === 'usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar\n";
             }));
 
@@ -438,7 +432,7 @@ USAGE;
         $output
             ->expects($this->once())
             ->method('write')
-            ->with($this->callback(function(Str $value): bool {
+            ->with($this->callback(static function(Str $value): bool {
                 return $value->toString() === 'usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar\n";
             }));
 
@@ -484,19 +478,16 @@ USAGE;
             ->method('output')
             ->willReturn ($output = $this->createMock(Writable::class));
         $output
-            ->expects($this->at(0))
+            ->expects($this->exactly(2))
             ->method('write')
-            ->with($this->callback(function(Str $value): bool {
-                return $value->toString() === " foo    Description                \n watch  Watch dependency injection ";
-            }))
-            ->will($this->returnSelf());
-        $output
-            ->expects($this->at(1))
-            ->method('write')
-            ->with($this->callback(function(Str $value): bool {
-                return $value->toString() === "\n";
-            }))
-            ->will($this->returnSelf());
+            ->withConsecutive(
+                [$this->callback(static function(Str $value): bool {
+                    return $value->toString() === " foo    Description                \n watch  Watch dependency injection ";
+                })],
+                [$this->callback(static function(Str $value): bool {
+                    return $value->toString() === "\n";
+                })],
+            );
 
         $this->assertNull($run($env));
     }
@@ -541,19 +532,16 @@ USAGE;
             ->method('error')
             ->willReturn ($output = $this->createMock(Writable::class));
         $output
-            ->expects($this->at(0))
+            ->expects($this->exactly(2))
             ->method('write')
-            ->with($this->callback(function(Str $value): bool {
-                return $value->toString() === " foo     \n watch   ";
-            }))
-            ->will($this->returnSelf());
-        $output
-            ->expects($this->at(1))
-            ->method('write')
-            ->with($this->callback(function(Str $value): bool {
-                return $value->toString() === "\n";
-            }))
-            ->will($this->returnSelf());
+            ->withConsecutive(
+                [$this->callback(static function(Str $value): bool {
+                    return $value->toString() === " foo     \n watch   ";
+                })],
+                [$this->callback(static function(Str $value): bool {
+                    return $value->toString() === "\n";
+                })],
+            );
 
         $this->assertNull($run($env));
     }

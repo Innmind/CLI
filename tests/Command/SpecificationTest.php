@@ -254,12 +254,12 @@ DESCRIPTION;
     private function name(): Set
     {
         return Set\Unicode::lengthBetween(1, 10)
-            ->filter(fn($s) => strpos($s, ' ') === false)
-            ->filter(fn($s) => strpos($s, "\n") === false)
-            ->filter(fn($s) => strpos($s, "\r") === false)
-            ->filter(fn($s) => strpos($s, \chr(11)) === false)
-            ->filter(fn($s) => strpos($s, \chr(0)) === false)
-            ->filter(fn($s) => strpos($s, "\t") === false);
+            ->filter(static fn($s) => \strpos($s, ' ') === false)
+            ->filter(static fn($s) => \strpos($s, "\n") === false)
+            ->filter(static fn($s) => \strpos($s, "\r") === false)
+            ->filter(static fn($s) => \strpos($s, \chr(11)) === false)
+            ->filter(static fn($s) => \strpos($s, \chr(0)) === false)
+            ->filter(static fn($s) => \strpos($s, "\t") === false);
     }
 
     private function chunks(int $min = 1): Set
