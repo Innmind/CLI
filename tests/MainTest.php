@@ -103,7 +103,7 @@ class MainTest extends TestCase
             "/fixtures/thrower.php",
             $output->get(3)->substring(38 + strlen($cwd), 21)->toString()
         );
-        $this->assertRegExp(
+        $this->assertMatchesRegularExpression(
             "~^->main\(\) at $cwd/src/Main.php:(48|39)$~",
             $output->get(3)->substring(-28 - strlen($cwd))->toString()
         );

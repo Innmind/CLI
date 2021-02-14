@@ -107,44 +107,28 @@ class ChoiceQuestionTest extends TestCase
         };
         $output = $this->createMock(Writable::class);
         $output
-            ->expects($this->at(0))
-            ->method('write')
-            ->with($this->callback(static function($line): bool {
-                return $line->toString() === "message\n";
-            }));
-        $output
-            ->expects($this->at(1))
-            ->method('write')
-            ->with($this->callback(static function($line): bool {
-                return $line->toString() === "[foo] bar\n";
-            }));
-        $output
-            ->expects($this->at(2))
-            ->method('write')
-            ->with($this->callback(static function($line): bool {
-                return $line->toString() === "[1] baz\n";
-            }));
-        $output
-            ->expects($this->at(3))
-            ->method('write')
-            ->with($this->callback(static function($line): bool {
-                return $line->toString() === "[2] 3\n";
-            }));
-        $output
-            ->expects($this->at(4))
-            ->method('write')
-            ->with($this->callback(static function($line): bool {
-                return $line->toString() === "[bar] 3\n";
-            }));
-        $output
-            ->expects($this->at(5))
-            ->method('write')
-            ->with($this->callback(static function($line): bool {
-                return $line->toString() === '> ';
-            }));
-        $output
             ->expects($this->exactly(6))
-            ->method('write');
+            ->method('write')
+            ->withConsecutive(
+                [$this->callback(static function($line): bool {
+                    return $line->toString() === "message\n";
+                })],
+                [$this->callback(static function($line): bool {
+                    return $line->toString() === "[foo] bar\n";
+                })],
+                [$this->callback(static function($line): bool {
+                    return $line->toString() === "[1] baz\n";
+                })],
+                [$this->callback(static function($line): bool {
+                    return $line->toString() === "[2] 3\n";
+                })],
+                [$this->callback(static function($line): bool {
+                    return $line->toString() === "[bar] 3\n";
+                })],
+                [$this->callback(static function($line): bool {
+                    return $line->toString() === '> ';
+                })],
+            );
         $env = $this->createMock(Environment::class);
         $env
             ->expects($this->any())

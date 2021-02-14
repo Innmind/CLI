@@ -69,13 +69,13 @@ class BackPressureWritesTest extends TestCase
             ->expects($this->never())
             ->method('halt');
         $clock
-            ->expects($this->at(0))
+            ->expects($this->exactly(3))
             ->method('now')
-            ->willReturn($first = $this->createMock(PointInTime::class));
-        $clock
-            ->expects($this->at(1))
-            ->method('now')
-            ->willReturn($second = $this->createMock(PointInTime::class));
+            ->will($this->onConsecutiveCalls(
+                $first = $this->createMock(PointInTime::class),
+                $second = $this->createMock(PointInTime::class),
+                $this->createMock(PointInTime::class),
+            ));
         $second
             ->expects($this->once())
             ->method('elapsedSince')
@@ -99,13 +99,13 @@ class BackPressureWritesTest extends TestCase
             ->method('write')
             ->with($data);
         $clock
-            ->expects($this->at(0))
+            ->expects($this->exactly(3))
             ->method('now')
-            ->willReturn($first = $this->createMock(PointInTime::class));
-        $clock
-            ->expects($this->at(1))
-            ->method('now')
-            ->willReturn($second = $this->createMock(PointInTime::class));
+            ->will($this->onConsecutiveCalls(
+                $first = $this->createMock(PointInTime::class),
+                $second = $this->createMock(PointInTime::class),
+                $this->createMock(PointInTime::class),
+            ));
         $second
             ->expects($this->once())
             ->method('elapsedSince')

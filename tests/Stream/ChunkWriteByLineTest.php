@@ -32,21 +32,14 @@ class ChunkWriteByLineTest extends TestCase
         );
         $data = Str::of("foo\nbar\nbaz\n");
         $inner
-            ->expects($this->at(0))
+            ->expects($this->exactly(4))
             ->method('write')
-            ->with(Str::of("foo\n"));
-        $inner
-            ->expects($this->at(1))
-            ->method('write')
-            ->with(Str::of("bar\n"));
-        $inner
-            ->expects($this->at(2))
-            ->method('write')
-            ->with(Str::of("baz\n"));
-        $inner
-            ->expects($this->at(3))
-            ->method('write')
-            ->with(Str::of(''));
+            ->withConsecutive(
+                [Str::of("foo\n")],
+                [Str::of("bar\n")],
+                [Str::of("baz\n")],
+                [Str::of('')],
+            );
 
         $this->assertNull($stream->write($data));
     }
