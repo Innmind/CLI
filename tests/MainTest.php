@@ -97,25 +97,37 @@ class MainTest extends TestCase
                 'fixtures/thrower.php: class@anonymous',
                 $output->get(3)->substring(0, 37)->toString()
             );
+            $this->assertSame(
+                "$cwd",
+                $output->get(3)->substring(38, \strlen($cwd))->toString()
+            );
+            $this->assertSame(
+                '/fixtures/thrower.php',
+                $output->get(3)->substring(38 + \strlen($cwd), 21)->toString()
+            );
+            $this->assertMatchesRegularExpression(
+                "~^->main\(\) at $cwd/src/Main.php:(46|37)$~",
+                $output->get(3)->substring(-28 - \strlen($cwd))->toString()
+            );
         } else {
             $this->assertSame(
-                'fixtures/thrower.php: Innmind\CLI\Main',
-                $output->get(3)->substring(0, 38)->toString()
+                'fixtures/thrower.php: Innmind\CLI\Main@anonymous',
+                $output->get(3)->substring(0, 48)->toString()
+            );
+            $this->assertSame(
+                "$cwd",
+                $output->get(3)->substring(49, \strlen($cwd))->toString()
+            );
+            $this->assertSame(
+                '/fixtures/thrower.php',
+                $output->get(3)->substring(49 + \strlen($cwd), 21)->toString()
+            );
+            $this->assertMatchesRegularExpression(
+                "~^->main\(\) at $cwd/src/Main.php:(46|37)$~",
+                $output->get(3)->substring(-28 - \strlen($cwd))->toString()
             );
         }
 
-        $this->assertSame(
-            "$cwd",
-            $output->get(3)->substring(38, \strlen($cwd))->toString()
-        );
-        $this->assertSame(
-            '/fixtures/thrower.php',
-            $output->get(3)->substring(38 + \strlen($cwd), 21)->toString()
-        );
-        $this->assertMatchesRegularExpression(
-            "~^->main\(\) at $cwd/src/Main.php:(46|37)$~",
-            $output->get(3)->substring(-28 - \strlen($cwd))->toString()
-        );
         $this->assertSame(
             "fixtures/thrower.php: Innmind\CLI\Main->__construct() at $cwd/fixtures/thrower.php:15",
             $output->get(4)->toString()
