@@ -77,7 +77,7 @@ class MainTest extends TestCase
 
         $cwd = \getcwd();
         $output = Str::of($process->output()->toString())->split("\n");
-
+var_dump($process->output()->toString());
         $this->assertCount(6, $output);
         $this->assertSame(
             "fixtures/thrower.php: Innmind\CLI\Exception\LogicException(waaat, 0)",
