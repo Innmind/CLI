@@ -17,7 +17,6 @@ final class Row implements RowInterface
 
     public function __construct(Cell ...$cells)
     {
-        /** @var Sequence<Cell> */
         $this->cells = Sequence::of(Cell::class, ...$cells);
     }
 

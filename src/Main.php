@@ -88,7 +88,6 @@ abstract class Main
      */
     private function renderError(Throwable $e): Sequence
     {
-        /** @var Sequence<Str> */
         $lines = Sequence::of(
             Str::class,
             Str::of('%s(%s, %s)')->sprintf(

@@ -30,7 +30,6 @@ final class Pattern
     public function __construct(Str ...$inputs)
     {
         $load = new Inputs;
-        /** @var Sequence<Input> */
         $this->inputs = Sequence::of(Str::class, ...$inputs)->mapTo(
             Input::class,
             static fn(Str $element): Input => $load($element),

@@ -38,7 +38,6 @@ final class GlobalEnvironment implements Environment
         /** @var list<string> */
         $argv = $_SERVER['argv'];
         $this->arguments = Sequence::strings(...$argv);
-        /** @var array<string, string> */
         $variables = \getenv();
         /** @var Map<string, string> */
         $this->variables = Map::of('string', 'string');

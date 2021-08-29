@@ -34,7 +34,6 @@ final class Commands
 
     public function __construct(Command $command, Command ...$commands)
     {
-        /** @var Map<Specification, Command> */
         $this->commands = Set::of(Command::class, $command, ...$commands)->toMapOf(
             Specification::class,
             Command::class,
@@ -173,7 +172,6 @@ final class Commands
         Writable $stream,
         Set $specifications
     ): void {
-        /** @var Sequence<Row> */
         $rows = $specifications->toSequenceOf(
             Row::class,
             static fn(Specification $spec): \Generator => yield new Row(
