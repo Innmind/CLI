@@ -16,7 +16,7 @@ class TableTest extends TestCase
 {
     public function testStringCast()
     {
-        $printTo = new Table(
+        $printTo = Table::of(
             null,
             new Row(new Cell('foo'), new Cell('foobar')),
             new Row(new Cell('foobar'), new Cell('foo')),
@@ -42,7 +42,7 @@ TABLE;
 
     public function testStringCastWithHeader()
     {
-        $printTo = new Table(
+        $printTo = Table::of(
             new Row(new Cell('first col'), new Cell('second col')),
             new Row(new Cell('foo'), new Cell('foobar')),
             new Row(new Cell('foobar'), new Cell('foo')),
@@ -79,7 +79,7 @@ TABLE;
     {
         $this->expectException(EachRowMustBeOfSameSize::class);
 
-        new Table(
+        Table::of(
             null,
             new Row(new Cell('foo'), new Cell('bar')),
             new Row(new Cell('foo')),
@@ -90,7 +90,7 @@ TABLE;
     {
         $this->expectException(EachRowMustBeOfSameSize::class);
 
-        new Table(
+        Table::of(
             new Row(new Cell('foo')),
             new Row(new Cell('foo'), new Cell('bar')),
         );

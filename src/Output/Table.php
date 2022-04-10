@@ -27,7 +27,7 @@ final class Table
     private string $rowSeparator = '-';
     private string $crossingSeparator = '+';
 
-    public function __construct(?Row $header, Row $row, Row ...$rows)
+    private function __construct(?Row $header, Row $row, Row ...$rows)
     {
         $this->header = $header;
         $this->rows = Sequence::of(Row::class, $row, ...$rows);
@@ -50,6 +50,11 @@ final class Table
     public function __invoke(Writable $stream): void
     {
         $stream->write(Str::of($this->toString()));
+    }
+
+    public static function of(?Row $header, Row $row, Row ...$rows): self
+    {
+        return new self($header, $row, ...$rows);
     }
 
     public static function borderless(?Row $header, Row $row, Row ...$rows): self
