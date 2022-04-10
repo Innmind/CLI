@@ -20,14 +20,12 @@
         "innmind/immutable": "~3.6",
         "innmind/url": "~3.0",
         "innmind/operating-system": "~2.0",
-        "innmind/stack-trace": "~3.0",
-        "symfony/dotenv": "~5.0"
+        "innmind/stack-trace": "~3.0"
     },
     "autoload": {
         "psr-4": {
             "Innmind\\CLI\\": "src/"
-        },
-        "files": ["src/functions.php"]
+        }
     },
     "autoload-dev": {
         "psr-4": {
