@@ -49,8 +49,11 @@ final class Row implements RowInterface
         return $this->cells->size();
     }
 
-    public function width(int $column): int
+    public function widths(): Sequence
     {
-        return $this->cells->get($column)->width();
+        return $this->cells->mapTo(
+            'int',
+            static fn($cell) => $cell->width(),
+        );
     }
 }

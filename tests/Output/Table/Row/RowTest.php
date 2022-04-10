@@ -8,6 +8,7 @@ use Innmind\CLI\Output\Table\{
     Row as RowInterface,
     Row\Cell\Cell,
 };
+use function Innmind\Immutable\unwrap;
 use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
@@ -35,9 +36,10 @@ class RowTest extends TestCase
 
                 $this->assertInstanceOf(RowInterface::class, $row);
                 $this->assertSame(3, $row->size());
-                $this->assertSame(\mb_strlen($f), $row->width(0));
-                $this->assertSame(\mb_strlen($s), $row->width(1));
-                $this->assertSame(\mb_strlen($t), $row->width(2));
+                $this->assertSame(
+                    [\mb_strlen($f), \mb_strlen($s), \mb_strlen($t)],
+                    unwrap($row->widths()),
+                );
                 $f = \str_pad($f, 10);
                 $s = \str_pad($s, 12);
                 $t = \str_pad($t, 14);

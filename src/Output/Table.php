@@ -144,34 +144,33 @@ final class Table
     private function widths(Sequence $rows): Sequence
     {
         $columns = Sequence::ints(...\range(0, $rows->first()->size() - 1));
-        /** @var Map<int, int> */
-        $defaultWidths = $columns->reduce(
-            Map::of('int', 'int'),
-            static function(Map $widths, int $column): Map {
-                return $widths->put($column, 0);
-            },
-        );
-        /** @var Map<int, int> */
-        $widthPerColumn = $rows->reduce(
+        $defaultWidths = $columns->map(static fn() => 0);
+
+        /**
+         * @psalm-suppress MixedArgument
+         * @var Sequence<int>
+         */
+        return $rows->reduce(
             $defaultWidths,
-            static function(Map $widths, Row $row) use ($columns): Map {
-                return $columns->reduce(
-                    $widths,
-                    static function(Map $widths, int $column) use ($row): Map {
-                        $width = $row->width($column);
-
-                        if ($width < $widths->get($column)) {
-                            return $widths;
-                        }
-
-                        return $widths->put($column, $width);
-                    },
-                );
-            },
+            fn($widths, $row) => $this->maxWidths($widths, $row->widths()),
         );
+    }
 
-        return $columns->map(
-            static fn(int $column): int => $widthPerColumn->get($column),
+    /**
+     * @param Sequence<int> $soFar
+     * @param Sequence<int> $cells
+     *
+     * @return Sequence<int>
+     */
+    private function maxWidths(Sequence $soFar, Sequence $cells): Sequence
+    {
+        /** @var Sequence<int> */
+        return $soFar->reduce(
+            Sequence::ints(),
+            static fn(Sequence $widths, $width): Sequence => ($widths)(\max(
+                $width,
+                $cells->get($widths->size()),
+            )),
         );
     }
 }
