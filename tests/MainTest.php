@@ -91,43 +91,22 @@ class MainTest extends TestCase
             '',
             $output->get(2)->toString(),
         );
-
-        if (\PHP_MAJOR_VERSION === 7) {
-            $this->assertSame(
-                'class@anonymous',
-                $output->get(3)->substring(0, 37)->toString(),
-            );
-            $this->assertSame(
-                "$cwd",
-                $output->get(3)->substring(38, \strlen($cwd))->toString(),
-            );
-            $this->assertSame(
-                '/fixtures/thrower.php',
-                $output->get(3)->substring(38 + \strlen($cwd), 21)->toString(),
-            );
-            $this->assertMatchesRegularExpression(
-                "~^->main\(\) at $cwd/src/Main.php:(46|37)$~",
-                $output->get(3)->substring(-28 - \strlen($cwd))->toString(),
-            );
-        } else {
-            $this->assertSame(
-                'Innmind\CLI\Main@anonymous',
-                $output->get(3)->substring(0, 26)->toString(),
-            );
-            $this->assertSame(
-                "$cwd",
-                $output->get(3)->substring(27, \strlen($cwd))->toString(),
-            );
-            $this->assertSame(
-                '/fixtures/thrower.php',
-                $output->get(3)->substring(27 + \strlen($cwd), 21)->toString(),
-            );
-            $this->assertMatchesRegularExpression(
-                "~^->main\(\) at $cwd/src/Main.php:(46|37)$~",
-                $output->get(3)->substring(-28 - \strlen($cwd))->toString(),
-            );
-        }
-
+        $this->assertSame(
+            'Innmind\CLI\Main@anonymous',
+            $output->get(3)->substring(0, 26)->toString(),
+        );
+        $this->assertSame(
+            "$cwd",
+            $output->get(3)->substring(27, \strlen($cwd))->toString(),
+        );
+        $this->assertSame(
+            '/fixtures/thrower.php',
+            $output->get(3)->substring(27 + \strlen($cwd), 21)->toString(),
+        );
+        $this->assertMatchesRegularExpression(
+            "~^->main\(\) at $cwd/src/Main.php:(46|37)$~",
+            $output->get(3)->substring(-28 - \strlen($cwd))->toString(),
+        );
         $this->assertSame(
             "Innmind\CLI\Main->__construct() at $cwd/fixtures/thrower.php:15",
             $output->get(4)->toString(),
