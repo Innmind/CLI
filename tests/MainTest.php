@@ -80,21 +80,21 @@ class MainTest extends TestCase
 
         $this->assertCount(6, $output);
         $this->assertSame(
-            "fixtures/thrower.php: Innmind\CLI\Exception\LogicException(waaat, 0)",
+            "Innmind\CLI\Exception\LogicException(waaat, 0)",
             $output->get(0)->toString(),
         );
         $this->assertSame(
-            "fixtures/thrower.php: $cwd/fixtures/thrower.php:18",
+            "$cwd/fixtures/thrower.php:18",
             $output->get(1)->toString(),
         );
         $this->assertSame(
-            'fixtures/thrower.php: ',
+            '',
             $output->get(2)->toString(),
         );
 
         if (\PHP_MAJOR_VERSION === 7) {
             $this->assertSame(
-                'fixtures/thrower.php: class@anonymous',
+                'class@anonymous',
                 $output->get(3)->substring(0, 37)->toString(),
             );
             $this->assertSame(
@@ -111,16 +111,16 @@ class MainTest extends TestCase
             );
         } else {
             $this->assertSame(
-                'fixtures/thrower.php: Innmind\CLI\Main@anonymous',
-                $output->get(3)->substring(0, 48)->toString(),
+                'Innmind\CLI\Main@anonymous',
+                $output->get(3)->substring(0, 26)->toString(),
             );
             $this->assertSame(
                 "$cwd",
-                $output->get(3)->substring(49, \strlen($cwd))->toString(),
+                $output->get(3)->substring(27, \strlen($cwd))->toString(),
             );
             $this->assertSame(
                 '/fixtures/thrower.php',
-                $output->get(3)->substring(49 + \strlen($cwd), 21)->toString(),
+                $output->get(3)->substring(27 + \strlen($cwd), 21)->toString(),
             );
             $this->assertMatchesRegularExpression(
                 "~^->main\(\) at $cwd/src/Main.php:(46|37)$~",
@@ -129,7 +129,7 @@ class MainTest extends TestCase
         }
 
         $this->assertSame(
-            "fixtures/thrower.php: Innmind\CLI\Main->__construct() at $cwd/fixtures/thrower.php:15",
+            "Innmind\CLI\Main->__construct() at $cwd/fixtures/thrower.php:15",
             $output->get(4)->toString(),
         );
         $this->assertSame(

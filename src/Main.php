@@ -20,7 +20,7 @@ use Innmind\Immutable\{
 
 abstract class Main
 {
-    final public function __construct(bool $displayBinInError = false)
+    final public function __construct()
     {
         $os = Factory::build();
         $env = new Environment\WriteAsASCII(
@@ -36,12 +36,7 @@ abstract class Main
         try {
             $this->main($env, $os);
         } catch (\Throwable $e) {
-            $this->print(
-                $displayBinInError,
-                $env->arguments()->first(),
-                $e,
-                $env->error(),
-            );
+            $this->print($e, $env->error());
             $env->exit(1);
         }
 
@@ -55,7 +50,7 @@ abstract class Main
 
     abstract protected function main(Environment $env, OperatingSystem $os): void;
 
-    private function print(bool $displayBin, string $bin, \Throwable $e, Writable $stream): void
+    private function print(\Throwable $e, Writable $stream): void
     {
         $stack = new StackTrace($e);
 
@@ -70,17 +65,9 @@ abstract class Main
                     ->append($this->renderError($e));
             },
         );
-        $chunks
-            ->map(static function(Str $line) use ($bin, $displayBin): Str {
-                if ($displayBin) {
-                    return $line->prepend("$bin: ");
-                }
-
-                return $line;
-            })
-            ->foreach(
-                static fn(Str $line) => $stream->write($line->append("\n")),
-            );
+        $chunks->foreach(
+            static fn(Str $line) => $stream->write($line->append("\n")),
+        );
     }
 
     /**
