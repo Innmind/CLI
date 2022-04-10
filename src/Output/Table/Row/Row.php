@@ -8,18 +8,23 @@ use Innmind\Immutable\{
     Sequence,
     Str,
 };
-use function Innmind\Immutable\join;
 
 final class Row implements RowInterface
 {
     /** @var Sequence<Cell> */
     private Sequence $cells;
 
+    /**
+     * @no-named-arguments
+     */
     public function __construct(Cell ...$cells)
     {
-        $this->cells = Sequence::of(Cell::class, ...$cells);
+        $this->cells = Sequence::of(...$cells);
     }
 
+    /**
+     * @no-named-arguments
+     */
     public function __invoke(string $separator, int ...$widths): string
     {
         $widths = Sequence::ints(...$widths);
@@ -30,15 +35,19 @@ final class Row implements RowInterface
             ->reduce(
                 Sequence::strings(),
                 static function(Sequence $cells, Cell $cell) use ($widths): Sequence {
-                    $cell = Str::of($cell->toString())->rightPad(
-                        $widths->get($cells->size()),
-                    );
-
-                    return $cells->add($cell->toString());
+                    /** @psalm-suppress ArgumentTypeCoercion */
+                    return $widths
+                        ->get($cells->size())
+                        ->map(static fn($width) => Str::of($cell->toString())->rightPad($width))
+                        ->match(
+                            static fn($cell) => ($cells)($cell->toString()),
+                            static fn() => ($cells)($cell->toString()),
+                        );
                 },
             );
 
-        return join(" $separator ", $cells)
+        return Str::of(" $separator ")
+            ->join($cells)
             ->prepend($separator.' ')
             ->append(' '.$separator)
             ->toString();
@@ -51,9 +60,6 @@ final class Row implements RowInterface
 
     public function widths(): Sequence
     {
-        return $this->cells->mapTo(
-            'int',
-            static fn($cell) => $cell->width(),
-        );
+        return $this->cells->map(static fn($cell) => $cell->width());
     }
 }

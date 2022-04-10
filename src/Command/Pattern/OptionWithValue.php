@@ -8,9 +8,7 @@ use Innmind\Immutable\{
     Str,
     Sequence,
     Map,
-    Exception\NoElementMatchingPredicateFound,
 };
-use function Innmind\Immutable\join;
 
 final class OptionWithValue implements Input, Option
 {
@@ -38,21 +36,24 @@ final class OptionWithValue implements Input, Option
 
     public static function of(Str $pattern): Input
     {
-        if (!$pattern->matches(self::PATTERN)) {
-            throw new PatternNotRecognized($pattern->toString());
-        }
-
         $parts = $pattern->capture(self::PATTERN);
-        $short = null;
+        $short = $parts
+            ->get('short')
+            ->filter(static fn($short) => !$short->empty())
+            ->map(static fn($short) => $short->substring(1, -1)->toString())
+            ->match(
+                static fn($short) => $short,
+                static fn() => null,
+            );
 
-        if ($parts->contains('short') && !$parts->get('short')->empty()) {
-            $short = $parts->get('short')->substring(1, -1)->toString();
-        }
-
-        return new self(
-            $parts->get('name')->substring(2)->toString(),
-            $short,
-        );
+        return $parts
+            ->get('name')
+            ->map(static fn($name) => $name->drop(2)->toString())
+            ->map(static fn($name) => new self($name, $short))
+            ->match(
+                static fn($self) => $self,
+                static fn() => throw new PatternNotRecognized($pattern->toString()),
+            );
     }
 
     public function extract(
@@ -60,60 +61,67 @@ final class OptionWithValue implements Input, Option
         int $position,
         Sequence $arguments,
     ): Map {
-        try {
-            $flag = $arguments->find(
+        return $arguments
+            ->find(
                 fn(string $argument): bool => Str::of($argument)->matches($this->pattern),
+            )
+            ->map(
+                static fn($flag) => Str::of($flag)
+                    ->split('=')
+                    ->map(static fn($part) => $part->toString()),
+            )
+            ->map(fn($parts) => match ($parts->size()) {
+                0 => $parsed, // this case should not happen
+                1 => $arguments // this case means the value is in the _next_ argument
+                    ->indexOf(Str::of('=')->join($parts)->toString())
+                    ->flatMap(static fn($index) => $arguments->get($index + 1))
+                    ->match(
+                        fn($value) => ($parsed)($this->name, $value),
+                        static fn() => $parsed, // if there is no next argument then do not expose the option
+                    ),
+                default => ($parsed)( // means it's of the form -{option}={value}
+                    $this->name,
+                    Str::of('=')->join($parts->drop(1))->toString(), // join in case there is an "=" in the value
+                ),
+            })
+            ->match(
+                static fn($parsed) => $parsed,
+                static fn() => $parsed,
             );
-        } catch (NoElementMatchingPredicateFound $e) {
-            return $parsed;
-        }
-
-        $parts = Str::of($flag)->split('=')->mapTo(
-            'string',
-            static fn(Str $part): string => $part->toString(),
-        );
-
-        if ($parts->size() >= 2) {
-            //means it's of the form -{option}={value}
-            return ($parsed)(
-                $this->name,
-                join('=', $parts->drop(1))->toString(), //in case there is an "=" in the value
-            );
-        }
-
-        //if we're here it's that a short flag with its value as the _next_ argument
-        $index = $arguments->indexOf($flag);
-
-        return ($parsed)(
-            $this->name,
-            $arguments->get($index + 1),
-        );
     }
 
     public function clean(Sequence $arguments): Sequence
     {
-        try {
-            $flag = $arguments->find(
-                fn(string $argument): bool => Str::of($argument)->matches($this->pattern),
+        $flag = $arguments->find(
+            fn(string $argument): bool => Str::of($argument)->matches($this->pattern),
+        );
+
+        /**
+         * @psalm-suppress ArgumentTypeCoercion
+         * @var callable(int, Sequence<string>): Sequence<string>
+         */
+        $clean = $flag
+            ->map(static fn($flag) => Str::of($flag)->split('='))
+            ->map(static fn($parts) => match ($parts->size()) {
+                0 => static fn(int $_, Sequence $arguments): Sequence => $arguments,
+                1 => static fn(int $index, Sequence $arguments): Sequence => $arguments // if we're here it's that a short flag with its value as the _next_ argument
+                    ->take($index)
+                    ->append($arguments->drop($index + 2)),
+                default => static fn(int $index, Sequence $arguments) => $arguments // means it's of the form -{option}={value}
+                    ->take($index)
+                    ->append($arguments->drop($index + 1)),
+            })
+            ->match(
+                static fn($clean) => $clean,
+                static fn() => static fn(int $_, Sequence $arguments) => $arguments,
             );
-        } catch (NoElementMatchingPredicateFound $e) {
-            return $arguments;
-        }
 
-        $index = $arguments->indexOf($flag);
-        $parts = Str::of($flag)->split('=');
-
-        if ($parts->size() >= 2) {
-            //means it's of the form -{option}={value}
-            return $arguments
-                ->take($index)
-                ->append($arguments->drop($index + 1));
-        }
-
-        //if we're here it's that a short flag with its value as the _next_ argument
-        return $arguments
-            ->take($index)
-            ->append($arguments->drop($index + 2));
+        return $flag
+            ->flatMap(static fn($flag) => $arguments->indexOf($flag))
+            ->match(
+                static fn($index) => $clean($index, $arguments),
+                static fn() => $arguments,
+            );
     }
 
     public function toString(): string

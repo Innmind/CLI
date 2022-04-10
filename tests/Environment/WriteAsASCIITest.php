@@ -18,6 +18,7 @@ use Innmind\Immutable\{
     Sequence,
     Str,
     Map,
+    Either,
 };
 use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
@@ -65,7 +66,8 @@ class WriteAsASCIITest extends TestCase
         $expected
             ->expects($this->once())
             ->method('write')
-            ->with($data->toEncoding('ASCII'));
+            ->with($data->toEncoding('ASCII'))
+            ->willReturn(Either::right($expected));
 
         $output = $env->output();
 
@@ -87,7 +89,8 @@ class WriteAsASCIITest extends TestCase
         $expected
             ->expects($this->once())
             ->method('write')
-            ->with($data->toEncoding('ASCII'));
+            ->with($data->toEncoding('ASCII'))
+            ->willReturn(Either::right($expected));
 
         $error = $env->error();
 
@@ -156,7 +159,7 @@ class WriteAsASCIITest extends TestCase
         $inner
             ->expects($this->once())
             ->method('variables')
-            ->willReturn($expected = Map::of('string', 'string'));
+            ->willReturn($expected = Map::of());
 
         $this->assertSame($expected, $env->variables());
     }

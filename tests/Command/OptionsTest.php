@@ -35,14 +35,7 @@ class OptionsTest extends TestCase
             $spec
                 ->pattern()
                 ->options()
-                ->extract(Sequence::of('string', '--foo'))
-                ->toMapOf(
-                    'string',
-                    'string',
-                    static function(string $name, string $value): \Generator {
-                        yield $name => $value;
-                    },
-                ),
+                ->extract(Sequence::of('--foo')),
         );
 
         $this->assertTrue($options->contains('foo'));
@@ -53,14 +46,7 @@ class OptionsTest extends TestCase
             $spec
                 ->pattern()
                 ->options()
-                ->extract(Sequence::of('string', '--foo', '--bar=baz'))
-                ->toMapOf(
-                    'string',
-                    'string',
-                    static function(string $name, string $value): \Generator {
-                        yield $name => $value;
-                    },
-                ),
+                ->extract(Sequence::of('--foo', '--bar=baz')),
         );
 
         $this->assertTrue($options->contains('foo'));
@@ -84,7 +70,7 @@ class OptionsTest extends TestCase
 
         $options = Options::of(
             $spec,
-            Sequence::of('string', '--foo'),
+            Sequence::of('--foo'),
         );
 
         $this->assertInstanceOf(Options::class, $options);
@@ -96,21 +82,5 @@ class OptionsTest extends TestCase
     public function testOptionsCanBeBuiltWithoutAnyValue()
     {
         $this->assertInstanceOf(Options::class, new Options);
-    }
-
-    public function testThrowWhenInvalidOptionsKeys()
-    {
-        $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 1 must be of type Map<string, string>');
-
-        new Options(Map::of('int', 'string'));
-    }
-
-    public function testThrowWhenInvalidOptionsValues()
-    {
-        $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 1 must be of type Map<string, string>');
-
-        new Options(Map::of('string', 'mixed'));
     }
 }

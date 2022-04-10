@@ -10,6 +10,7 @@ use Innmind\CLI\{
     Exception\EachRowMustBeOfSameSize,
 };
 use Innmind\Stream\Writable;
+use Innmind\Immutable\Either;
 use PHPUnit\Framework\TestCase;
 
 class TableTest extends TestCase
@@ -36,7 +37,8 @@ TABLE;
             ->method('write')
             ->with($this->callback(static function($str) use ($expected): bool {
                 return $str->toString() === $expected;
-            }));
+            }))
+            ->willReturn(Either::right($output));
         $printTo($output);
     }
 

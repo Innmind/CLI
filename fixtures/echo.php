@@ -8,12 +8,16 @@ use Innmind\CLI\{
     Environment
 };
 use Innmind\OperatingSystem\OperatingSystem;
+use Innmind\Immutable\Str;
 
 new class extends Main {
     protected function main(Environment $env, OperatingSystem $os): void
     {
         $env->output()->write(
-            $env->input()->read()
+            $env->input()->read()->match(
+                static fn($str) => $str,
+                static fn() => Str::of(''),
+            ),
         );
     }
 };

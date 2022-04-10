@@ -26,7 +26,7 @@ new class extends Main {
 
         $ask = new ChoiceQuestion(
             'choices:',
-            Map::of('scalar', 'scalar')
+            Map::of()
                 ('foo', 'bar')
                 (1, 'baz')
                 (2, 3)

@@ -18,7 +18,6 @@ use Innmind\Immutable\{
     Sequence,
     Map,
 };
-use function Innmind\Immutable\unwrap;
 use PHPUnit\Framework\TestCase;
 
 class GlobalEnvironmentTest extends TestCase
@@ -68,15 +67,12 @@ class GlobalEnvironmentTest extends TestCase
     public function testArguments()
     {
         $this->assertInstanceOf(Sequence::class, $this->env->arguments());
-        $this->assertSame('string', (string) $this->env->arguments()->type());
-        $this->assertSame($_SERVER['argv'], unwrap($this->env->arguments()));
+        $this->assertSame($_SERVER['argv'], $this->env->arguments()->toList());
     }
 
     public function testVariables()
     {
         $this->assertInstanceOf(Map::class, $this->env->variables());
-        $this->assertSame('string', (string) $this->env->variables()->keyType());
-        $this->assertSame('string', (string) $this->env->variables()->valueType());
         $this->assertSame(
             \getenv(),
             $this->env->variables()->reduce(

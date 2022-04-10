@@ -7,6 +7,9 @@ use Innmind\Immutable\Sequence;
 
 interface Row
 {
+    /**
+     * @no-named-arguments
+     */
     public function __invoke(string $separator, int ...$widths): string;
     public function size(): int;
 

@@ -8,7 +8,6 @@ use Innmind\CLI\Output\Table\{
     Row as RowInterface,
     Row\Cell\Cell,
 };
-use function Innmind\Immutable\unwrap;
 use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
@@ -38,7 +37,7 @@ class RowTest extends TestCase
                 $this->assertSame(3, $row->size());
                 $this->assertSame(
                     [\mb_strlen($f), \mb_strlen($s), \mb_strlen($t)],
-                    unwrap($row->widths()),
+                    $row->widths()->toList(),
                 );
                 $f = \str_pad($f, 10);
                 $s = \str_pad($s, 12);

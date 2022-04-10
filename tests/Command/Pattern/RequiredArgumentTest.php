@@ -62,16 +62,17 @@ class RequiredArgumentTest extends TestCase
         $input = RequiredArgument::of(Str::of('foo'));
 
         $arguments = $input->extract(
-            Map::of('string', 'mixed'),
+            Map::of(),
             0,
-            Sequence::of('string', 'watev', 'foo', 'bar', 'baz'),
+            Sequence::of('watev', 'foo', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Map::class, $arguments);
-        $this->assertSame('string', (string) $arguments->keyType());
-        $this->assertSame('mixed', (string) $arguments->valueType());
         $this->assertCount(1, $arguments);
-        $this->assertSame('watev', $arguments->get('foo'));
+        $this->assertSame('watev', $arguments->get('foo')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
     }
 
     public function testThrowWhenArgumentNotFound()
@@ -82,9 +83,9 @@ class RequiredArgumentTest extends TestCase
         $this->expectExceptionMessage('foo');
 
         $input->extract(
-            Map::of('string', 'mixed'),
+            Map::of(),
             42,
-            Sequence::of('string', 'watev', 'foo', 'bar', 'baz'),
+            Sequence::of('watev', 'foo', 'bar', 'baz'),
         );
     }
 }

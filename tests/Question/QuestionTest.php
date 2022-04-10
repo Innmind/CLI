@@ -23,6 +23,8 @@ use Innmind\TimeContinuum\Earth\ElapsedPeriod;
 use Innmind\Immutable\{
     Str,
     Sequence,
+    Maybe,
+    Either,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -34,7 +36,7 @@ class QuestionTest extends TestCase
         $input = new class implements Readable, Selectable {
             private $resource;
 
-            public function close(): void
+            public function close(): Either
             {
             }
 
@@ -47,11 +49,11 @@ class QuestionTest extends TestCase
             {
             }
 
-            public function seek(Position $position, Mode $mode = null): void
+            public function seek(Position $position, Mode $mode = null): Either
             {
             }
 
-            public function rewind(): void
+            public function rewind(): Either
             {
             }
 
@@ -60,13 +62,9 @@ class QuestionTest extends TestCase
                 return false;
             }
 
-            public function size(): Size
+            public function size(): Maybe
             {
-            }
-
-            public function knowsSize(): bool
-            {
-                return false;
+                return Maybe::nothing();
             }
 
             public function resource()
@@ -74,27 +72,27 @@ class QuestionTest extends TestCase
                 return $this->resource ?? $this->resource = \tmpfile();
             }
 
-            public function read(int $length = null): Str
+            public function read(int $length = null): Maybe
             {
                 static $flag = false;
 
                 if ($flag) {
-                    return Str::of("oo\n");
+                    return Maybe::just(Str::of("oo\n"));
                 }
 
                 $flag = true;
 
-                return Str::of('f');
+                return Maybe::just(Str::of('f'));
             }
 
-            public function readLine(): Str
+            public function readLine(): Maybe
             {
-                return Str::of('not used');
+                return Maybe::just(Str::of('not used'));
             }
 
-            public function toString(): string
+            public function toString(): Maybe
             {
-                return 'not used';
+                return Maybe::just('not used');
             }
         };
         $output = $this->createMock(Writable::class);
@@ -103,7 +101,8 @@ class QuestionTest extends TestCase
             ->method('write')
             ->with($this->callback(static function($line): bool {
                 return $line->toString() === 'message ';
-            }));
+            }))
+            ->willReturn(Either::right($output));
         $env = $this->createMock(Environment::class);
         $env
             ->expects($this->any())
@@ -125,7 +124,7 @@ class QuestionTest extends TestCase
         $sockets
             ->expects($this->once())
             ->method('watch')
-            ->willReturn(new Select(new ElapsedPeriod(1000)));
+            ->willReturn(Select::timeoutAfter(new ElapsedPeriod(1000)));
 
         $response = $question($env, $sockets);
 

@@ -7,7 +7,6 @@ use Innmind\Immutable\{
     Map,
     Sequence,
 };
-use function Innmind\Immutable\assertMap;
 
 final class Options
 {
@@ -19,11 +18,7 @@ final class Options
      */
     public function __construct(Map $options = null)
     {
-        $options ??= Map::of('string', 'string');
-
-        assertMap('string', 'string', $options, 1);
-
-        $this->options = $options;
+        $this->options = $options ?? Map::of();
     }
 
     /**
@@ -37,21 +32,17 @@ final class Options
         $options = $specification
             ->pattern()
             ->options()
-            ->extract($arguments)
-            ->toMapOf( // simply for a type change
-                'string',
-                'string',
-                static function(string $name, $value): \Generator {
-                    yield $name => $value;
-                },
-            );
+            ->extract($arguments);
 
         return new self($options);
     }
 
     public function get(string $argument): string
     {
-        return $this->options->get($argument);
+        return $this->options->get($argument)->match(
+            static fn($value) => $value,
+            static fn() => throw new \RuntimeException,
+        );
     }
 
     public function contains(string $argument): bool

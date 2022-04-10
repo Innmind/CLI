@@ -8,7 +8,6 @@ use Innmind\Immutable\{
     Str,
     Sequence,
     Map,
-    Exception\NoElementMatchingPredicateFound,
 };
 
 final class OptionFlag implements Input, Option
@@ -37,21 +36,24 @@ final class OptionFlag implements Input, Option
 
     public static function of(Str $pattern): Input
     {
-        if (!$pattern->matches(self::PATTERN)) {
-            throw new PatternNotRecognized($pattern->toString());
-        }
-
         $parts = $pattern->capture(self::PATTERN);
-        $short = null;
+        $short = $parts
+            ->get('short')
+            ->filter(static fn($short) => !$short->empty())
+            ->map(static fn($short) => $short->substring(1, -1)->toString())
+            ->match(
+                static fn($short) => $short,
+                static fn() => null,
+            );
 
-        if ($parts->contains('short') && !$parts->get('short')->empty()) {
-            $short = $parts->get('short')->substring(1, -1)->toString();
-        }
-
-        return new self(
-            $parts->get('name')->substring(2)->toString(),
-            $short,
-        );
+        return $parts
+            ->get('name')
+            ->map(static fn($name) => $name->drop(2)->toString())
+            ->map(static fn($name) => new self($name, $short))
+            ->match(
+                static fn($self) => $self,
+                static fn() => throw new PatternNotRecognized($pattern->toString()),
+            );
     }
 
     public function extract(
@@ -59,15 +61,14 @@ final class OptionFlag implements Input, Option
         int $position,
         Sequence $arguments,
     ): Map {
-        try {
-            $arguments->find(
+        return $arguments
+            ->find(
                 fn(string $argument): bool => Str::of($argument)->matches($this->pattern),
+            )
+            ->match(
+                fn() => ($parsed)($this->name, ''),
+                static fn() => $parsed,
             );
-
-            return ($parsed)($this->name, '');
-        } catch (NoElementMatchingPredicateFound $e) {
-            return $parsed;
-        }
     }
 
     public function clean(Sequence $arguments): Sequence

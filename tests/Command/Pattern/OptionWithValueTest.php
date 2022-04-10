@@ -15,7 +15,6 @@ use Innmind\Immutable\{
     Sequence,
     Map,
 };
-use function Innmind\Immutable\unwrap;
 use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
@@ -64,16 +63,17 @@ class OptionWithValueTest extends TestCase
         $input = OptionWithValue::of(Str::of('--foo='));
 
         $arguments = $input->extract(
-            Map::of('string', 'mixed'),
+            Map::of(),
             0,
-            Sequence::of('string', 'watev', '--foo=42', 'bar', 'baz'),
+            Sequence::of('watev', '--foo=42', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Map::class, $arguments);
-        $this->assertSame('string', (string) $arguments->keyType());
-        $this->assertSame('mixed', (string) $arguments->valueType());
         $this->assertCount(1, $arguments);
-        $this->assertSame('42', $arguments->get('foo'));
+        $this->assertSame('42', $arguments->get('foo')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
     }
 
     public function testExtractShortOptionWithValueRightAfterIt()
@@ -81,16 +81,17 @@ class OptionWithValueTest extends TestCase
         $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->extract(
-            Map::of('string', 'mixed'),
+            Map::of(),
             0,
-            Sequence::of('string', 'watev', '-f=42', 'bar', 'baz'),
+            Sequence::of('watev', '-f=42', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Map::class, $arguments);
-        $this->assertSame('string', (string) $arguments->keyType());
-        $this->assertSame('mixed', (string) $arguments->valueType());
         $this->assertCount(1, $arguments);
-        $this->assertSame('42', $arguments->get('foo'));
+        $this->assertSame('42', $arguments->get('foo')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
     }
 
     public function testExtractShortOptionWithValueAsNextArgument()
@@ -98,16 +99,17 @@ class OptionWithValueTest extends TestCase
         $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->extract(
-            Map::of('string', 'mixed'),
+            Map::of(),
             0,
-            Sequence::of('string', 'watev', '-f', 'bar', 'baz'),
+            Sequence::of('watev', '-f', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Map::class, $arguments);
-        $this->assertSame('string', (string) $arguments->keyType());
-        $this->assertSame('mixed', (string) $arguments->valueType());
         $this->assertCount(1, $arguments);
-        $this->assertSame('bar', $arguments->get('foo'));
+        $this->assertSame('bar', $arguments->get('foo')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
     }
 
     public function testDoesNothingWhenNoOption()
@@ -115,9 +117,9 @@ class OptionWithValueTest extends TestCase
         $input = OptionWithValue::of(Str::of('--foo='));
 
         $arguments = $input->extract(
-            $expected = Map::of('string', 'mixed'),
+            $expected = Map::of(),
             42,
-            Sequence::of('string', 'watev', 'foo', 'bar', 'baz'),
+            Sequence::of('watev', 'foo', 'bar', 'baz'),
         );
 
         $this->assertSame($expected, $arguments);
@@ -128,9 +130,9 @@ class OptionWithValueTest extends TestCase
         $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->extract(
-            $expected = Map::of('string', 'mixed'),
+            $expected = Map::of(),
             42,
-            Sequence::of('string', 'watev', 'f', 'bar', 'baz'),
+            Sequence::of('watev', 'f', 'bar', 'baz'),
         );
 
         $this->assertSame($expected, $arguments);
@@ -141,7 +143,7 @@ class OptionWithValueTest extends TestCase
         $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->clean(
-            $expected = Sequence::of('string', 'watev', 'f', 'bar', 'baz'),
+            $expected = Sequence::of('watev', 'f', 'bar', 'baz'),
         );
 
         $this->assertSame($expected, $arguments);
@@ -152,12 +154,11 @@ class OptionWithValueTest extends TestCase
         $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->clean(
-            Sequence::of('string', 'watev', '--foo=foo', 'bar', 'baz'),
+            Sequence::of('watev', '--foo=foo', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Sequence::class, $arguments);
-        $this->assertSame('string', (string) $arguments->type());
-        $this->assertSame(['watev', 'bar', 'baz'], unwrap($arguments));
+        $this->assertSame(['watev', 'bar', 'baz'], $arguments->toList());
     }
 
     public function testCleanWhenShortOptionWithValueAttached()
@@ -165,12 +166,11 @@ class OptionWithValueTest extends TestCase
         $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->clean(
-            Sequence::of('string', 'watev', '-f=foo', 'bar', 'baz'),
+            Sequence::of('watev', '-f=foo', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Sequence::class, $arguments);
-        $this->assertSame('string', (string) $arguments->type());
-        $this->assertSame(['watev', 'bar', 'baz'], unwrap($arguments));
+        $this->assertSame(['watev', 'bar', 'baz'], $arguments->toList());
     }
 
     public function testCleanWhenShortOptionWithValueAsNextArgument()
@@ -178,11 +178,10 @@ class OptionWithValueTest extends TestCase
         $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->clean(
-            Sequence::of('string', 'watev', '-f', 'bar', 'baz'),
+            Sequence::of('watev', '-f', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Sequence::class, $arguments);
-        $this->assertSame('string', (string) $arguments->type());
-        $this->assertSame(['watev', 'baz'], unwrap($arguments));
+        $this->assertSame(['watev', 'baz'], $arguments->toList());
     }
 }

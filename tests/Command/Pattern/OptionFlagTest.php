@@ -15,7 +15,6 @@ use Innmind\Immutable\{
     Sequence,
     Map,
 };
-use function Innmind\Immutable\unwrap;
 use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
@@ -64,16 +63,17 @@ class OptionFlagTest extends TestCase
         $input = OptionFlag::of(Str::of('--foo'));
 
         $arguments = $input->extract(
-            Map::of('string', 'mixed'),
+            Map::of(),
             0,
-            Sequence::of('string', 'watev', '--foo', 'bar', 'baz'),
+            Sequence::of('watev', '--foo', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Map::class, $arguments);
-        $this->assertSame('string', (string) $arguments->keyType());
-        $this->assertSame('mixed', (string) $arguments->valueType());
         $this->assertCount(1, $arguments);
-        $this->assertSame('', $arguments->get('foo'));
+        $this->assertSame('', $arguments->get('foo')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
     }
 
     public function testDoesNothingWhenNoFlag()
@@ -81,9 +81,9 @@ class OptionFlagTest extends TestCase
         $input = OptionFlag::of(Str::of('--foo'));
 
         $arguments = $input->extract(
-            $expected = Map::of('string', 'mixed'),
+            $expected = Map::of(),
             42,
-            Sequence::of('string', 'watev', 'foo', 'bar', 'baz'),
+            Sequence::of('watev', 'foo', 'bar', 'baz'),
         );
 
         $this->assertSame($expected, $arguments);
@@ -94,11 +94,10 @@ class OptionFlagTest extends TestCase
         $input = OptionFlag::of(Str::of('-f|--foo'));
 
         $arguments = $input->clean(
-            Sequence::of('string', 'watev', '--foo', 'bar', 'baz', '-f'),
+            Sequence::of('watev', '--foo', 'bar', 'baz', '-f'),
         );
 
         $this->assertInstanceOf(Sequence::class, $arguments);
-        $this->assertSame('string', (string) $arguments->type());
-        $this->assertSame(['watev', 'bar', 'baz'], unwrap($arguments));
+        $this->assertSame(['watev', 'bar', 'baz'], $arguments->toList());
     }
 }

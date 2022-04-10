@@ -33,10 +33,7 @@ final class PackArgument implements Input, Argument
         int $position,
         Sequence $arguments,
     ): Map {
-        if (!$arguments->indices()->contains($position)) {
-            return ($parsed)($this->name, $arguments->clear());
-        }
-
+        /** @psalm-suppress ArgumentTypeCoercion */
         return ($parsed)($this->name, $arguments->drop($position));
     }
 

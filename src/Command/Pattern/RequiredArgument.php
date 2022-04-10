@@ -36,11 +36,12 @@ final class RequiredArgument implements Input, Argument
         int $position,
         Sequence $arguments,
     ): Map {
-        if (!$arguments->indices()->contains($position)) {
-            throw new MissingArgument($this->name);
-        }
-
-        return ($parsed)($this->name, $arguments->get($position));
+        return $arguments
+            ->get($position)
+            ->match(
+                fn($value) => ($parsed)($this->name, $value),
+                fn() => throw new MissingArgument($this->name),
+            );
     }
 
     public function toString(): string

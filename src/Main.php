@@ -52,7 +52,7 @@ abstract class Main
 
     private function print(\Throwable $e, Writable $stream): void
     {
-        $stack = new StackTrace($e);
+        $stack = StackTrace::of($e);
 
         /** @var Sequence<Str> */
         $chunks = $stack->previous()->reduce(
@@ -65,7 +65,7 @@ abstract class Main
                     ->append($this->renderError($e));
             },
         );
-        $chunks->foreach(
+        $_ = $chunks->foreach(
             static fn(Str $line) => $stream->write($line->append("\n")),
         );
     }
@@ -76,7 +76,6 @@ abstract class Main
     private function renderError(Throwable $e): Sequence
     {
         $lines = Sequence::of(
-            Str::class,
             Str::of('%s(%s, %s)')->sprintf(
                 $e->class()->toString(),
                 $e->message()->toString(),

@@ -24,6 +24,8 @@ use Innmind\Immutable\{
     Str,
     Map,
     Sequence,
+    Maybe,
+    Either,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -33,7 +35,7 @@ class ChoiceQuestionTest extends TestCase
     {
         $question = new ChoiceQuestion(
             'message',
-            Map::of('scalar', 'scalar')
+            Map::of()
                 ('foo', 'bar')
                 (1, 'baz')
                 (2, 3)
@@ -42,7 +44,7 @@ class ChoiceQuestionTest extends TestCase
         $input = new class implements Readable, Selectable {
             private $resource;
 
-            public function close(): void
+            public function close(): Either
             {
             }
 
@@ -55,11 +57,11 @@ class ChoiceQuestionTest extends TestCase
             {
             }
 
-            public function seek(Position $position, Mode $mode = null): void
+            public function seek(Position $position, Mode $mode = null): Either
             {
             }
 
-            public function rewind(): void
+            public function rewind(): Either
             {
             }
 
@@ -68,13 +70,9 @@ class ChoiceQuestionTest extends TestCase
                 return false;
             }
 
-            public function size(): Size
+            public function size(): Maybe
             {
-            }
-
-            public function knowsSize(): bool
-            {
-                return false;
+                return Maybe::nothing();
             }
 
             public function resource()
@@ -82,27 +80,27 @@ class ChoiceQuestionTest extends TestCase
                 return $this->resource ?? $this->resource = \tmpfile();
             }
 
-            public function read(int $length = null): Str
+            public function read(int $length = null): Maybe
             {
                 static $flag = false;
 
                 if ($flag) {
-                    return Str::of("2\n");
+                    return Maybe::just(Str::of("2\n"));
                 }
 
                 $flag = true;
 
-                return Str::of(' foo,  ');
+                return Maybe::just(Str::of(' foo,  '));
             }
 
-            public function readLine(): Str
+            public function readLine(): Maybe
             {
-                return Str::of('not used');
+                return Maybe::just(Str::of('not used'));
             }
 
-            public function toString(): string
+            public function toString(): Maybe
             {
-                return 'not used';
+                return Maybe::just('not used');
             }
         };
         $output = $this->createMock(Writable::class);
@@ -128,7 +126,8 @@ class ChoiceQuestionTest extends TestCase
                 [$this->callback(static function($line): bool {
                     return $line->toString() === '> ';
                 })],
-            );
+            )
+            ->willReturn(Either::right($output));
         $env = $this->createMock(Environment::class);
         $env
             ->expects($this->any())
@@ -150,43 +149,25 @@ class ChoiceQuestionTest extends TestCase
         $sockets
             ->expects($this->once())
             ->method('watch')
-            ->willReturn(new Select(new ElapsedPeriod(1000)));
+            ->willReturn(Select::timeoutAfter(new ElapsedPeriod(1000)));
 
         $response = $question($env, $sockets);
 
         $this->assertInstanceOf(Map::class, $response);
-        $this->assertSame('scalar', (string) $response->keyType());
-        $this->assertSame('scalar', (string) $response->valueType());
         $this->assertCount(2, $response);
-        $this->assertSame('bar', $response->get('foo'));
-        $this->assertSame(3, $response->get(2));
-    }
-
-    public function testThrowWhenInvalidValuesKey()
-    {
-        $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 2 must be of type Map<scalar, scalar>');
-
-        new ChoiceQuestion(
-            'foo',
-            Map::of('int', 'scalar'),
-        );
-    }
-
-    public function testThrowWhenInvalidValuesValue()
-    {
-        $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 2 must be of type Map<scalar, scalar>');
-
-        new ChoiceQuestion(
-            'foo',
-            Map::of('scalar', 'int'),
-        );
+        $this->assertSame('bar', $response->get('foo')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame(3, $response->get(2)->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
     }
 
     public function testThrowWhenEnvNonInteractive()
     {
-        $question = new ChoiceQuestion('watev', Map::of('scalar', 'scalar'));
+        $question = new ChoiceQuestion('watev', Map::of());
 
         $env = $this->createMock(Environment::class);
         $env
@@ -201,7 +182,7 @@ class ChoiceQuestionTest extends TestCase
 
     public function testThrowWhenOptionToSpecifyNoInteractionIsRequired()
     {
-        $question = new ChoiceQuestion('watev', Map::of('scalar', 'scalar'));
+        $question = new ChoiceQuestion('watev', Map::of());
 
         $env = $this->createMock(Environment::class);
         $env

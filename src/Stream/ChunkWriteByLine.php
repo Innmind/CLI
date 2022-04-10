@@ -8,9 +8,16 @@ use Innmind\Stream\{
     Writable,
     Stream\Position,
     Stream\Size,
-    Stream\Position\Mode
+    Stream\Position\Mode,
+    PositionNotSeekable,
+    FailedToWriteToStream,
+    DataPartiallyWritten,
 };
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Maybe,
+    Either,
+};
 
 final class ChunkWriteByLine implements Writable
 {
@@ -21,20 +28,43 @@ final class ChunkWriteByLine implements Writable
         $this->stream = $stream;
     }
 
-    public function write(Str $data): void
+    public function write(Str $data): Either
     {
-        $lines = $data->split("\n");
-        $lines->dropEnd(1)->foreach(function(Str $line): void {
-            $this->stream->write($line->append("\n"));
-        });
-        $this->stream->write($lines->last());
+        $firstLineWritten = false;
+        $map = static function(Str $line) use (&$firstLineWritten): Str {
+            if (!$firstLineWritten) {
+                $firstLineWritten = true;
+
+                return $line;
+            }
+
+            return $line->prepend("\n");
+        };
+
+        /**
+         * @psalm-suppress MixedArgumentTypeCoercion Due to the reduce
+         * @var Either<FailedToWriteToStream|DataPartiallyWritten, Writable>
+         */
+        return $data
+            ->split("\n")
+            ->map($map)
+            ->reduce(
+                Either::right($this->stream),
+                static fn(Either $either, $line) => $either->flatMap(
+                    static fn(Writable $stream) => $stream->write($line),
+                ),
+            )
+            ->map(fn() => $this);
     }
 
-    public function close(): void
+    public function close(): Either
     {
-        $this->stream->close();
+        return $this->stream->close();
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function closed(): bool
     {
         return $this->stream->closed();
@@ -45,28 +75,31 @@ final class ChunkWriteByLine implements Writable
         return $this->stream->position();
     }
 
-    public function seek(Position $position, Mode $mode = null): void
+    public function seek(Position $position, Mode $mode = null): Either
     {
-        $this->stream->seek($position, $mode);
+        /** @var Either<PositionNotSeekable, Stream> */
+        return $this->stream->seek($position, $mode)->map(fn() => $this);
     }
 
-    public function rewind(): void
+    public function rewind(): Either
     {
-        $this->stream->rewind();
+        /** @var Either<PositionNotSeekable, Stream> */
+        return $this->stream->rewind()->map(fn() => $this);
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function end(): bool
     {
         return $this->stream->end();
     }
 
-    public function size(): Size
+    /**
+     * @psalm-mutation-free
+     */
+    public function size(): Maybe
     {
         return $this->stream->size();
-    }
-
-    public function knowsSize(): bool
-    {
-        return $this->stream->knowsSize();
     }
 }

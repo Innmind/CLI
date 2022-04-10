@@ -6,11 +6,6 @@ namespace Innmind\CLI\Command;
 use Innmind\Immutable\{
     Map,
     Sequence,
-    Exception\NoElementMatchingPredicateFound,
-};
-use function Innmind\Immutable\{
-    assertMap,
-    assertSequence,
 };
 
 final class Arguments
@@ -26,14 +21,8 @@ final class Arguments
      */
     public function __construct(Map $arguments = null, Sequence $pack = null)
     {
-        $arguments ??= Map::of('string', 'string');
-        $pack ??= Sequence::strings();
-
-        assertMap('string', 'string', $arguments, 1);
-        assertSequence('string', $pack, 2);
-
-        $this->arguments = $arguments;
-        $this->pack = $pack;
+        $this->arguments = $arguments ?? Map::of();
+        $this->pack = $pack ?? Sequence::strings();
     }
 
     /**
@@ -49,32 +38,29 @@ final class Arguments
             ->arguments()
             ->extract($arguments);
 
-        try {
-            /** @var Sequence<string> */
-            $pack = $arguments->values()->find(
-                static fn($argument): bool => $argument instanceof Sequence,
+        /** @var ?Sequence<string> */
+        $pack = $arguments
+            ->values()
+            ->find(static fn($argument): bool => $argument instanceof Sequence)
+            ->match(
+                static fn($pack) => $pack,
+                static fn() => null,
             );
-        } catch (NoElementMatchingPredicateFound $e) {
-            $pack = null;
-        }
 
-        /** @var Map<string, string> */
+        /** @psalm-suppress InvalidArgument */
         $arguments = $arguments
             ->filter(static fn(string $_, $argument): bool => \is_string($argument))
-            ->toMapOf(
-                'string',
-                'string',
-                static function(string $key, $argument): \Generator {
-                    yield $key => $argument;
-                },
-            );
+            ->flatMap(static fn(string $key, string $value) => Map::of([$key, $value]));
 
         return new self($arguments, $pack);
     }
 
     public function get(string $argument): string
     {
-        return $this->arguments->get($argument);
+        return $this->arguments->get($argument)->match(
+            static fn($value) => $value,
+            static fn() => throw new \RuntimeException,
+        );
     }
 
     /**

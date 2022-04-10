@@ -33,11 +33,12 @@ final class OptionalArgument implements Input, Argument
         int $position,
         Sequence $arguments,
     ): Map {
-        if (!$arguments->indices()->contains($position)) {
-            return $parsed;
-        }
-
-        return ($parsed)($this->name, $arguments->get($position));
+        return $arguments
+            ->get($position)
+            ->match(
+                fn($argument) => ($parsed)($this->name, $argument),
+                static fn() => $parsed,
+            );
     }
 
     public function toString(): string

@@ -14,60 +14,58 @@ use Innmind\CLI\{
 };
 use Innmind\Stream\Writable;
 use Innmind\Immutable\{
-    Set,
     Map,
     Str,
     Sequence,
-    Exception\NoElementMatchingPredicateFound,
-};
-use function Innmind\Immutable\{
-    unwrap,
-    first,
 };
 
 final class Commands
 {
     /** @var Map<Specification, Command> */
     private Map $commands;
-    /** @var Set<Specification> */
-    private Set $specifications;
+    /** @var Sequence<Specification> */
+    private Sequence $specifications;
 
     public function __construct(Command $command, Command ...$commands)
     {
-        $this->commands = Set::of(Command::class, $command, ...$commands)->toMapOf(
-            Specification::class,
-            Command::class,
-            static function(Command $command): \Generator {
-                yield new Specification($command) => $command;
-            },
+        $commands = Sequence::of($command, ...$commands)->map(
+            static fn($command) => [new Specification($command), $command],
         );
-        $this->specifications = $this->commands->keys();
+        $this->commands = Map::of(...$commands->toList());
+        $this->specifications = $commands->map(static fn($command) => $command[0]);
     }
 
     public function __invoke(Environment $env): void
     {
         if ($this->commands->size() === 1) {
-            $this->run(
-                $env,
-                first($this->specifications),
-            );
+            $_ = $this
+                ->specifications
+                ->find(static fn() => true) // first
+                ->match(
+                    fn($specification) => $this->run($env, $specification),
+                    static fn() => null,
+                );
 
             return;
         }
 
-        $arguments = $env->arguments();
+        $command = $env
+            ->arguments()
+            ->get(1) // 0 being the tool name
+            ->match(
+                static fn($command) => $command,
+                static fn() => null,
+            );
 
-        if (!$arguments->indices()->contains(1)) {
+        if (!\is_string($command)) {
             $this->displayHelp(
                 $env->error(),
                 $this->specifications,
             );
-            $env->exit(64); //EX_USAGE The command was used incorrectly
+            $env->exit(64); // EX_USAGE The command was used incorrectly
 
             return;
         }
-
-        $command = $arguments->get(1); //0 being the tool name
 
         if ($command === 'help') {
             $this->displayHelp(
@@ -78,49 +76,59 @@ final class Commands
             return;
         }
 
-        try {
-            $specification = $this->specifications->find(
-                static fn(Specification $spec): bool => $spec->is($command),
+        $specifications = $this
+            ->specifications
+            ->find(static fn($spec) => $spec->is($command))
+            ->map(static fn($spec) => Sequence::of($spec))
+            ->match(
+                static fn($specifications) => $specifications,
+                fn() => $this->specifications->filter(
+                    static fn($spec) => $spec->matches($command),
+                ),
             );
-            $this->run($env, $specification);
 
-            return;
-        } catch (NoElementMatchingPredicateFound $e) {
-            // attempt pattern matching
-        }
-
-        $specifications = $this->specifications->filter(
-            static fn(Specification $spec): bool => $spec->matches($command),
+        $_ = $specifications->match(
+            fn($spec, $rest) => match ($rest->empty()) {
+                true => $this->run($env, $spec),
+                false => $this->displayHelp(
+                    $env->error(),
+                    Sequence::of($spec)->append($rest),
+                    static fn() => $env->exit(64), // EX_USAGE The command was used incorrectly
+                ),
+            },
+            fn() => $this->displayHelp(
+                $env->error(),
+                $this->specifications,
+                static fn() => $env->exit(64), // EX_USAGE The command was used incorrectly
+            ),
         );
-
-        if ($specifications->size() === 1) {
-            $this->run($env, first($specifications));
-
-            return;
-        }
-
-        $this->displayHelp(
-            $env->error(),
-            $specifications->empty() ? $this->specifications : $specifications,
-        );
-        $env->exit(64); //EX_USAGE The command was used incorrectly
     }
 
     private function run(Environment $env, Specification $spec): void
     {
-        $run = $this->commands->get($spec);
-        $arguments = $env->arguments()->drop(1); //drop script name
+        $run = $this->commands->get($spec)->match(
+            static fn($command) => $command,
+            static fn() => throw new \LogicException('This case should not be possible'),
+        );
+        [$bin, $arguments] = $env->arguments()->match(
+            static fn($bin, $arguments) => [$bin, $arguments],
+            static fn() => throw new \LogicException('Arguments list should not be empty'),
+        );
 
-        if (!$arguments->empty() && $spec->matches($arguments->first())) {
-            //drop command name, conditional as it can be omitted when only one
-            //command defined
-            $arguments = $arguments->drop(1);
-        }
+        // drop command name, conditional as it can be omitted when only one
+        // command defined
+        $arguments = $arguments
+            ->first()
+            ->filter(static fn($first) => $spec->matches($first))
+            ->match(
+                static fn() => $arguments->drop(1),
+                static fn() => $arguments,
+            );
 
         if ($arguments->contains('--help')) {
             $this->displayUsage(
                 $env->output(),
-                $env->arguments()->first(),
+                $bin,
                 $spec,
             );
 
@@ -133,10 +141,10 @@ final class Commands
         } catch (Exception $e) {
             $this->displayUsage(
                 $env->error(),
-                $env->arguments()->first(),
+                $bin,
                 $spec,
             );
-            $env->exit(64); //EX_USAGE The command was used incorrectly
+            $env->exit(64); // EX_USAGE The command was used incorrectly
 
             return;
         }
@@ -166,21 +174,25 @@ final class Commands
     }
 
     /**
-     * @param Set<Specification> $specifications
+     * @param Sequence<Specification> $specifications
      */
     private function displayHelp(
         Writable $stream,
-        Set $specifications,
+        Sequence $specifications,
+        callable $exit = null,
     ): void {
-        $rows = $specifications->toSequenceOf(
-            Row::class,
-            static fn(Specification $spec): \Generator => yield new Row(
+        $rows = $specifications->map(
+            static fn(Specification $spec) => new Row(
                 new Cell($spec->name()),
                 new Cell($spec->shortDescription()),
             ),
         );
-        $printTo = Table::borderless(null, ...unwrap($rows));
+        $printTo = Table::borderless(null, ...$rows->toList());
         $printTo($stream);
         $stream->write(Str::of("\n"));
+
+        if ($exit) {
+            $exit();
+        }
     }
 }

@@ -30,17 +30,17 @@ final class GlobalEnvironment implements Environment
     public function __construct()
     {
         $this->interactive = \stream_isatty(\STDIN);
-        $this->input = new Readable\NonBlocking(
-            new Readable\Stream(\STDIN),
+        $this->input = Readable\NonBlocking::of(
+            Readable\Stream::of(\STDIN),
         );
-        $this->output = new Writable\Stream(\fopen('php://output', 'w'));
-        $this->error = new Writable\Stream(\STDERR);
+        $this->output = Writable\Stream::of(\fopen('php://output', 'w'));
+        $this->error = Writable\Stream::of(\STDERR);
         /** @var list<string> */
         $argv = $_SERVER['argv'];
         $this->arguments = Sequence::strings(...$argv);
         $variables = \getenv();
         /** @var Map<string, string> */
-        $this->variables = Map::of('string', 'string');
+        $this->variables = Map::of();
 
         foreach ($variables as $key => $value) {
             $this->variables = ($this->variables)($key, $value);

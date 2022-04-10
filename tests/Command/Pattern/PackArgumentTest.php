@@ -15,7 +15,6 @@ use Innmind\Immutable\{
     Sequence,
     Map,
 };
-use function Innmind\Immutable\unwrap;
 use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
@@ -63,18 +62,21 @@ class PackArgumentTest extends TestCase
         $input = PackArgument::of(Str::of('...foo'));
 
         $arguments = $input->extract(
-            Map::of('string', 'mixed'),
+            Map::of(),
             1,
-            Sequence::of('string', 'watev', 'foo', 'bar', 'baz'),
+            Sequence::of('watev', 'foo', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Map::class, $arguments);
-        $this->assertSame('string', (string) $arguments->keyType());
-        $this->assertSame('mixed', (string) $arguments->valueType());
         $this->assertCount(1, $arguments);
-        $this->assertInstanceOf(Sequence::class, $arguments->get('foo'));
-        $this->assertSame('string', (string) $arguments->get('foo')->type());
-        $this->assertSame(['foo', 'bar', 'baz'], unwrap($arguments->get('foo')));
+        $this->assertInstanceOf(Sequence::class, $arguments->get('foo')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame(['foo', 'bar', 'baz'], $arguments->get('foo')->match(
+            static fn($value) => $value->toList(),
+            static fn() => null,
+        ));
     }
 
     public function testExtractEmptyStreamWhenNotFound()
@@ -82,17 +84,20 @@ class PackArgumentTest extends TestCase
         $input = PackArgument::of(Str::of('...foo'));
 
         $arguments = $input->extract(
-            Map::of('string', 'mixed'),
+            Map::of(),
             42,
-            Sequence::of('string', 'watev', 'foo', 'bar', 'baz'),
+            Sequence::of('watev', 'foo', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Map::class, $arguments);
-        $this->assertSame('string', (string) $arguments->keyType());
-        $this->assertSame('mixed', (string) $arguments->valueType());
         $this->assertCount(1, $arguments);
-        $this->assertInstanceOf(Sequence::class, $arguments->get('foo'));
-        $this->assertSame('string', (string) $arguments->get('foo')->type());
-        $this->assertTrue($arguments->get('foo')->empty());
+        $this->assertInstanceOf(Sequence::class, $arguments->get('foo')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertTrue($arguments->get('foo')->match(
+            static fn($value) => $value->empty(),
+            static fn() => null,
+        ));
     }
 }

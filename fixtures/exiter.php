@@ -12,6 +12,9 @@ use Innmind\OperatingSystem\OperatingSystem;
 new class extends Main {
     protected function main(Environment $env, OperatingSystem $os): void
     {
-        $env->exit((int) $env->arguments()->last());
+        $env->exit((int) $env->arguments()->last()->match(
+            static fn($last) => $last,
+            static fn() => null,
+        ));
     }
 };

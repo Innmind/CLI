@@ -9,6 +9,9 @@ use Innmind\Stream\{
     Stream\Position,
     Stream\Size,
     Stream\Position\Mode,
+    PositionNotSeekable,
+    FailedToWriteToStream,
+    DataPartiallyWritten,
 };
 use Innmind\TimeContinuum\{
     Clock,
@@ -17,7 +20,11 @@ use Innmind\TimeContinuum\{
     Earth\Period\Millisecond,
 };
 use Innmind\OperatingSystem\CurrentProcess;
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Maybe,
+    Either,
+};
 
 final class BackPressureWrites implements Writable
 {
@@ -40,29 +47,30 @@ final class BackPressureWrites implements Writable
         $this->stall = new Millisecond(1);
     }
 
-    public function write(Str $data): void
+    public function write(Str $data): Either
     {
-        try {
-            if (\is_null($this->lastHit)) {
-                return;
-            }
-
+        if (!\is_null($this->lastHit)) {
             $pressure = $this->clock->now()->elapsedSince($this->lastHit);
 
             if ($this->threshold->longerThan($pressure)) {
                 $this->process->halt($this->stall);
             }
-        } finally {
-            $this->stream->write($data);
-            $this->lastHit = $this->clock->now();
         }
+
+        $this->lastHit = $this->clock->now();
+
+        /** @var Either<FailedToWriteToStream|DataPartiallyWritten, Writable> */
+        return $this->stream->write($data)->map(fn() => $this);
     }
 
-    public function close(): void
+    public function close(): Either
     {
-        $this->stream->close();
+        return $this->stream->close();
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function closed(): bool
     {
         return $this->stream->closed();
@@ -73,28 +81,31 @@ final class BackPressureWrites implements Writable
         return $this->stream->position();
     }
 
-    public function seek(Position $position, Mode $mode = null): void
+    public function seek(Position $position, Mode $mode = null): Either
     {
-        $this->stream->seek($position, $mode);
+        /** @var Either<PositionNotSeekable, Stream> */
+        return $this->stream->seek($position, $mode)->map(fn() => $this);
     }
 
-    public function rewind(): void
+    public function rewind(): Either
     {
-        $this->stream->rewind();
+        /** @var Either<PositionNotSeekable, Stream> */
+        return $this->stream->rewind()->map(fn() => $this);
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function end(): bool
     {
         return $this->stream->end();
     }
 
-    public function size(): Size
+    /**
+     * @psalm-mutation-free
+     */
+    public function size(): Maybe
     {
         return $this->stream->size();
-    }
-
-    public function knowsSize(): bool
-    {
-        return $this->stream->knowsSize();
     }
 }

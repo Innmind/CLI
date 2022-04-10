@@ -10,7 +10,12 @@ use Innmind\Stream\{
     Stream\Position\Mode,
     Stream\Size,
 };
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Maybe,
+    Either,
+    SideEffect,
+};
 use PHPUnit\Framework\TestCase;
 
 class ChunkWriteByLineTest extends TestCase
@@ -35,13 +40,14 @@ class ChunkWriteByLineTest extends TestCase
             ->expects($this->exactly(4))
             ->method('write')
             ->withConsecutive(
-                [Str::of("foo\n")],
-                [Str::of("bar\n")],
-                [Str::of("baz\n")],
-                [Str::of('')],
-            );
+                [Str::of('foo')],
+                [Str::of("\nbar")],
+                [Str::of("\nbaz")],
+                [Str::of("\n")],
+            )
+            ->willReturn(Either::right($inner));
 
-        $this->assertNull($stream->write($data));
+        $this->assertEquals(Either::right($stream), $stream->write($data));
     }
 
     public function testClose()
@@ -51,9 +57,10 @@ class ChunkWriteByLineTest extends TestCase
         );
         $inner
             ->expects($this->once())
-            ->method('close');
+            ->method('close')
+            ->willReturn($expected = Either::right(new SideEffect));
 
-        $this->assertNull($stream->close());
+        $this->assertSame($expected, $stream->close());
     }
 
     public function testClosed()
@@ -89,13 +96,17 @@ class ChunkWriteByLineTest extends TestCase
             $inner = $this->createMock(Writable::class),
         );
         $position = new Position(42);
-        $mode = Mode::fromStart();
+        $mode = Mode::fromStart;
         $inner
             ->expects($this->once())
             ->method('seek')
-            ->with($position, $mode);
+            ->with($position, $mode)
+            ->willReturn(Either::right($inner));
 
-        $this->assertNull($stream->seek($position, $mode));
+        $this->assertEquals(
+            Either::right($stream),
+            $stream->seek($position, $mode),
+        );
     }
 
     public function testRewind()
@@ -105,9 +116,10 @@ class ChunkWriteByLineTest extends TestCase
         );
         $inner
             ->expects($this->once())
-            ->method('rewind');
+            ->method('rewind')
+            ->willReturn(Either::right($inner));
 
-        $this->assertNull($stream->rewind());
+        $this->assertEquals(Either::right($stream), $stream->rewind());
     }
 
     public function testEnd()
@@ -132,22 +144,8 @@ class ChunkWriteByLineTest extends TestCase
         $inner
             ->expects($this->once())
             ->method('size')
-            ->willReturn($expected = new Size(42));
+            ->willReturn($expected = Maybe::just(new Size(42)));
 
         $this->assertSame($expected, $stream->size());
-    }
-
-    public function testKnowsSize()
-    {
-        $stream = new ChunkWriteByLine(
-            $inner = $this->createMock(Writable::class),
-        );
-        $inner
-            ->expects($this->exactly(2))
-            ->method('knowsSize')
-            ->willReturnOnConsecutiveCalls(true, false);
-
-        $this->assertTrue($stream->knowsSize());
-        $this->assertFalse($stream->knowsSize());
     }
 }

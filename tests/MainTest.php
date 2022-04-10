@@ -3,11 +3,9 @@ declare(strict_types = 1);
 
 namespace Tests\Innmind\CLI;
 
-use Innmind\Server\Control\{
-    ServerFactory,
-    Server\Command
-};
-use Innmind\Stream\Readable\Stream;
+use Innmind\OperatingSystem\Factory;
+use Innmind\Server\Control\Server\Command;
+use Innmind\Filesystem\File\Content;
 use Innmind\Server\Control\Server\Process\Output\Type;
 use Innmind\Url\Path;
 use Innmind\Immutable\Str;
@@ -19,7 +17,7 @@ class MainTest extends TestCase
 
     public function setUp(): void
     {
-        $this->processes = ServerFactory::build()->processes();
+        $this->processes = Factory::build()->control()->processes();
     }
 
     public function testExit()
@@ -32,14 +30,12 @@ class MainTest extends TestCase
                     ->withArgument('10')
                     ->withWorkingDirectory(Path::of(\getcwd())),
             );
-        $process->wait();
-
-        $this->assertSame(
-            10,
-            $process
-                ->exitCode()
-                ->toInt(),
+        $exitCode = $process->wait()->match(
+            static fn() => null,
+            static fn($e) => $e->exitCode()->toInt(),
         );
+
+        $this->assertSame(10, $exitCode);
     }
 
     public function testEcho()
@@ -50,12 +46,10 @@ class MainTest extends TestCase
                 Command::foreground('php')
                     ->withArgument('fixtures/echo.php')
                     ->withArgument('10')
-                    ->withInput(Stream::ofContent('foobar'."\n".'baz'))
+                    ->withInput(Content\Lines::ofContent('foobar'."\n".'baz'))
                     ->withWorkingDirectory(Path::of(\getcwd())),
             );
-        $process->wait();
 
-        $this->assertSame(0, $process->exitCode()->toInt());
         $this->assertSame('foobar'."\n".'baz', $process->output()->toString());
     }
 
@@ -69,51 +63,48 @@ class MainTest extends TestCase
                     ->withWorkingDirectory(Path::of(\getcwd())),
             );
         $process->output()->foreach(function(Str $line, Type $type): void {
-            $this->assertSame(Type::error(), $type);
+            $this->assertSame(Type::error, $type);
         });
-        $process->wait();
-
-        $this->assertSame(1, $process->exitCode()->toInt());
 
         $cwd = \getcwd();
-        $output = Str::of($process->output()->toString())->split("\n");
+        $output = Str::of($process->output()->toString())->split("\n")->toList();
 
         $this->assertCount(6, $output);
         $this->assertSame(
             "Innmind\CLI\Exception\LogicException(waaat, 0)",
-            $output->get(0)->toString(),
+            $output[0]->toString(),
         );
         $this->assertSame(
             "$cwd/fixtures/thrower.php:18",
-            $output->get(1)->toString(),
+            $output[1]->toString(),
         );
         $this->assertSame(
             '',
-            $output->get(2)->toString(),
+            $output[2]->toString(),
         );
         $this->assertSame(
             'Innmind\CLI\Main@anonymous',
-            $output->get(3)->substring(0, 26)->toString(),
+            $output[3]->substring(0, 26)->toString(),
         );
         $this->assertSame(
             "$cwd",
-            $output->get(3)->substring(27, \strlen($cwd))->toString(),
+            $output[3]->substring(27, \strlen($cwd))->toString(),
         );
         $this->assertSame(
             '/fixtures/thrower.php',
-            $output->get(3)->substring(27 + \strlen($cwd), 21)->toString(),
+            $output[3]->substring(27 + \strlen($cwd), 21)->toString(),
         );
         $this->assertMatchesRegularExpression(
             "~^->main\(\) at $cwd/src/Main.php:(46|37)$~",
-            $output->get(3)->substring(-28 - \strlen($cwd))->toString(),
+            $output[3]->substring(-28 - \strlen($cwd))->toString(),
         );
         $this->assertSame(
             "Innmind\CLI\Main->__construct() at $cwd/fixtures/thrower.php:15",
-            $output->get(4)->toString(),
+            $output[4]->toString(),
         );
         $this->assertSame(
             '',
-            $output->get(5)->toString(),
+            $output[5]->toString(),
         );
     }
 }

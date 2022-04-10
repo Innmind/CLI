@@ -10,7 +10,12 @@ use Innmind\Stream\{
     Stream\Position\Mode,
     Stream\Size,
 };
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Maybe,
+    Either,
+    SideEffect,
+};
 use PHPUnit\Framework\TestCase;
 
 class WriteAsASCIITest extends TestCase
@@ -34,9 +39,10 @@ class WriteAsASCIITest extends TestCase
         $inner
             ->expects($this->once())
             ->method('write')
-            ->with($data->toEncoding('ASCII'));
+            ->with($data->toEncoding('ASCII'))
+            ->willReturn(Either::right($inner));
 
-        $this->assertNull($stream->write($data));
+        $this->assertEquals(Either::right($stream), $stream->write($data));
     }
 
     public function testClose()
@@ -46,9 +52,10 @@ class WriteAsASCIITest extends TestCase
         );
         $inner
             ->expects($this->once())
-            ->method('close');
+            ->method('close')
+            ->willReturn($expected = Either::right(new SideEffect));
 
-        $this->assertNull($stream->close());
+        $this->assertSame($expected, $stream->close());
     }
 
     public function testClosed()
@@ -84,13 +91,17 @@ class WriteAsASCIITest extends TestCase
             $inner = $this->createMock(Writable::class),
         );
         $position = new Position(42);
-        $mode = Mode::fromStart();
+        $mode = Mode::fromStart;
         $inner
             ->expects($this->once())
             ->method('seek')
-            ->with($position, $mode);
+            ->with($position, $mode)
+            ->willReturn(Either::right($inner));
 
-        $this->assertNull($stream->seek($position, $mode));
+        $this->assertEquals(
+            Either::right($stream),
+            $stream->seek($position, $mode),
+        );
     }
 
     public function testRewind()
@@ -100,9 +111,10 @@ class WriteAsASCIITest extends TestCase
         );
         $inner
             ->expects($this->once())
-            ->method('rewind');
+            ->method('rewind')
+            ->willReturn(Either::right($inner));
 
-        $this->assertNull($stream->rewind());
+        $this->assertEquals(Either::right($stream), $stream->rewind());
     }
 
     public function testEnd()
@@ -127,22 +139,8 @@ class WriteAsASCIITest extends TestCase
         $inner
             ->expects($this->once())
             ->method('size')
-            ->willReturn($expected = new Size(42));
+            ->willReturn($expected = Maybe::just(new Size(42)));
 
         $this->assertSame($expected, $stream->size());
-    }
-
-    public function testKnowsSize()
-    {
-        $stream = new WriteAsASCII(
-            $inner = $this->createMock(Writable::class),
-        );
-        $inner
-            ->expects($this->exactly(2))
-            ->method('knowsSize')
-            ->willReturnOnConsecutiveCalls(true, false);
-
-        $this->assertTrue($stream->knowsSize());
-        $this->assertFalse($stream->knowsSize());
     }
 }

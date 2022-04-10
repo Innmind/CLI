@@ -40,14 +40,17 @@ final class Question
         $response = Str::of('');
 
         do {
-            $ready = $watch();
-
-            /** @psalm-suppress InvalidArgument $input must be a Selectable */
-            if ($ready->toRead()->contains($input)) {
-                $response = $response->append($input->read()->toString());
-            }
+            /** @psalm-suppress InvalidArgument */
+            $response = $watch()
+                ->map(static fn($ready) => $ready->toRead())
+                ->filter(static fn($toRead) => $toRead->contains($input))
+                ->flatMap(static fn() => $input->read())
+                ->match(
+                    static fn($input) => $response->append($input->toString()),
+                    static fn() => $response,
+                );
         } while (!$response->contains("\n"));
 
-        return $response->substring(0, -1); // remove the new line character
+        return $response->dropEnd(1); // remove the new line character
     }
 }

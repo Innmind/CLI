@@ -14,7 +14,6 @@ use Innmind\Immutable\{
     Sequence,
     Map,
 };
-use function Innmind\Immutable\unwrap;
 use PHPUnit\Framework\TestCase;
 
 class PatternTest extends TestCase
@@ -85,18 +84,27 @@ class PatternTest extends TestCase
     public function testExtract()
     {
         $arguments = $this->pattern->extract(
-            Sequence::of('string', 'first', 'second'),
+            Sequence::of('first', 'second'),
         );
 
         $this->assertInstanceOf(Map::class, $arguments);
-        $this->assertSame('string', (string) $arguments->keyType());
-        $this->assertSame('string|'.Sequence::class, (string) $arguments->valueType());
         $this->assertCount(3, $arguments);
-        $this->assertSame('first', $arguments->get('foo'));
-        $this->assertSame('second', $arguments->get('bar'));
-        $this->assertInstanceOf(Sequence::class, $arguments->get('foobar'));
-        $this->assertSame('string', (string) $arguments->get('foobar')->type());
-        $this->assertCount(0, $arguments->get('foobar'));
+        $this->assertSame('first', $arguments->get('foo')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('second', $arguments->get('bar')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertInstanceOf(Sequence::class, $arguments->get('foobar')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertCount(0, $arguments->get('foobar')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
     }
 
     public function testOptions()
@@ -128,11 +136,10 @@ class PatternTest extends TestCase
     public function testClean()
     {
         $arguments = $this->pattern->options()->clean(
-            Sequence::of('string', 'foo', '--foo', 'bar', 'baz'),
+            Sequence::of('foo', '--foo', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Sequence::class, $arguments);
-        $this->assertSame('string', (string) $arguments->type());
-        $this->assertSame(['foo', 'bar', 'baz'], unwrap($arguments));
+        $this->assertSame(['foo', 'bar', 'baz'], $arguments->toList());
     }
 }

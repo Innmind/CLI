@@ -17,7 +17,12 @@ use Innmind\TimeContinuum\{
     Earth\Period\Millisecond,
 };
 use Innmind\OperatingSystem\CurrentProcess;
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Maybe,
+    Either,
+    SideEffect,
+};
 use PHPUnit\Framework\TestCase;
 
 class BackPressureWritesTest extends TestCase
@@ -45,12 +50,13 @@ class BackPressureWritesTest extends TestCase
         $inner
             ->expects($this->once())
             ->method('write')
-            ->with($data);
+            ->with($data)
+            ->willReturn(Either::right($inner));
         $process
             ->expects($this->never())
             ->method('halt');
 
-        $this->assertNull($stream->write($data));
+        $this->assertEquals(Either::right($stream), $stream->write($data));
     }
 
     public function testDoesntWaitWhenLastHitAfter10Milliseconds()
@@ -64,7 +70,8 @@ class BackPressureWritesTest extends TestCase
         $inner
             ->expects($this->any())
             ->method('write')
-            ->with($data);
+            ->with($data)
+            ->willReturn(Either::right($inner));
         $process
             ->expects($this->never())
             ->method('halt');
@@ -83,7 +90,7 @@ class BackPressureWritesTest extends TestCase
             ->willReturn(new ElapsedPeriod(11));
 
         $stream->write($data);
-        $this->assertNull($stream->write($data));
+        $this->assertEquals(Either::right($stream), $stream->write($data));
     }
 
     public function testWaitWhenLastHitInLast10Milliseconds()
@@ -97,7 +104,8 @@ class BackPressureWritesTest extends TestCase
         $inner
             ->expects($this->any())
             ->method('write')
-            ->with($data);
+            ->with($data)
+            ->willReturn(Either::right($inner));
         $clock
             ->expects($this->exactly(3))
             ->method('now')
@@ -117,7 +125,7 @@ class BackPressureWritesTest extends TestCase
             ->with(new Millisecond(1));
 
         $stream->write($data);
-        $this->assertNull($stream->write($data));
+        $this->assertEquals(Either::right($stream), $stream->write($data));
     }
 
     public function testClose()
@@ -129,9 +137,10 @@ class BackPressureWritesTest extends TestCase
         );
         $inner
             ->expects($this->once())
-            ->method('close');
+            ->method('close')
+            ->willReturn($expected = Either::right(new SideEffect));
 
-        $this->assertNull($stream->close());
+        $this->assertSame($expected, $stream->close());
     }
 
     public function testClosed()
@@ -173,13 +182,17 @@ class BackPressureWritesTest extends TestCase
             $this->createMock(CurrentProcess::class),
         );
         $position = new Position(42);
-        $mode = Mode::fromStart();
+        $mode = Mode::fromStart;
         $inner
             ->expects($this->once())
             ->method('seek')
-            ->with($position, $mode);
+            ->with($position, $mode)
+            ->willReturn(Either::right($inner));
 
-        $this->assertNull($stream->seek($position, $mode));
+        $this->assertEquals(
+            Either::right($stream),
+            $stream->seek($position, $mode),
+        );
     }
 
     public function testRewind()
@@ -191,9 +204,10 @@ class BackPressureWritesTest extends TestCase
         );
         $inner
             ->expects($this->once())
-            ->method('rewind');
+            ->method('rewind')
+            ->willReturn(Either::right($inner));
 
-        $this->assertNull($stream->rewind());
+        $this->assertEquals(Either::right($stream), $stream->rewind());
     }
 
     public function testEnd()
@@ -222,24 +236,8 @@ class BackPressureWritesTest extends TestCase
         $inner
             ->expects($this->once())
             ->method('size')
-            ->willReturn($expected = new Size(42));
+            ->willReturn($expected = Maybe::just(new Size(42)));
 
         $this->assertSame($expected, $stream->size());
-    }
-
-    public function testKnowsSize()
-    {
-        $stream = new BackPressureWrites(
-            $inner = $this->createMock(Writable::class),
-            $this->createMock(Clock::class),
-            $this->createMock(CurrentProcess::class),
-        );
-        $inner
-            ->expects($this->exactly(2))
-            ->method('knowsSize')
-            ->willReturnOnConsecutiveCalls(true, false);
-
-        $this->assertTrue($stream->knowsSize());
-        $this->assertFalse($stream->knowsSize());
     }
 }

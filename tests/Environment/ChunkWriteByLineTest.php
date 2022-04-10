@@ -18,6 +18,7 @@ use Innmind\Immutable\{
     Sequence,
     Str,
     Map,
+    Either,
 };
 use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
@@ -78,7 +79,8 @@ class ChunkWriteByLineTest extends TestCase
         $expected
             ->expects($this->once())
             ->method('write')
-            ->with($data);
+            ->with($data)
+            ->willReturn(Either::right($expected));
 
         $error = $env->error();
 
@@ -147,7 +149,7 @@ class ChunkWriteByLineTest extends TestCase
         $inner
             ->expects($this->once())
             ->method('variables')
-            ->willReturn($expected = Map::of('string', 'string'));
+            ->willReturn($expected = Map::of());
 
         $this->assertSame($expected, $env->variables());
     }

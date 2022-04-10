@@ -14,6 +14,7 @@ use Innmind\Stream\Writable;
 use Innmind\Immutable\{
     Sequence,
     Str,
+    Either,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -46,7 +47,7 @@ class CommandsTest extends TestCase
         $env
             ->expects($this->once())
             ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console', 'foo', '--foo', 'bar'));
+            ->willReturn(Sequence::of('bin/console', 'foo', '--foo', 'bar'));
         $env
             ->expects($this->once())
             ->method('exit')
@@ -95,7 +96,7 @@ class CommandsTest extends TestCase
         $env
             ->expects($this->exactly(2))
             ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console', 'watch', 'foo', '--foo', 'bar'));
+            ->willReturn(Sequence::of('bin/console', 'watch', 'foo', '--foo', 'bar'));
         $env
             ->expects($this->once())
             ->method('exit')
@@ -134,7 +135,7 @@ class CommandsTest extends TestCase
         $env
             ->expects($this->exactly(2))
             ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console', 'foo'));
+            ->willReturn(Sequence::of('bin/console', 'foo'));
         $env
             ->expects($this->once())
             ->method('exit')
@@ -173,7 +174,7 @@ class CommandsTest extends TestCase
         $env
             ->expects($this->any())
             ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console', 'w'));
+            ->willReturn(Sequence::of('bin/console', 'w'));
         $env
             ->expects($this->once())
             ->method('exit')
@@ -212,7 +213,7 @@ class CommandsTest extends TestCase
         $env
             ->expects($this->any())
             ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console', 'f:b:b'));
+            ->willReturn(Sequence::of('bin/console', 'f:b:b'));
         $env
             ->expects($this->once())
             ->method('exit')
@@ -251,7 +252,7 @@ class CommandsTest extends TestCase
         $env
             ->expects($this->once())
             ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console', 'bar'));
+            ->willReturn(Sequence::of('bin/console', 'bar'));
         $env
             ->expects($this->once())
             ->method('exit')
@@ -270,7 +271,8 @@ class CommandsTest extends TestCase
                 [$this->callback(static function(Str $value): bool {
                     return $value->toString() === "\n";
                 })],
-            );
+            )
+            ->willReturn(Either::right($output));
 
         $this->assertNull($run($env));
     }
@@ -305,7 +307,7 @@ class CommandsTest extends TestCase
         $env
             ->expects($this->once())
             ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console', 'ba'));
+            ->willReturn(Sequence::of('bin/console', 'ba'));
         $env
             ->expects($this->once())
             ->method('exit')
@@ -324,7 +326,8 @@ class CommandsTest extends TestCase
                 [$this->callback(static function(Str $value): bool {
                     return $value->toString() === "\n";
                 })],
-            );
+            )
+            ->willReturn(Either::right($output));
 
         $this->assertNull($run($env));
     }
@@ -350,9 +353,9 @@ USAGE;
         });
         $env = $this->createMock(Environment::class);
         $env
-            ->expects($this->exactly(2))
+            ->expects($this->once())
             ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console'));
+            ->willReturn(Sequence::of('bin/console'));
         $env
             ->expects($this->once())
             ->method('exit')
@@ -366,7 +369,8 @@ USAGE;
             ->method('write')
             ->with($this->callback(static function(Str $value): bool {
                 return $value->toString() === 'usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar\n";
-            }));
+            }))
+            ->willReturn(Either::right($output));
 
         $this->assertNull($run($env));
     }
@@ -388,7 +392,7 @@ USAGE;
         $env
             ->expects($this->once())
             ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console', 'foo', '--foo', 'bar'));
+            ->willReturn(Sequence::of('bin/console', 'foo', '--foo', 'bar'));
         $env
             ->expects($this->never())
             ->method('exit');
@@ -419,9 +423,9 @@ USAGE;
         });
         $env = $this->createMock(Environment::class);
         $env
-            ->expects($this->exactly(2))
+            ->expects($this->once())
             ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console', '--help'));
+            ->willReturn(Sequence::of('bin/console', '--help'));
         $env
             ->expects($this->never())
             ->method('exit');
@@ -434,7 +438,8 @@ USAGE;
             ->method('write')
             ->with($this->callback(static function(Str $value): bool {
                 return $value->toString() === 'usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar\n";
-            }));
+            }))
+            ->willReturn(Either::right($output));
 
         $this->assertNull($run($env));
     }
@@ -469,7 +474,7 @@ USAGE;
         $env
             ->expects($this->once())
             ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console', 'help'));
+            ->willReturn(Sequence::of('bin/console', 'help'));
         $env
             ->expects($this->never())
             ->method('exit');
@@ -487,7 +492,8 @@ USAGE;
                 [$this->callback(static function(Str $value): bool {
                     return $value->toString() === "\n";
                 })],
-            );
+            )
+            ->willReturn(Either::right($output));
 
         $this->assertNull($run($env));
     }
@@ -522,7 +528,7 @@ USAGE;
         $env
             ->expects($this->once())
             ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console'));
+            ->willReturn(Sequence::of('bin/console'));
         $env
             ->expects($this->once())
             ->method('exit')
@@ -541,7 +547,8 @@ USAGE;
                 [$this->callback(static function(Str $value): bool {
                     return $value->toString() === "\n";
                 })],
-            );
+            )
+            ->willReturn(Either::right($output));
 
         $this->assertNull($run($env));
     }

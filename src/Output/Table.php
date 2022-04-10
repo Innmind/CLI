@@ -13,10 +13,6 @@ use Innmind\Immutable\{
     Str,
     Map,
 };
-use function Innmind\Immutable\{
-    unwrap,
-    join,
-};
 
 final class Table
 {
@@ -26,13 +22,18 @@ final class Table
     private string $columnSeparator = '|';
     private string $rowSeparator = '-';
     private string $crossingSeparator = '+';
+    private int $columns;
 
+    /**
+     * @no-named-arguments
+     */
     private function __construct(?Row $header, Row $row, Row ...$rows)
     {
+        $this->columns = $row->size();
         $this->header = $header;
-        $this->rows = Sequence::of(Row::class, $row, ...$rows);
-        $this->rows->drop(1)->reduce(
-            $this->rows->first()->size(),
+        $this->rows = Sequence::of($row, ...$rows);
+        $_ = $this->rows->drop(1)->reduce(
+            $row->size(),
             static function(int $size, Row $row): int {
                 if ($row->size() !== $size) {
                     throw new EachRowMustBeOfSameSize;
@@ -42,7 +43,7 @@ final class Table
             },
         );
 
-        if ($header && $header->size() !== $this->rows->first()->size()) {
+        if ($header && $header->size() !== $row->size()) {
             throw new EachRowMustBeOfSameSize;
         }
     }
@@ -52,11 +53,17 @@ final class Table
         $stream->write(Str::of($this->toString()));
     }
 
+    /**
+     * @no-named-arguments
+     */
     public static function of(?Row $header, Row $row, Row ...$rows): self
     {
         return new self($header, $row, ...$rows);
     }
 
+    /**
+     * @no-named-arguments
+     */
     public static function borderless(?Row $header, Row $row, Row ...$rows): self
     {
         $self = new self($header, $row, ...$rows);
@@ -70,42 +77,37 @@ final class Table
     public function toString(): string
     {
         $widths = $this->widths($this->rows());
-        $rows = $this->rows->mapTo(
-            Str::class,
+        $rows = $this->rows->map(
             fn(Row $row): Str => Str::of($row(
                 $this->columnSeparator,
-                ...unwrap($widths),
+                ...$widths->toList(),
             )),
         );
 
         $explodedFirstRow = $rows
             ->first()
+            ->match(
+                static fn($row) => $row,
+                static fn() => throw new \LogicException('There should be at least one row'),
+            )
             ->split()
-            ->map(function(Str $char): Str {
+            ->map(function(Str $char): string {
                 if ($char->toString() === $this->columnSeparator) {
-                    return Str::of($this->crossingSeparator);
+                    return $this->crossingSeparator;
                 }
 
-                return Str::of($this->rowSeparator);
-            })
-            ->mapTo(
-                'string',
-                static fn(Str $char): string => $char->toString(),
-            );
-        $bound = join('', $explodedFirstRow)->trim();
+                return $this->rowSeparator;
+            });
+        $bound = Str::of('')->join($explodedFirstRow)->trim();
         $header = Str::of('');
-        $rows = join(
-            "\n",
-            $rows->mapTo(
-                'string',
-                static fn(Str $row): string => $row->toString(),
-            ),
-        );
+        $rows = Str::of("\n")->join($rows->map(
+            static fn(Str $row): string => $row->toString(),
+        ));
 
         if ($this->header instanceof Row) {
             $header = Str::of(($this->header)(
                 $this->columnSeparator,
-                ...unwrap($widths),
+                ...$widths->toList(),
             ));
 
             if (!$bound->empty()) {
@@ -115,14 +117,11 @@ final class Table
             }
         }
 
-        $lines = Sequence::of(Str::class, $bound, $header, $rows, $bound)
+        $lines = Sequence::of($bound, $header, $rows, $bound)
             ->filter(static fn(Str $line): bool => !$line->empty())
-            ->mapTo(
-                'string',
-                static fn(Str $line): string => $line->toString(),
-            );
+            ->map(static fn(Str $line): string => $line->toString());
 
-        return join("\n", $lines)->toString();
+        return Str::of("\n")->join($lines)->toString();
     }
 
     /**
@@ -131,7 +130,7 @@ final class Table
     private function rows(): Sequence
     {
         if ($this->header instanceof Row) {
-            return Sequence::of(Row::class, $this->header, ...unwrap($this->rows));
+            return Sequence::of($this->header, ...$this->rows->toList());
         }
 
         return $this->rows;
@@ -143,7 +142,7 @@ final class Table
      */
     private function widths(Sequence $rows): Sequence
     {
-        $columns = Sequence::ints(...\range(0, $rows->first()->size() - 1));
+        $columns = Sequence::ints(...\range(0, $this->columns - 1));
         $defaultWidths = $columns->map(static fn() => 0);
 
         /**
@@ -169,7 +168,10 @@ final class Table
             Sequence::ints(),
             static fn(Sequence $widths, $width): Sequence => ($widths)(\max(
                 $width,
-                $cells->get($widths->size()),
+                $cells->get($widths->size())->match(
+                    static fn($width) => $width,
+                    static fn() => $width, // this case should not happen
+                ),
             )),
         );
     }
