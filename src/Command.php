@@ -11,5 +11,5 @@ use Innmind\CLI\Command\{
 interface Command
 {
     public function __invoke(Environment $env, Arguments $arguments, Options $options): void;
-    public function toString(): string;
+    public function usage(): string;
 }

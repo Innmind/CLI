@@ -29,7 +29,7 @@ class SpecificationTest extends TestCase
             {
             }
 
-            public function toString(): string
+            public function usage(): string
             {
                 return <<<USAGE
     watch container [output] ...proxy
@@ -89,7 +89,7 @@ DESCRIPTION;
                     {
                     }
 
-                    public function toString(): string
+                    public function usage(): string
                     {
                         return $this->usage;
                     }
@@ -122,7 +122,7 @@ DESCRIPTION;
                     {
                     }
 
-                    public function toString(): string
+                    public function usage(): string
                     {
                         return $this->usage;
                     }
@@ -155,7 +155,7 @@ DESCRIPTION;
                     {
                     }
 
-                    public function toString(): string
+                    public function usage(): string
                     {
                         return $this->usage;
                     }
@@ -187,7 +187,7 @@ DESCRIPTION;
                     {
                     }
 
-                    public function toString(): string
+                    public function usage(): string
                     {
                         return $this->usage;
                     }
@@ -220,7 +220,7 @@ DESCRIPTION;
                     {
                     }
 
-                    public function toString(): string
+                    public function usage(): string
                     {
                         return $this->usage;
                     }
@@ -240,7 +240,7 @@ DESCRIPTION;
             {
             }
 
-            public function toString(): string
+            public function usage(): string
             {
                 return '  ';
             }

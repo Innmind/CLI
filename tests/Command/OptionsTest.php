@@ -25,7 +25,7 @@ class OptionsTest extends TestCase
             {
             }
 
-            public function toString(): string
+            public function usage(): string
             {
                 return 'watch container --foo --bar= [output]';
             }
@@ -76,7 +76,7 @@ class OptionsTest extends TestCase
             {
             }
 
-            public function toString(): string
+            public function usage(): string
             {
                 return 'watch container --foo --bar= [output]';
             }

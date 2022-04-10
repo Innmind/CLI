@@ -139,7 +139,7 @@ final class Specification
      */
     private function lines(): Sequence
     {
-        $declaration = Str::of($this->command->toString())->trim();
+        $declaration = Str::of($this->command->usage())->trim();
 
         if ($declaration->empty()) {
             throw new EmptyDeclaration(\get_class($this->command));
