@@ -49,7 +49,7 @@ USAGE;
         $this->assertSame('watch', $spec->name());
         $this->assertSame(
             'Watch a container definition file for changes and generate corresponding graph',
-            $spec->shortDescription()
+            $spec->shortDescription(),
         );
 
         $expected = <<<DESCRIPTION

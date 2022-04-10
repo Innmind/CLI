@@ -109,7 +109,7 @@ abstract class Main
                 $lines,
                 function(Sequence $lines, CallFrame $frame): Sequence {
                     return $lines->add($this->renderCallFrame($frame));
-                }
+                },
             );
     }
 

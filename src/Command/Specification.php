@@ -122,7 +122,7 @@ final class Specification
                 ->lines()
                 ->first()
                 ->split(' ')
-                ->drop(1)
+                ->drop(1),
         ));
     }
 

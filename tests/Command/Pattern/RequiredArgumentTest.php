@@ -64,7 +64,7 @@ class RequiredArgumentTest extends TestCase
         $arguments = $input->extract(
             Map::of('string', 'mixed'),
             0,
-            Sequence::of('string', 'watev', 'foo', 'bar', 'baz')
+            Sequence::of('string', 'watev', 'foo', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Map::class, $arguments);
@@ -84,7 +84,7 @@ class RequiredArgumentTest extends TestCase
         $input->extract(
             Map::of('string', 'mixed'),
             42,
-            Sequence::of('string', 'watev', 'foo', 'bar', 'baz')
+            Sequence::of('string', 'watev', 'foo', 'bar', 'baz'),
         );
     }
 }

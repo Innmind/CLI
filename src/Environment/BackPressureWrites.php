@@ -29,7 +29,7 @@ final class BackPressureWrites implements Environment
     public function __construct(
         Environment $environment,
         Clock $clock,
-        CurrentProcess $process
+        CurrentProcess $process,
     ) {
         $this->environment = $environment;
         $this->clock = $clock;

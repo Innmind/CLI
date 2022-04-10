@@ -31,7 +31,7 @@ final class Options
      */
     public static function of(
         Specification $specification,
-        Sequence $arguments
+        Sequence $arguments,
     ): self {
         /** @var Map<string, string> */
         $options = $specification

@@ -20,15 +20,15 @@ class WriteAsASCIITest extends TestCase
         $this->assertInstanceOf(
             Writable::class,
             new WriteAsASCII(
-                $this->createMock(Writable::class)
-            )
+                $this->createMock(Writable::class),
+            ),
         );
     }
 
     public function testWrite()
     {
         $stream = new WriteAsASCII(
-            $inner = $this->createMock(Writable::class)
+            $inner = $this->createMock(Writable::class),
         );
         $data = Str::of("foo\nbar\nbaz\n");
         $inner
@@ -42,7 +42,7 @@ class WriteAsASCIITest extends TestCase
     public function testClose()
     {
         $stream = new WriteAsASCII(
-            $inner = $this->createMock(Writable::class)
+            $inner = $this->createMock(Writable::class),
         );
         $inner
             ->expects($this->once())
@@ -54,7 +54,7 @@ class WriteAsASCIITest extends TestCase
     public function testClosed()
     {
         $stream = new WriteAsASCII(
-            $inner = $this->createMock(Writable::class)
+            $inner = $this->createMock(Writable::class),
         );
         $inner
             ->expects($this->exactly(2))
@@ -68,7 +68,7 @@ class WriteAsASCIITest extends TestCase
     public function testPosition()
     {
         $stream = new WriteAsASCII(
-            $inner = $this->createMock(Writable::class)
+            $inner = $this->createMock(Writable::class),
         );
         $inner
             ->expects($this->once())
@@ -81,7 +81,7 @@ class WriteAsASCIITest extends TestCase
     public function testSeek()
     {
         $stream = new WriteAsASCII(
-            $inner = $this->createMock(Writable::class)
+            $inner = $this->createMock(Writable::class),
         );
         $position = new Position(42);
         $mode = Mode::fromStart();
@@ -96,7 +96,7 @@ class WriteAsASCIITest extends TestCase
     public function testRewind()
     {
         $stream = new WriteAsASCII(
-            $inner = $this->createMock(Writable::class)
+            $inner = $this->createMock(Writable::class),
         );
         $inner
             ->expects($this->once())
@@ -108,7 +108,7 @@ class WriteAsASCIITest extends TestCase
     public function testEnd()
     {
         $stream = new WriteAsASCII(
-            $inner = $this->createMock(Writable::class)
+            $inner = $this->createMock(Writable::class),
         );
         $inner
             ->expects($this->exactly(2))
@@ -122,7 +122,7 @@ class WriteAsASCIITest extends TestCase
     public function testSize()
     {
         $stream = new WriteAsASCII(
-            $inner = $this->createMock(Writable::class)
+            $inner = $this->createMock(Writable::class),
         );
         $inner
             ->expects($this->once())
@@ -135,7 +135,7 @@ class WriteAsASCIITest extends TestCase
     public function testKnowsSize()
     {
         $stream = new WriteAsASCII(
-            $inner = $this->createMock(Writable::class)
+            $inner = $this->createMock(Writable::class),
         );
         $inner
             ->expects($this->exactly(2))

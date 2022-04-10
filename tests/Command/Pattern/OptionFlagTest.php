@@ -66,7 +66,7 @@ class OptionFlagTest extends TestCase
         $arguments = $input->extract(
             Map::of('string', 'mixed'),
             0,
-            Sequence::of('string', 'watev', '--foo', 'bar', 'baz')
+            Sequence::of('string', 'watev', '--foo', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Map::class, $arguments);
@@ -83,7 +83,7 @@ class OptionFlagTest extends TestCase
         $arguments = $input->extract(
             $expected = Map::of('string', 'mixed'),
             42,
-            Sequence::of('string', 'watev', 'foo', 'bar', 'baz')
+            Sequence::of('string', 'watev', 'foo', 'bar', 'baz'),
         );
 
         $this->assertSame($expected, $arguments);
@@ -94,7 +94,7 @@ class OptionFlagTest extends TestCase
         $input = OptionFlag::of(Str::of('-f|--foo'));
 
         $arguments = $input->clean(
-            Sequence::of('string', 'watev', '--foo', 'bar', 'baz', '-f')
+            Sequence::of('string', 'watev', '--foo', 'bar', 'baz', '-f'),
         );
 
         $this->assertInstanceOf(Sequence::class, $arguments);

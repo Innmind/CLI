@@ -34,15 +34,15 @@ class WriteAsASCIITest extends TestCase
         $this->assertInstanceOf(
             Environment::class,
             new WriteAsASCII(
-                $this->createMock(Environment::class)
-            )
+                $this->createMock(Environment::class),
+            ),
         );
     }
 
     public function testInput()
     {
         $env = new WriteAsASCII(
-            $inner = $this->createMock(Environment::class)
+            $inner = $this->createMock(Environment::class),
         );
         $inner
             ->expects($this->once())
@@ -55,7 +55,7 @@ class WriteAsASCIITest extends TestCase
     public function testWrapOutput()
     {
         $env = new WriteAsASCII(
-            $inner = $this->createMock(Environment::class)
+            $inner = $this->createMock(Environment::class),
         );
         $data = Str::of('');
         $inner
@@ -77,7 +77,7 @@ class WriteAsASCIITest extends TestCase
     public function testWrapError()
     {
         $env = new WriteAsASCII(
-            $inner = $this->createMock(Environment::class)
+            $inner = $this->createMock(Environment::class),
         );
         $data = Str::of('');
         $inner
@@ -99,7 +99,7 @@ class WriteAsASCIITest extends TestCase
     public function testArguments()
     {
         $env = new WriteAsASCII(
-            $inner = $this->createMock(Environment::class)
+            $inner = $this->createMock(Environment::class),
         );
         $inner
             ->expects($this->once())
@@ -112,7 +112,7 @@ class WriteAsASCIITest extends TestCase
     public function testExit()
     {
         $env = new WriteAsASCII(
-            $inner = $this->createMock(Environment::class)
+            $inner = $this->createMock(Environment::class),
         );
         $inner
             ->expects($this->once())
@@ -125,7 +125,7 @@ class WriteAsASCIITest extends TestCase
     public function testExitCode()
     {
         $env = new WriteAsASCII(
-            $inner = $this->createMock(Environment::class)
+            $inner = $this->createMock(Environment::class),
         );
         $inner
             ->expects($this->once())
@@ -138,7 +138,7 @@ class WriteAsASCIITest extends TestCase
     public function testWorkingDirectory()
     {
         $env = new WriteAsASCII(
-            $inner = $this->createMock(Environment::class)
+            $inner = $this->createMock(Environment::class),
         );
         $inner
             ->expects($this->once())
@@ -151,7 +151,7 @@ class WriteAsASCIITest extends TestCase
     public function testVariables()
     {
         $env = new WriteAsASCII(
-            $inner = $this->createMock(Environment::class)
+            $inner = $this->createMock(Environment::class),
         );
         $inner
             ->expects($this->once())

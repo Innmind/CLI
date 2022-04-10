@@ -170,7 +170,7 @@ final class Commands
      */
     private function displayHelp(
         Writable $stream,
-        Set $specifications
+        Set $specifications,
     ): void {
         $rows = $specifications->toSequenceOf(
             Row::class,

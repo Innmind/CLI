@@ -22,7 +22,7 @@ interface Input
     public function extract(
         Map $parsed,
         int $position,
-        Sequence $arguments
+        Sequence $arguments,
     ): Map;
     public function toString(): string;
 }

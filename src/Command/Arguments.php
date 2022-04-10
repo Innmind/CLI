@@ -41,7 +41,7 @@ final class Arguments
      */
     public static function of(
         Specification $specification,
-        Sequence $arguments
+        Sequence $arguments,
     ): self {
         $arguments = $specification->pattern()->options()->clean($arguments);
         $arguments = $specification

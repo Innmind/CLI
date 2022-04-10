@@ -31,7 +31,7 @@ final class PackArgument implements Input, Argument
     public function extract(
         Map $parsed,
         int $position,
-        Sequence $arguments
+        Sequence $arguments,
     ): Map {
         if (!$arguments->indices()->contains($position)) {
             return ($parsed)($this->name, $arguments->clear());

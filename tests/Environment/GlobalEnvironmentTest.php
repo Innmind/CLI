@@ -85,8 +85,8 @@ class GlobalEnvironmentTest extends TestCase
                     $variables[$key] = $value;
 
                     return $variables;
-                }
-            )
+                },
+            ),
         );
     }
 

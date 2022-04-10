@@ -20,15 +20,15 @@ class ChunkWriteByLineTest extends TestCase
         $this->assertInstanceOf(
             Writable::class,
             new ChunkWriteByLine(
-                $this->createMock(Writable::class)
-            )
+                $this->createMock(Writable::class),
+            ),
         );
     }
 
     public function testWrite()
     {
         $stream = new ChunkWriteByLine(
-            $inner = $this->createMock(Writable::class)
+            $inner = $this->createMock(Writable::class),
         );
         $data = Str::of("foo\nbar\nbaz\n");
         $inner
@@ -47,7 +47,7 @@ class ChunkWriteByLineTest extends TestCase
     public function testClose()
     {
         $stream = new ChunkWriteByLine(
-            $inner = $this->createMock(Writable::class)
+            $inner = $this->createMock(Writable::class),
         );
         $inner
             ->expects($this->once())
@@ -59,7 +59,7 @@ class ChunkWriteByLineTest extends TestCase
     public function testClosed()
     {
         $stream = new ChunkWriteByLine(
-            $inner = $this->createMock(Writable::class)
+            $inner = $this->createMock(Writable::class),
         );
         $inner
             ->expects($this->exactly(2))
@@ -73,7 +73,7 @@ class ChunkWriteByLineTest extends TestCase
     public function testPosition()
     {
         $stream = new ChunkWriteByLine(
-            $inner = $this->createMock(Writable::class)
+            $inner = $this->createMock(Writable::class),
         );
         $inner
             ->expects($this->once())
@@ -86,7 +86,7 @@ class ChunkWriteByLineTest extends TestCase
     public function testSeek()
     {
         $stream = new ChunkWriteByLine(
-            $inner = $this->createMock(Writable::class)
+            $inner = $this->createMock(Writable::class),
         );
         $position = new Position(42);
         $mode = Mode::fromStart();
@@ -101,7 +101,7 @@ class ChunkWriteByLineTest extends TestCase
     public function testRewind()
     {
         $stream = new ChunkWriteByLine(
-            $inner = $this->createMock(Writable::class)
+            $inner = $this->createMock(Writable::class),
         );
         $inner
             ->expects($this->once())
@@ -113,7 +113,7 @@ class ChunkWriteByLineTest extends TestCase
     public function testEnd()
     {
         $stream = new ChunkWriteByLine(
-            $inner = $this->createMock(Writable::class)
+            $inner = $this->createMock(Writable::class),
         );
         $inner
             ->expects($this->exactly(2))
@@ -127,7 +127,7 @@ class ChunkWriteByLineTest extends TestCase
     public function testSize()
     {
         $stream = new ChunkWriteByLine(
-            $inner = $this->createMock(Writable::class)
+            $inner = $this->createMock(Writable::class),
         );
         $inner
             ->expects($this->once())
@@ -140,7 +140,7 @@ class ChunkWriteByLineTest extends TestCase
     public function testKnowsSize()
     {
         $stream = new ChunkWriteByLine(
-            $inner = $this->createMock(Writable::class)
+            $inner = $this->createMock(Writable::class),
         );
         $inner
             ->expects($this->exactly(2))

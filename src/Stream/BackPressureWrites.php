@@ -31,7 +31,7 @@ final class BackPressureWrites implements Writable
     public function __construct(
         Writable $stream,
         Clock $clock,
-        CurrentProcess $process
+        CurrentProcess $process,
     ) {
         $this->stream = $stream;
         $this->clock = $clock;

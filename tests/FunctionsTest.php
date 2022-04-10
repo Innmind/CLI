@@ -19,14 +19,14 @@ class FunctionsTest extends TestCase
         $variables = variables(
             Map::of('string', 'string')
                 ('FOO_BAR', '42'),
-            new InMemory
+            new InMemory,
         );
 
         $this->assertTrue(
             $variables->equals(
                 Map::of('string', 'string')
-                    ('fooBar', '42')
-            )
+                    ('fooBar', '42'),
+            ),
         );
     }
 
@@ -35,21 +35,21 @@ class FunctionsTest extends TestCase
         $adapter = new InMemory;
         $adapter->add(File::named(
             '.env',
-            Stream::ofContent('BAZ=fOo')
+            Stream::ofContent('BAZ=fOo'),
         ));
 
         $variables = variables(
             Map::of('string', 'string')
                 ('FOO_BAR', '42'),
-            $adapter
+            $adapter,
         );
 
         $this->assertTrue(
             $variables->equals(
                 Map::of('string', 'string')
                     ('fooBar', '42')
-                    ('baz', 'fOo')
-            )
+                    ('baz', 'fOo'),
+            ),
         );
     }
 }

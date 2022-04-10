@@ -24,13 +24,13 @@ class RowTest extends TestCase
             ->forAll(
                 Set\Unicode::strings(),
                 Set\Unicode::strings(),
-                Set\Unicode::strings()
+                Set\Unicode::strings(),
             )
             ->then(function(string $f, string $s, string $t): void {
                 $row = new Row(
                     new Cell($f),
                     new Cell($s),
-                    new Cell($t)
+                    new Cell($t),
                 );
 
                 $this->assertInstanceOf(RowInterface::class, $row);
@@ -43,7 +43,7 @@ class RowTest extends TestCase
                 $t = \str_pad($t, 14);
                 $this->assertSame(
                     "| $f | $s | $t |",
-                    $row('|', 10, 12, 14)
+                    $row('|', 10, 12, 14),
                 );
             });
     }

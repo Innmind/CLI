@@ -65,7 +65,7 @@ class PackArgumentTest extends TestCase
         $arguments = $input->extract(
             Map::of('string', 'mixed'),
             1,
-            Sequence::of('string', 'watev', 'foo', 'bar', 'baz')
+            Sequence::of('string', 'watev', 'foo', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Map::class, $arguments);
@@ -84,7 +84,7 @@ class PackArgumentTest extends TestCase
         $arguments = $input->extract(
             Map::of('string', 'mixed'),
             42,
-            Sequence::of('string', 'watev', 'foo', 'bar', 'baz')
+            Sequence::of('string', 'watev', 'foo', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Map::class, $arguments);

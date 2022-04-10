@@ -57,7 +57,7 @@ final class OptionFlag implements Input, Option
     public function extract(
         Map $parsed,
         int $position,
-        Sequence $arguments
+        Sequence $arguments,
     ): Map {
         try {
             $arguments->find(

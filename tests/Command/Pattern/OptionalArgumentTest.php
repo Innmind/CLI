@@ -64,7 +64,7 @@ class OptionalArgumentTest extends TestCase
         $arguments = $input->extract(
             Map::of('string', 'mixed'),
             0,
-            $args = Sequence::of('string', 'watev', 'foo', 'bar', 'baz')
+            $args = Sequence::of('string', 'watev', 'foo', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Map::class, $arguments);
@@ -81,7 +81,7 @@ class OptionalArgumentTest extends TestCase
         $arguments = $input->extract(
             $expected = Map::of('string', 'mixed'),
             42,
-            Sequence::of('string', 'watev', 'foo', 'bar', 'baz')
+            Sequence::of('string', 'watev', 'foo', 'bar', 'baz'),
         );
 
         $this->assertSame($expected, $arguments);

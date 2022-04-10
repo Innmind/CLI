@@ -19,7 +19,7 @@ class TableTest extends TestCase
         $printTo = new Table(
             null,
             new Row(new Cell('foo'), new Cell('foobar')),
-            new Row(new Cell('foobar'), new Cell('foo'))
+            new Row(new Cell('foobar'), new Cell('foo')),
         );
 
         $expected = <<<TABLE
@@ -45,7 +45,7 @@ TABLE;
         $printTo = new Table(
             new Row(new Cell('first col'), new Cell('second col')),
             new Row(new Cell('foo'), new Cell('foobar')),
-            new Row(new Cell('foobar'), new Cell('foo'))
+            new Row(new Cell('foobar'), new Cell('foo')),
         );
 
         $expected = <<<TABLE
@@ -65,7 +65,7 @@ TABLE;
         $printTo = Table::borderless(
             new Row(new Cell('first col'), new Cell('second col')),
             new Row(new Cell('foo'), new Cell('foobar')),
-            new Row(new Cell('foobar'), new Cell('foo'))
+            new Row(new Cell('foobar'), new Cell('foo')),
         );
 
         $expected = " first col  second col \n".
@@ -82,7 +82,7 @@ TABLE;
         new Table(
             null,
             new Row(new Cell('foo'), new Cell('bar')),
-            new Row(new Cell('foo'))
+            new Row(new Cell('foo')),
         );
     }
 
@@ -92,7 +92,7 @@ TABLE;
 
         new Table(
             new Row(new Cell('foo')),
-            new Row(new Cell('foo'), new Cell('bar'))
+            new Row(new Cell('foo'), new Cell('bar')),
         );
     }
 }

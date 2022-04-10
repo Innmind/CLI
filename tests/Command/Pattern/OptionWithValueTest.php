@@ -66,7 +66,7 @@ class OptionWithValueTest extends TestCase
         $arguments = $input->extract(
             Map::of('string', 'mixed'),
             0,
-            Sequence::of('string', 'watev', '--foo=42', 'bar', 'baz')
+            Sequence::of('string', 'watev', '--foo=42', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Map::class, $arguments);
@@ -83,7 +83,7 @@ class OptionWithValueTest extends TestCase
         $arguments = $input->extract(
             Map::of('string', 'mixed'),
             0,
-            Sequence::of('string', 'watev', '-f=42', 'bar', 'baz')
+            Sequence::of('string', 'watev', '-f=42', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Map::class, $arguments);
@@ -100,7 +100,7 @@ class OptionWithValueTest extends TestCase
         $arguments = $input->extract(
             Map::of('string', 'mixed'),
             0,
-            Sequence::of('string', 'watev', '-f', 'bar', 'baz')
+            Sequence::of('string', 'watev', '-f', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Map::class, $arguments);
@@ -117,7 +117,7 @@ class OptionWithValueTest extends TestCase
         $arguments = $input->extract(
             $expected = Map::of('string', 'mixed'),
             42,
-            Sequence::of('string', 'watev', 'foo', 'bar', 'baz')
+            Sequence::of('string', 'watev', 'foo', 'bar', 'baz'),
         );
 
         $this->assertSame($expected, $arguments);
@@ -130,7 +130,7 @@ class OptionWithValueTest extends TestCase
         $arguments = $input->extract(
             $expected = Map::of('string', 'mixed'),
             42,
-            Sequence::of('string', 'watev', 'f', 'bar', 'baz')
+            Sequence::of('string', 'watev', 'f', 'bar', 'baz'),
         );
 
         $this->assertSame($expected, $arguments);
@@ -141,7 +141,7 @@ class OptionWithValueTest extends TestCase
         $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->clean(
-            $expected = Sequence::of('string', 'watev', 'f', 'bar', 'baz')
+            $expected = Sequence::of('string', 'watev', 'f', 'bar', 'baz'),
         );
 
         $this->assertSame($expected, $arguments);
@@ -152,7 +152,7 @@ class OptionWithValueTest extends TestCase
         $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->clean(
-            Sequence::of('string', 'watev', '--foo=foo', 'bar', 'baz')
+            Sequence::of('string', 'watev', '--foo=foo', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Sequence::class, $arguments);
@@ -165,7 +165,7 @@ class OptionWithValueTest extends TestCase
         $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->clean(
-            Sequence::of('string', 'watev', '-f=foo', 'bar', 'baz')
+            Sequence::of('string', 'watev', '-f=foo', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Sequence::class, $arguments);
@@ -178,7 +178,7 @@ class OptionWithValueTest extends TestCase
         $input = OptionWithValue::of(Str::of('-f|--foo='));
 
         $arguments = $input->clean(
-            Sequence::of('string', 'watev', '-f', 'bar', 'baz')
+            Sequence::of('string', 'watev', '-f', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Sequence::class, $arguments);

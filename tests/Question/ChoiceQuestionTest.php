@@ -37,7 +37,7 @@ class ChoiceQuestionTest extends TestCase
                 ('foo', 'bar')
                 (1, 'baz')
                 (2, 3)
-                ('bar', 3)
+                ('bar', 3),
         );
         $input = new class implements Readable, Selectable {
             private $resource;
@@ -169,7 +169,7 @@ class ChoiceQuestionTest extends TestCase
 
         new ChoiceQuestion(
             'foo',
-            Map::of('int', 'scalar')
+            Map::of('int', 'scalar'),
         );
     }
 
@@ -180,7 +180,7 @@ class ChoiceQuestionTest extends TestCase
 
         new ChoiceQuestion(
             'foo',
-            Map::of('scalar', 'int')
+            Map::of('scalar', 'int'),
         );
     }
 

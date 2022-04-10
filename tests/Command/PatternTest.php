@@ -28,7 +28,7 @@ class PatternTest extends TestCase
             Str::of('bar'),
             Str::of('[baz]'),
             Str::of('...foobar'),
-            Str::of('--foo')
+            Str::of('--foo'),
         );
     }
 
@@ -44,7 +44,7 @@ class PatternTest extends TestCase
     {
         $this->assertInstanceOf(
             Pattern::class,
-            new Pattern
+            new Pattern,
         );
     }
 
@@ -55,7 +55,7 @@ class PatternTest extends TestCase
         new Pattern(
             Str::of('...foo'),
             Str::of('...bar'),
-            Str::of('--foo')
+            Str::of('--foo'),
         );
     }
 
@@ -66,7 +66,7 @@ class PatternTest extends TestCase
         new Pattern(
             Str::of('...foo'),
             Str::of('bar'),
-            Str::of('--foo')
+            Str::of('--foo'),
         );
     }
 
@@ -78,14 +78,14 @@ class PatternTest extends TestCase
             Str::of('baz'),
             Str::of('[foo]'),
             Str::of('--foo'),
-            Str::of('bar')
+            Str::of('bar'),
         );
     }
 
     public function testExtract()
     {
         $arguments = $this->pattern->extract(
-            Sequence::of('string', 'first', 'second')
+            Sequence::of('string', 'first', 'second'),
         );
 
         $this->assertInstanceOf(Map::class, $arguments);
@@ -128,7 +128,7 @@ class PatternTest extends TestCase
     public function testClean()
     {
         $arguments = $this->pattern->options()->clean(
-            Sequence::of('string', 'foo', '--foo', 'bar', 'baz')
+            Sequence::of('string', 'foo', '--foo', 'bar', 'baz'),
         );
 
         $this->assertInstanceOf(Sequence::class, $arguments);

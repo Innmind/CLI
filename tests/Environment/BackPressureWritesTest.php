@@ -39,7 +39,7 @@ class BackPressureWritesTest extends TestCase
                 $this->createMock(Environment::class),
                 $this->createMock(Clock::class),
                 $this->createMock(CurrentProcess::class),
-            )
+            ),
         );
     }
 

@@ -45,7 +45,7 @@ final class ChunkWriteByLine implements Environment
     public function error(): Writable
     {
         return $this->error ??= new Stream\ChunkWriteByLine(
-            $this->environment->error()
+            $this->environment->error(),
         );
     }
 

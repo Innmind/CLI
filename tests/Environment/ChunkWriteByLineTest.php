@@ -34,15 +34,15 @@ class ChunkWriteByLineTest extends TestCase
         $this->assertInstanceOf(
             Environment::class,
             new ChunkWriteByLine(
-                $this->createMock(Environment::class)
-            )
+                $this->createMock(Environment::class),
+            ),
         );
     }
 
     public function testInput()
     {
         $env = new ChunkWriteByLine(
-            $inner = $this->createMock(Environment::class)
+            $inner = $this->createMock(Environment::class),
         );
         $inner
             ->expects($this->once())
@@ -55,7 +55,7 @@ class ChunkWriteByLineTest extends TestCase
     public function testOutput()
     {
         $env = new ChunkWriteByLine(
-            $inner = $this->createMock(Environment::class)
+            $inner = $this->createMock(Environment::class),
         );
         $inner
             ->expects($this->once())
@@ -68,7 +68,7 @@ class ChunkWriteByLineTest extends TestCase
     public function testWrapError()
     {
         $env = new ChunkWriteByLine(
-            $inner = $this->createMock(Environment::class)
+            $inner = $this->createMock(Environment::class),
         );
         $data = Str::of('');
         $inner
@@ -90,7 +90,7 @@ class ChunkWriteByLineTest extends TestCase
     public function testArguments()
     {
         $env = new ChunkWriteByLine(
-            $inner = $this->createMock(Environment::class)
+            $inner = $this->createMock(Environment::class),
         );
         $inner
             ->expects($this->once())
@@ -103,7 +103,7 @@ class ChunkWriteByLineTest extends TestCase
     public function testExit()
     {
         $env = new ChunkWriteByLine(
-            $inner = $this->createMock(Environment::class)
+            $inner = $this->createMock(Environment::class),
         );
         $inner
             ->expects($this->once())
@@ -116,7 +116,7 @@ class ChunkWriteByLineTest extends TestCase
     public function testExitCode()
     {
         $env = new ChunkWriteByLine(
-            $inner = $this->createMock(Environment::class)
+            $inner = $this->createMock(Environment::class),
         );
         $inner
             ->expects($this->once())
@@ -129,7 +129,7 @@ class ChunkWriteByLineTest extends TestCase
     public function testWorkingDirectory()
     {
         $env = new ChunkWriteByLine(
-            $inner = $this->createMock(Environment::class)
+            $inner = $this->createMock(Environment::class),
         );
         $inner
             ->expects($this->once())
@@ -142,7 +142,7 @@ class ChunkWriteByLineTest extends TestCase
     public function testVariables()
     {
         $env = new ChunkWriteByLine(
-            $inner = $this->createMock(Environment::class)
+            $inner = $this->createMock(Environment::class),
         );
         $inner
             ->expects($this->once())

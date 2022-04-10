@@ -84,7 +84,7 @@ class OptionsTest extends TestCase
 
         $options = Options::of(
             $spec,
-            Sequence::of('string', '--foo')
+            Sequence::of('string', '--foo'),
         );
 
         $this->assertInstanceOf(Options::class, $options);

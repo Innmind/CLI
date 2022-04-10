@@ -89,7 +89,7 @@ class CommandsTest extends TestCase
                 {
                     return 'watch container [output] --foo';
                 }
-            }
+            },
         );
         $env = $this->createMock(Environment::class);
         $env
@@ -128,7 +128,7 @@ class CommandsTest extends TestCase
                 {
                     return 'foobar';
                 }
-            }
+            },
         );
         $env = $this->createMock(Environment::class);
         $env
@@ -167,7 +167,7 @@ class CommandsTest extends TestCase
                 {
                     return 'watch';
                 }
-            }
+            },
         );
         $env = $this->createMock(Environment::class);
         $env
@@ -206,7 +206,7 @@ class CommandsTest extends TestCase
                 {
                     return 'watch';
                 }
-            }
+            },
         );
         $env = $this->createMock(Environment::class);
         $env
@@ -245,7 +245,7 @@ class CommandsTest extends TestCase
                 {
                     return 'watch container [output] --foo';
                 }
-            }
+            },
         );
         $env = $this->createMock(Environment::class);
         $env
@@ -299,7 +299,7 @@ class CommandsTest extends TestCase
                 {
                     return 'baz';
                 }
-            }
+            },
         );
         $env = $this->createMock(Environment::class);
         $env
@@ -463,7 +463,7 @@ USAGE;
                 {
                     return 'watch container [output] --foo'."\n\n".'Watch dependency injection';
                 }
-            }
+            },
         );
         $env = $this->createMock(Environment::class);
         $env
@@ -516,7 +516,7 @@ USAGE;
                 {
                     return 'watch container [output] --foo';
                 }
-            }
+            },
         );
         $env = $this->createMock(Environment::class);
         $env

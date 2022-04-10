@@ -84,7 +84,7 @@ class ArgumentsTest extends TestCase
 
         $arguments = Arguments::of(
             $spec,
-            Sequence::of('string', 'foo')
+            Sequence::of('string', 'foo'),
         );
 
         $this->assertInstanceOf(Arguments::class, $arguments);
