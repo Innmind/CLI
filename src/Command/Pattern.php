@@ -21,6 +21,9 @@ use Innmind\Immutable\{
     Map,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class Pattern
 {
     /** @var Sequence<Input> */

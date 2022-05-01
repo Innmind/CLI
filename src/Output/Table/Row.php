@@ -5,6 +5,9 @@ namespace Innmind\CLI\Output\Table;
 
 use Innmind\Immutable\Sequence;
 
+/**
+ * @psalm-immutable
+ */
 interface Row
 {
     /**

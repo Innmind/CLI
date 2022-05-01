@@ -8,24 +8,11 @@ use Innmind\CLI\{
     Environment,
     Exception\NonInteractiveTerminal,
 };
-use Innmind\OperatingSystem\Sockets;
-use Innmind\Stream\{
-    Readable,
-    Writable,
-    Selectable,
-    Stream,
-    Stream\Position,
-    Stream\Position\Mode,
-    Stream\Size,
-    Watch\Select,
-};
-use Innmind\TimeContinuum\Earth\ElapsedPeriod;
 use Innmind\Immutable\{
     Str,
     Map,
     Sequence,
     Maybe,
-    Either,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -41,102 +28,26 @@ class ChoiceQuestionTest extends TestCase
                 (2, 3)
                 ('bar', 3),
         );
-        $input = new class implements Readable, Selectable {
-            private $resource;
-
-            public function close(): Either
-            {
-            }
-
-            public function closed(): bool
-            {
-                return false;
-            }
-
-            public function position(): Position
-            {
-            }
-
-            public function seek(Position $position, Mode $mode = null): Either
-            {
-            }
-
-            public function rewind(): Either
-            {
-            }
-
-            public function end(): bool
-            {
-                return false;
-            }
-
-            public function size(): Maybe
-            {
-                return Maybe::nothing();
-            }
-
-            public function resource()
-            {
-                return $this->resource ?? $this->resource = \tmpfile();
-            }
-
-            public function read(int $length = null): Maybe
-            {
-                static $flag = false;
-
-                if ($flag) {
-                    return Maybe::just(Str::of("2\n"));
-                }
-
-                $flag = true;
-
-                return Maybe::just(Str::of(' foo,  '));
-            }
-
-            public function readLine(): Maybe
-            {
-                return Maybe::just(Str::of('not used'));
-            }
-
-            public function toString(): Maybe
-            {
-                return Maybe::just('not used');
-            }
-        };
-        $output = $this->createMock(Writable::class);
-        $output
-            ->expects($this->exactly(6))
-            ->method('write')
-            ->withConsecutive(
-                [$this->callback(static function($line): bool {
-                    return $line->toString() === "message\n";
-                })],
-                [$this->callback(static function($line): bool {
-                    return $line->toString() === "[foo] bar\n";
-                })],
-                [$this->callback(static function($line): bool {
-                    return $line->toString() === "[1] baz\n";
-                })],
-                [$this->callback(static function($line): bool {
-                    return $line->toString() === "[2] 3\n";
-                })],
-                [$this->callback(static function($line): bool {
-                    return $line->toString() === "[bar] 3\n";
-                })],
-                [$this->callback(static function($line): bool {
-                    return $line->toString() === '> ';
-                })],
-            )
-            ->willReturn(Either::right($output));
         $env = $this->createMock(Environment::class);
         $env
             ->expects($this->any())
-            ->method('input')
-            ->willReturn($input);
+            ->method('read')
+            ->will($this->onConsecutiveCalls(
+                [Maybe::just(Str::of(' foo,  ')), $env],
+                [Maybe::just(Str::of("2\n")), $env],
+            ));
         $env
-            ->expects($this->any())
+            ->expects($this->exactly(6))
             ->method('output')
-            ->willReturn($output);
+            ->withConsecutive(
+                [Str::of("message\n")],
+                [Str::of("[foo] bar\n")],
+                [Str::of("[1] baz\n")],
+                [Str::of("[2] 3\n")],
+                [Str::of("[bar] 3\n")],
+                [Str::of('> ')],
+            )
+            ->will($this->returnSelf());
         $env
             ->expects($this->once())
             ->method('interactive')
@@ -145,13 +56,8 @@ class ChoiceQuestionTest extends TestCase
             ->expects($this->once())
             ->method('arguments')
             ->willReturn(Sequence::strings());
-        $sockets = $this->createMock(Sockets::class);
-        $sockets
-            ->expects($this->once())
-            ->method('watch')
-            ->willReturn(Select::timeoutAfter(new ElapsedPeriod(1000)));
 
-        $response = $question($env, $sockets);
+        [$response] = $question($env);
 
         $this->assertInstanceOf(Map::class, $response);
         $this->assertCount(2, $response);
@@ -177,7 +83,7 @@ class ChoiceQuestionTest extends TestCase
 
         $this->expectException(NonInteractiveTerminal::class);
 
-        $question($env, $this->createMock(Sockets::class));
+        $question($env);
     }
 
     public function testThrowWhenOptionToSpecifyNoInteractionIsRequired()
@@ -196,6 +102,6 @@ class ChoiceQuestionTest extends TestCase
 
         $this->expectException(NonInteractiveTerminal::class);
 
-        $question($env, $this->createMock(Sockets::class));
+        $question($env);
     }
 }

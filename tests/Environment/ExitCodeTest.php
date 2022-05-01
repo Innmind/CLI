@@ -32,22 +32,4 @@ class ExitCodeTest extends TestCase
                 $this->assertFalse((new ExitCode($code))->successful());
             });
     }
-
-    public function testNegativeCodesAreReplacedByZero()
-    {
-        $this
-            ->forAll(Set\Integers::below(0))
-            ->then(function(int $code): void {
-                $this->assertSame(0, (new ExitCode($code))->toInt());
-            });
-    }
-
-    public function testCodesHigherThan254AreReplacedBy254()
-    {
-        $this
-            ->forAll(Set\Integers::between(255, 10000))
-            ->then(function(int $code): void {
-                $this->assertSame(254, (new ExitCode($code))->toInt());
-            });
-    }
 }

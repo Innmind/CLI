@@ -6,6 +6,9 @@ namespace Innmind\CLI\Command\Pattern;
 use Innmind\CLI\Exception\PatternNotRecognized;
 use Innmind\Immutable\Str;
 
+/**
+ * @psalm-immutable
+ */
 final class Inputs
 {
     /** list<class-string<Input>> */

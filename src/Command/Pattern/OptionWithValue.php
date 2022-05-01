@@ -10,6 +10,9 @@ use Innmind\Immutable\{
     Map,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class OptionWithValue implements Input, Option
 {
     private const PATTERN = '~^(?<short>-[a-zA-Z0-9]\|)?(?<name>--[a-zA-Z0-9\-]+)=$~';
@@ -34,6 +37,9 @@ final class OptionWithValue implements Input, Option
         }
     }
 
+    /**
+     * @psalm-immutable
+     */
     public static function of(Str $pattern): Input
     {
         $parts = $pattern->capture(self::PATTERN);

@@ -11,10 +11,12 @@ use Innmind\OperatingSystem\OperatingSystem;
 use Innmind\Immutable\Str;
 
 new class extends Main {
-    protected function main(Environment $env, OperatingSystem $os): void
+    protected function main(Environment $env, OperatingSystem $os): Environment
     {
-        $env->output()->write(
-            $env->input()->read()->match(
+        [$input, $env] = $env->read();
+
+        return $env->output(
+            $input->match(
                 static fn($str) => $str,
                 static fn() => Str::of(''),
             ),

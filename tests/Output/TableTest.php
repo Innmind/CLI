@@ -9,8 +9,6 @@ use Innmind\CLI\{
     Output\Table\Row\Cell\Cell,
     Exception\EachRowMustBeOfSameSize,
 };
-use Innmind\Stream\Writable;
-use Innmind\Immutable\Either;
 use PHPUnit\Framework\TestCase;
 
 class TableTest extends TestCase
@@ -28,18 +26,10 @@ class TableTest extends TestCase
 | foo    | foobar |
 | foobar | foo    |
 +--------+--------+
+
 TABLE;
 
         $this->assertSame($expected, $printTo->toString());
-        $output = $this->createMock(Writable::class);
-        $output
-            ->expects($this->once())
-            ->method('write')
-            ->with($this->callback(static function($str) use ($expected): bool {
-                return $str->toString() === $expected;
-            }))
-            ->willReturn(Either::right($output));
-        $printTo($output);
     }
 
     public function testStringCastWithHeader()
@@ -57,6 +47,7 @@ TABLE;
 | foo       | foobar     |
 | foobar    | foo        |
 +-----------+------------+
+
 TABLE;
 
         $this->assertSame($expected, $printTo->toString());
@@ -71,8 +62,8 @@ TABLE;
         );
 
         $expected = " first col  second col \n".
-" foo        foobar     \n".
-' foobar     foo        ';
+            " foo        foobar     \n".
+            " foobar     foo        \n";
 
         $this->assertSame($expected, $printTo->toString());
     }

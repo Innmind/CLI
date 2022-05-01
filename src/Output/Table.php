@@ -7,13 +7,15 @@ use Innmind\CLI\{
     Output\Table\Row,
     Exception\EachRowMustBeOfSameSize,
 };
-use Innmind\Stream\Writable;
 use Innmind\Immutable\{
     Sequence,
     Str,
     Map,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class Table
 {
     private ?Row $header;
@@ -46,11 +48,6 @@ final class Table
         if ($header && $header->size() !== $row->size()) {
             throw new EachRowMustBeOfSameSize;
         }
-    }
-
-    public function __invoke(Writable $stream): void
-    {
-        $stream->write(Str::of($this->toString()));
     }
 
     /**
@@ -121,7 +118,7 @@ final class Table
             ->filter(static fn(Str $line): bool => !$line->empty())
             ->map(static fn(Str $line): string => $line->toString());
 
-        return Str::of("\n")->join($lines)->toString();
+        return Str::of("\n")->join($lines)->append("\n")->toString();
     }
 
     /**

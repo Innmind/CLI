@@ -9,6 +9,9 @@ use Innmind\Immutable\{
     Map,
 };
 
+/**
+ * @psalm-immutable
+ */
 interface Input
 {
     public static function of(Str $pattern): self;

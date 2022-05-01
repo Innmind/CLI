@@ -13,6 +13,9 @@ use Innmind\Immutable\{
     Map,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class RequiredArgument implements Input, Argument
 {
     private string $name;
@@ -22,6 +25,9 @@ final class RequiredArgument implements Input, Argument
         $this->name = $name;
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function of(Str $pattern): Input
     {
         if (!$pattern->matches('~^[a-zA-Z0-9]+$~')) {

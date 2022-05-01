@@ -16,13 +16,16 @@ use Innmind\Immutable\{
 };
 
 new class extends Main {
-    protected function main(Environment $env, OperatingSystem $os): void
+    protected function main(Environment $env, OperatingSystem $os): Environment
     {
         $user = new Question('your name please :');
         $pwd = new Question('password :');
 
-        $env->output()->write($user($env, $os->sockets())->append("\n"));
-        $env->output()->write($pwd($env, $os->sockets())->append("\n"));
+        [$response, $env] = $user($env);
+        $env->output($response->append("\n"));
+
+        [$response, $env] = $pwd($env);
+        $env->output($response->append("\n"));
 
         $ask = new ChoiceQuestion(
             'choices:',
@@ -33,17 +36,22 @@ new class extends Main {
                 (3, 'foo')
         );
 
-        $choices = $ask($env, $os->sockets());
+        [$choices, $env] = $ask($env);
 
-        $choices->foreach(static function($key, $value) use ($env): void {
-            $env->output()->write(
-                Str::of("%s(%s) => %s(%s)\n")->sprintf(
-                    (string) gettype($key),
-                    (string) $key,
-                    gettype($value),
-                    (string) $value,
-                ),
-            );
-        });
+        return $choices->reduce(
+            $env,
+            static function($env, $key, $value): Environment {
+                return $env->output(
+                    Str::of("%s(%s) => %s(%s)\n")->sprintf(
+                        (string) gettype($key),
+                        (string) $key,
+                        gettype($value),
+                        (string) $value,
+                    ),
+                );
+            },
+        );
+
+        return $env;
     }
 };

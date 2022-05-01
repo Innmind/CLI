@@ -6,6 +6,9 @@ namespace Innmind\CLI\Output\Table\Row\Cell;
 use Innmind\CLI\Output\Table\Row\Cell as CellInterface;
 use Innmind\Immutable\Str;
 
+/**
+ * @psalm-immutable
+ */
 final class Cell implements CellInterface
 {
     private string $value;

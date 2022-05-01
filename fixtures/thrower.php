@@ -13,7 +13,7 @@ use Innmind\OperatingSystem\OperatingSystem;
 use Innmind\Immutable\Str;
 
 new class extends Main {
-    protected function main(Environment $env, OperatingSystem $os): void
+    protected function main(Environment $env, OperatingSystem $os): Environment
     {
         throw new LogicException('waaat');
     }

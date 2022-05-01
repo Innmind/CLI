@@ -12,6 +12,9 @@ use Innmind\Immutable\{
     Str,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class Specification
 {
     private Command $command;

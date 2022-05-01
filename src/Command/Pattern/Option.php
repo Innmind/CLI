@@ -5,6 +5,9 @@ namespace Innmind\CLI\Command\Pattern;
 
 use Innmind\Immutable\Sequence;
 
+/**
+ * @psalm-immutable
+ */
 interface Option
 {
     /**

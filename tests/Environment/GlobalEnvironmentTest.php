@@ -8,6 +8,7 @@ use Innmind\CLI\{
     Environment\ExitCode,
     Environment
 };
+use Innmind\OperatingSystem\Sockets;
 use Innmind\Stream\{
     Readable,
     Selectable,
@@ -17,6 +18,7 @@ use Innmind\Url\Path;
 use Innmind\Immutable\{
     Sequence,
     Map,
+    Maybe,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -26,7 +28,7 @@ class GlobalEnvironmentTest extends TestCase
 
     public function setUp(): void
     {
-        $this->env = new GlobalEnvironment;
+        $this->env = GlobalEnvironment::of($this->createMock(Sockets::class));
     }
 
     public function testInterface()
@@ -39,29 +41,6 @@ class GlobalEnvironmentTest extends TestCase
         // can't prove via a test that the env can be interactive as tests are
         // always run in an non interactive env
         $this->assertFalse($this->env->interactive());
-    }
-
-    public function testInput()
-    {
-        $this->assertInstanceOf(Readable::class, $this->env->input());
-        $this->assertInstanceOf(Selectable::class, $this->env->input());
-        $this->assertSame(\STDIN, $this->env->input()->resource());
-    }
-
-    public function testOutput()
-    {
-        $this->assertInstanceOf(Writable::class, $this->env->output());
-        $this->assertInstanceOf(Selectable::class, $this->env->output());
-        $info = \stream_get_meta_data($this->env->output()->resource());
-        $this->assertSame('php://output', $info['uri']);
-        $this->assertSame('wb', $info['mode']);
-    }
-
-    public function testError()
-    {
-        $this->assertInstanceOf(Writable::class, $this->env->error());
-        $this->assertInstanceOf(Selectable::class, $this->env->error());
-        $this->assertSame(\STDERR, $this->env->error()->resource());
     }
 
     public function testArguments()
@@ -88,10 +67,13 @@ class GlobalEnvironmentTest extends TestCase
 
     public function testExitCode()
     {
-        $this->assertInstanceOf(ExitCode::class, $this->env->exitCode());
-        $this->assertSame(0, $this->env->exitCode()->toInt());
-        $this->assertNull($this->env->exit(1));
-        $this->assertSame(1, $this->env->exitCode()->toInt());
+        $this->assertEquals(Maybe::nothing(), $this->env->exitCode());
+        $env = $this->env->exit(1);
+        $this->assertInstanceOf(Environment::class, $env);
+        $this->assertSame(1, $env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
     }
 
     public function testWorkingDirectory()

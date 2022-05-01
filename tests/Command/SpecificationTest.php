@@ -5,11 +5,9 @@ namespace Tests\Innmind\CLI\Command;
 
 use Innmind\CLI\{
     Command\Specification,
-    Command\Arguments,
-    Command\Options,
     Command\Pattern,
     Command,
-    Environment,
+    Console,
     Exception\EmptyDeclaration,
 };
 use PHPUnit\Framework\TestCase;
@@ -25,7 +23,7 @@ class SpecificationTest extends TestCase
     public function testInterface()
     {
         $command = new class implements Command {
-            public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+            public function __invoke(Console $console): Console
             {
             }
 
@@ -85,7 +83,7 @@ DESCRIPTION;
                         $this->usage = $usage;
                     }
 
-                    public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                    public function __invoke(Console $console): Console
                     {
                     }
 
@@ -118,7 +116,7 @@ DESCRIPTION;
                         $this->usage = $usage;
                     }
 
-                    public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                    public function __invoke(Console $console): Console
                     {
                     }
 
@@ -151,7 +149,7 @@ DESCRIPTION;
                         $this->usage = $usage;
                     }
 
-                    public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                    public function __invoke(Console $console): Console
                     {
                     }
 
@@ -183,7 +181,7 @@ DESCRIPTION;
                         $this->usage = $usage;
                     }
 
-                    public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                    public function __invoke(Console $console): Console
                     {
                     }
 
@@ -216,7 +214,7 @@ DESCRIPTION;
                         $this->usage = $usage;
                     }
 
-                    public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                    public function __invoke(Console $console): Console
                     {
                     }
 
@@ -236,7 +234,7 @@ DESCRIPTION;
     public function testThrowWhenEmptyDeclaration()
     {
         $command = new class implements Command {
-            public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+            public function __invoke(Console $console): Console
             {
             }
 

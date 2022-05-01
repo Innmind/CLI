@@ -8,6 +8,9 @@ use Innmind\Immutable\{
     Sequence,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class Options
 {
     /** @var Map<string, string> */
@@ -22,6 +25,8 @@ final class Options
     }
 
     /**
+     * @psalm-pure
+     *
      * @param Sequence<string> $arguments
      */
     public static function of(

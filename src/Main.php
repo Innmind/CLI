@@ -7,7 +7,6 @@ use Innmind\OperatingSystem\{
     Factory,
     OperatingSystem,
 };
-use Innmind\Stream\Writable;
 use Innmind\StackTrace\{
     StackTrace,
     Throwable,
@@ -23,24 +22,20 @@ abstract class Main
     final public function __construct()
     {
         $os = Factory::build();
-        $env = new Environment\WriteAsASCII(
-            new Environment\ChunkWriteByLine(
-                new Environment\BackPressureWrites(
-                    new Environment\GlobalEnvironment,
-                    $os->clock(),
-                    $os->process(),
-                ),
-            ),
-        );
+        $env = Environment\GlobalEnvironment::of($os->sockets());
 
         try {
-            $this->main($env, $os);
+            $env = $this->main($env, $os);
         } catch (\Throwable $e) {
-            $this->print($e, $env->error());
-            $env->exit(1);
+            $env = $this
+                ->print($e, $env)
+                ->exit(1);
         }
 
-        exit($env->exitCode()->toInt());
+        exit($env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => 0,
+        ));
     }
 
     final public function __destruct()
@@ -48,9 +43,9 @@ abstract class Main
         //main() is the only place to run code
     }
 
-    abstract protected function main(Environment $env, OperatingSystem $os): void;
+    abstract protected function main(Environment $env, OperatingSystem $os): Environment;
 
-    private function print(\Throwable $e, Writable $stream): void
+    private function print(\Throwable $e, Environment $env): Environment
     {
         $stack = StackTrace::of($e);
 
@@ -65,8 +60,10 @@ abstract class Main
                     ->append($this->renderError($e));
             },
         );
-        $_ = $chunks->foreach(
-            static fn(Str $line) => $stream->write($line->append("\n")),
+
+        return $chunks->reduce(
+            $env,
+            static fn(Environment $env, Str $line) => $env->error($line->append("\n")),
         );
     }
 

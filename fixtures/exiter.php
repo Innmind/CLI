@@ -10,9 +10,9 @@ use Innmind\CLI\{
 use Innmind\OperatingSystem\OperatingSystem;
 
 new class extends Main {
-    protected function main(Environment $env, OperatingSystem $os): void
+    protected function main(Environment $env, OperatingSystem $os): Environment
     {
-        $env->exit((int) $env->arguments()->last()->match(
+        return $env->exit((int) $env->arguments()->last()->match(
             static fn($last) => $last,
             static fn() => null,
         ));

@@ -7,14 +7,15 @@ use Innmind\CLI\{
     Environment,
     Exception\NonInteractiveTerminal,
 };
-use Innmind\OperatingSystem\Sockets;
-use Innmind\TimeContinuum\Earth\ElapsedPeriod;
 use Innmind\Immutable\{
     Str,
     Map,
     Set,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class ChoiceQuestion
 {
     private Str $question;
@@ -33,38 +34,32 @@ final class ChoiceQuestion
     /**
      * @throws NonInteractiveTerminal
      *
-     * @return Map<scalar, scalar>
+     * @return array{Map<scalar, scalar>, Environment}
      */
-    public function __invoke(Environment $env, Sockets $sockets): Map
+    public function __invoke(Environment $env): array
     {
         if (!$env->interactive() || $env->arguments()->contains('--no-interaction')) {
             throw new NonInteractiveTerminal;
         }
 
-        $input = $env->input();
-        $output = $env->output();
-        $output->write($this->question->append("\n"));
-        $_ = $this->values->foreach(static function($key, $value) use ($output): void {
-            $output->write(Str::of("[%s] %s\n")->sprintf((string) $key, (string) $value));
-        });
-        $output->write(Str::of('> '));
-
-        /** @psalm-suppress InvalidArgument $input must be a Selectable */
-        $select = $sockets->watch(new ElapsedPeriod(60 * 1000)) // one minute
-            ->forRead($input);
+        $env = $env->output($this->question->append("\n"));
+        $env = $this->values->reduce(
+            $env,
+            static function(Environment $env, $key, $value): Environment {
+                return $env->output(Str::of("[%s] %s\n")->sprintf((string) $key, (string) $value));
+            },
+        );
+        $env = $env->output(Str::of('> '));
 
         $response = Str::of('');
 
         do {
-            /** @psalm-suppress InvalidArgument */
-            $response = $select()
-                ->map(static fn($ready) => $ready->toRead())
-                ->filter(static fn($toRead) => $toRead->contains($input))
-                ->flatMap(static fn() => $input->read())
-                ->match(
-                    static fn($input) => $response->append($input->toString()),
-                    static fn() => $response,
-                );
+            [$input, $env] = $env->read();
+
+            $response = $input->match(
+                static fn($input) => $response->append($input->toString()),
+                static fn() => $response,
+            );
         } while (!$response->contains("\n"));
 
         $choices = $response
@@ -72,8 +67,11 @@ final class ChoiceQuestion
             ->split(',')
             ->map(static fn($choice) => $choice->trim()->toString());
 
-        return $this->values->filter(static function($key) use ($choices): bool {
-            return $choices->contains((string) $key);
-        });
+        return [
+            $this->values->filter(static function($key) use ($choices): bool {
+                return $choices->contains((string) $key);
+            }),
+            $env,
+        ];
     }
 }

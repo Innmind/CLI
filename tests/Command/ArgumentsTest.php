@@ -5,10 +5,9 @@ namespace Tests\Innmind\CLI\Command;
 
 use Innmind\CLI\{
     Command\Arguments,
-    Command\Options,
     Command\Specification,
     Command,
-    Environment,
+    Console,
 };
 use Innmind\Immutable\{
     Sequence,
@@ -21,7 +20,7 @@ class ArgumentsTest extends TestCase
     public function testInterface()
     {
         $spec = new Specification(new class implements Command {
-            public function __invoke(Environment $env, Arguments $args, Options $options): void
+            public function __invoke(Console $console): Console
             {
             }
 
@@ -58,7 +57,7 @@ class ArgumentsTest extends TestCase
     public function testOf()
     {
         $spec = new Specification(new class implements Command {
-            public function __invoke(Environment $env, Arguments $args, Options $options): void
+            public function __invoke(Console $console): Console
             {
             }
 

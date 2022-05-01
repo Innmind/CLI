@@ -12,7 +12,6 @@ use Innmind\CLI\{
     Output\Table\Row\Row,
     Output\Table\Row\Cell\Cell,
 };
-use Innmind\Stream\Writable;
 use Innmind\Immutable\{
     Map,
     Str,
@@ -35,18 +34,16 @@ final class Commands
         $this->specifications = $commands->map(static fn($command) => $command[0]);
     }
 
-    public function __invoke(Environment $env): void
+    public function __invoke(Environment $env): Environment
     {
         if ($this->commands->size() === 1) {
-            $_ = $this
+            return $this
                 ->specifications
                 ->find(static fn() => true) // first
                 ->match(
                     fn($specification) => $this->run($env, $specification),
-                    static fn() => null,
+                    static fn() => $env,
                 );
-
-            return;
         }
 
         $command = $env
@@ -58,22 +55,21 @@ final class Commands
             );
 
         if (!\is_string($command)) {
-            $this->displayHelp(
-                $env->error(),
-                $this->specifications,
-            );
-            $env->exit(64); // EX_USAGE The command was used incorrectly
-
-            return;
+            return $this
+                ->displayHelp(
+                    $env,
+                    true,
+                    $this->specifications,
+                )
+                ->exit(64); // EX_USAGE The command was used incorrectly
         }
 
         if ($command === 'help') {
-            $this->displayHelp(
-                $env->output(),
+            return $this->displayHelp(
+                $env,
+                false,
                 $this->specifications,
             );
-
-            return;
         }
 
         $specifications = $this
@@ -87,24 +83,28 @@ final class Commands
                 ),
             );
 
-        $_ = $specifications->match(
+        return $specifications->match(
             fn($spec, $rest) => match ($rest->empty()) {
                 true => $this->run($env, $spec),
-                false => $this->displayHelp(
-                    $env->error(),
-                    Sequence::of($spec)->append($rest),
-                    static fn() => $env->exit(64), // EX_USAGE The command was used incorrectly
-                ),
+                false => $this
+                    ->displayHelp(
+                        $env,
+                        true,
+                        Sequence::of($spec)->append($rest),
+                    )
+                    ->exit(64), // EX_USAGE The command was used incorrectly
             },
-            fn() => $this->displayHelp(
-                $env->error(),
-                $this->specifications,
-                static fn() => $env->exit(64), // EX_USAGE The command was used incorrectly
-            ),
+            fn() => $this
+                ->displayHelp(
+                    $env,
+                    true,
+                    $this->specifications,
+                )
+                ->exit(64), // EX_USAGE The command was used incorrectly
         );
     }
 
-    private function run(Environment $env, Specification $spec): void
+    private function run(Environment $env, Specification $spec): Environment
     {
         $run = $this->commands->get($spec)->match(
             static fn($command) => $command,
@@ -126,34 +126,37 @@ final class Commands
             );
 
         if ($arguments->contains('--help')) {
-            $this->displayUsage(
-                $env->output(),
+            return $this->displayUsage(
+                $env->output(...),
                 $bin,
                 $spec,
             );
-
-            return;
         }
 
         try {
             $options = Options::of($spec, $arguments);
             $arguments = Arguments::of($spec, $arguments);
         } catch (Exception $e) {
-            $this->displayUsage(
-                $env->error(),
-                $bin,
-                $spec,
-            );
-            $env->exit(64); // EX_USAGE The command was used incorrectly
-
-            return;
+            return $this
+                ->displayUsage(
+                    $env->error(...),
+                    $bin,
+                    $spec,
+                )
+                ->exit(64); // EX_USAGE The command was used incorrectly
         }
 
-        $run($env, $arguments, $options);
+        return $run(Console::of($env, $arguments, $options))->environment();
     }
 
-    private function displayUsage(Writable $stream, string $bin, Specification $spec): void
-    {
+    /**
+     * @param callable(Str): Environment $write
+     */
+    private function displayUsage(
+        callable $write,
+        string $bin,
+        Specification $spec,
+    ): Environment {
         $description = Str::of($spec->shortDescription())
             ->append("\n\n")
             ->append($spec->description())
@@ -163,7 +166,7 @@ final class Commands
             $description = $description->prepend("\n\n");
         }
 
-        $stream->write(
+        return $write(
             Str::of('usage: ')
                 ->append($bin)
                 ->append(' ')
@@ -177,22 +180,22 @@ final class Commands
      * @param Sequence<Specification> $specifications
      */
     private function displayHelp(
-        Writable $stream,
+        Environment $env,
+        bool $error,
         Sequence $specifications,
-        callable $exit = null,
-    ): void {
+    ): Environment {
         $rows = $specifications->map(
             static fn(Specification $spec) => new Row(
                 new Cell($spec->name()),
                 new Cell($spec->shortDescription()),
             ),
         );
-        $printTo = Table::borderless(null, ...$rows->toList());
-        $printTo($stream);
-        $stream->write(Str::of("\n"));
+        $table = Table::borderless(null, ...$rows->toList());
 
-        if ($exit) {
-            $exit();
+        if ($error) {
+            return $env->error(Str::of($table->toString()));
         }
+
+        return $env->output(Str::of($table->toString()));
     }
 }
