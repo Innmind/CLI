@@ -8,11 +8,7 @@ use Innmind\CLI\{
     Environment,
     Exception\NonInteractiveTerminal,
 };
-use Innmind\Immutable\{
-    Str,
-    Sequence,
-    Maybe,
-};
+use Innmind\Immutable\Str;
 use PHPUnit\Framework\TestCase;
 
 class QuestionTest extends TestCase
@@ -20,43 +16,35 @@ class QuestionTest extends TestCase
     public function testInvoke()
     {
         $question = new Question('message');
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->any())
-            ->method('read')
-            ->will($this->onConsecutiveCalls(
-                [Maybe::just(Str::of('f')), $env],
-                [Maybe::just(Str::of("oo\n")), $env],
-            ));
-        $env
-            ->expects($this->any())
-            ->method('output')
-            ->with(Str::of('message '))
-            ->will($this->returnSelf());
-        $env
-            ->expects($this->once())
-            ->method('interactive')
-            ->willReturn(true);
-        $env
-            ->expects($this->once())
-            ->method('arguments')
-            ->willReturn(Sequence::strings());
+        $env = Environment\InMemory::of(
+            ['f', "oo\n"],
+            true,
+            [],
+            [],
+            '/',
+        );
 
-        [$response] = $question($env);
+        [$response, $env] = $question($env);
 
         $this->assertInstanceOf(Str::class, $response);
         $this->assertSame('foo', $response->toString());
+        $this->assertSame(
+            ['message '],
+            $env->outputs(),
+        );
     }
 
     public function testThrowWhenEnvNonInteractive()
     {
         $question = new Question('watev');
 
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->once())
-            ->method('interactive')
-            ->willReturn(false);
+        $env = Environment\InMemory::of(
+            [],
+            false,
+            [],
+            [],
+            '/',
+        );
 
         $this->expectException(NonInteractiveTerminal::class);
 
@@ -67,15 +55,13 @@ class QuestionTest extends TestCase
     {
         $question = new Question('watev');
 
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->once())
-            ->method('interactive')
-            ->willReturn(true);
-        $env
-            ->expects($this->once())
-            ->method('arguments')
-            ->willReturn(Sequence::strings('foo', '--no-interaction', 'bar'));
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['foo', '--no-interaction', 'bar'],
+            [],
+            '/',
+        );
 
         $this->expectException(NonInteractiveTerminal::class);
 

@@ -8,12 +8,7 @@ use Innmind\CLI\{
     Environment,
     Exception\NonInteractiveTerminal,
 };
-use Innmind\Immutable\{
-    Str,
-    Map,
-    Sequence,
-    Maybe,
-};
+use Innmind\Immutable\Map;
 use PHPUnit\Framework\TestCase;
 
 class ChoiceQuestionTest extends TestCase
@@ -28,36 +23,15 @@ class ChoiceQuestionTest extends TestCase
                 (2, 3)
                 ('bar', 3),
         );
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->any())
-            ->method('read')
-            ->will($this->onConsecutiveCalls(
-                [Maybe::just(Str::of(' foo,  ')), $env],
-                [Maybe::just(Str::of("2\n")), $env],
-            ));
-        $env
-            ->expects($this->exactly(6))
-            ->method('output')
-            ->withConsecutive(
-                [Str::of("message\n")],
-                [Str::of("[foo] bar\n")],
-                [Str::of("[1] baz\n")],
-                [Str::of("[2] 3\n")],
-                [Str::of("[bar] 3\n")],
-                [Str::of('> ')],
-            )
-            ->will($this->returnSelf());
-        $env
-            ->expects($this->once())
-            ->method('interactive')
-            ->willReturn(true);
-        $env
-            ->expects($this->once())
-            ->method('arguments')
-            ->willReturn(Sequence::strings());
+        $env = Environment\InMemory::of(
+            [' foo,  ', "2\n"],
+            true,
+            [],
+            [],
+            '/',
+        );
 
-        [$response] = $question($env);
+        [$response, $env] = $question($env);
 
         $this->assertInstanceOf(Map::class, $response);
         $this->assertCount(2, $response);
@@ -69,17 +43,30 @@ class ChoiceQuestionTest extends TestCase
             static fn($value) => $value,
             static fn() => null,
         ));
+        $this->assertSame(
+            [
+                "message\n",
+                "[foo] bar\n",
+                "[1] baz\n",
+                "[2] 3\n",
+                "[bar] 3\n",
+                '> ',
+            ],
+            $env->outputs(),
+        );
     }
 
     public function testThrowWhenEnvNonInteractive()
     {
         $question = new ChoiceQuestion('watev', Map::of());
 
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->once())
-            ->method('interactive')
-            ->willReturn(false);
+        $env = Environment\InMemory::of(
+            [],
+            false,
+            [],
+            [],
+            '/',
+        );
 
         $this->expectException(NonInteractiveTerminal::class);
 
@@ -90,15 +77,13 @@ class ChoiceQuestionTest extends TestCase
     {
         $question = new ChoiceQuestion('watev', Map::of());
 
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->once())
-            ->method('interactive')
-            ->willReturn(true);
-        $env
-            ->expects($this->once())
-            ->method('arguments')
-            ->willReturn(Sequence::strings('foo', '--no-interaction', 'bar'));
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['foo', '--no-interaction', 'bar'],
+            [],
+            '/',
+        );
 
         $this->expectException(NonInteractiveTerminal::class);
 

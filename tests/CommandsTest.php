@@ -9,12 +9,6 @@ use Innmind\CLI\{
     Environment,
     Console,
 };
-use Innmind\Url\Path;
-use Innmind\Immutable\{
-    Sequence,
-    Str,
-    Map,
-};
 use PHPUnit\Framework\TestCase;
 
 class CommandsTest extends TestCase
@@ -42,23 +36,18 @@ class CommandsTest extends TestCase
                 return 'watch container [output] --foo';
             }
         });
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->once())
-            ->method('arguments')
-            ->willReturn(Sequence::of('bin/console', 'foo', '--foo', 'bar'));
-        $env
-            ->expects($this->once())
-            ->method('exit')
-            ->with(42);
-        $env
-            ->method('variables')
-            ->willReturn(Map::of());
-        $env
-            ->method('workingDirectory')
-            ->willReturn(Path::of('/'));
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'foo', '--foo', 'bar'],
+            [],
+            '/',
+        );
 
-        $this->assertInstanceOf(Environment::class, $run($env));
+        $this->assertSame(42, $run($env)->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
     }
 
     public function testRunCommandByName()
@@ -97,23 +86,18 @@ class CommandsTest extends TestCase
                 }
             },
         );
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->exactly(2))
-            ->method('arguments')
-            ->willReturn(Sequence::of('bin/console', 'watch', 'foo', '--foo', 'bar'));
-        $env
-            ->expects($this->once())
-            ->method('exit')
-            ->with(24);
-        $env
-            ->method('variables')
-            ->willReturn(Map::of());
-        $env
-            ->method('workingDirectory')
-            ->willReturn(Path::of('/'));
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'watch', 'foo', '--foo', 'bar'],
+            [],
+            '/',
+        );
 
-        $this->assertInstanceOf(Environment::class, $run($env));
+        $this->assertSame(24, $run($env)->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
     }
 
     public function testRunCommandByNameEvenWhenAnotherCommandStartsWithTheSameName()
@@ -142,23 +126,18 @@ class CommandsTest extends TestCase
                 }
             },
         );
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->exactly(2))
-            ->method('arguments')
-            ->willReturn(Sequence::of('bin/console', 'foo'));
-        $env
-            ->expects($this->once())
-            ->method('exit')
-            ->with(42);
-        $env
-            ->method('variables')
-            ->willReturn(Map::of());
-        $env
-            ->method('workingDirectory')
-            ->willReturn(Path::of('/'));
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'foo'],
+            [],
+            '/',
+        );
 
-        $this->assertInstanceOf(Environment::class, $run($env));
+        $this->assertSame(42, $run($env)->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
     }
 
     public function testRunCommandBySpecifyingOnlyTheStartOfItsName()
@@ -187,23 +166,18 @@ class CommandsTest extends TestCase
                 }
             },
         );
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->any())
-            ->method('arguments')
-            ->willReturn(Sequence::of('bin/console', 'w'));
-        $env
-            ->expects($this->once())
-            ->method('exit')
-            ->with(24);
-        $env
-            ->method('variables')
-            ->willReturn(Map::of());
-        $env
-            ->method('workingDirectory')
-            ->willReturn(Path::of('/'));
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'w'],
+            [],
+            '/',
+        );
 
-        $this->assertInstanceOf(Environment::class, $run($env));
+        $this->assertSame(24, $run($env)->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
     }
 
     public function testRunCommandBySpecifyingOnlyTheStartOfTheSectionsOfItsName()
@@ -232,23 +206,18 @@ class CommandsTest extends TestCase
                 }
             },
         );
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->any())
-            ->method('arguments')
-            ->willReturn(Sequence::of('bin/console', 'f:b:b'));
-        $env
-            ->expects($this->once())
-            ->method('exit')
-            ->with(42);
-        $env
-            ->method('variables')
-            ->willReturn(Map::of());
-        $env
-            ->method('workingDirectory')
-            ->willReturn(Path::of('/'));
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'f:b:b'],
+            [],
+            '/',
+        );
 
-        $this->assertInstanceOf(Environment::class, $run($env));
+        $this->assertSame(42, $run($env)->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
     }
 
     public function testExitWhenCommandNotFound()
@@ -277,22 +246,24 @@ class CommandsTest extends TestCase
                 }
             },
         );
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->once())
-            ->method('arguments')
-            ->willReturn(Sequence::of('bin/console', 'bar'));
-        $env
-            ->expects($this->once())
-            ->method('exit')
-            ->with(64);
-        $env
-            ->expects($this->once())
-            ->method('error')
-            ->with(Str::of(" foo     \n watch   \n"))
-            ->will($this->returnSelf());
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'bar'],
+            [],
+            '/',
+        );
 
-        $this->assertInstanceOf(Environment::class, $run($env));
+        $env = $run($env);
+
+        $this->assertSame(64, $env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+        $this->assertSame(
+            [" foo     \n watch   \n"],
+            $env->errors(),
+        );
     }
 
     public function testExitWhenMultipleCommandsMatchTheGivenName()
@@ -321,22 +292,24 @@ class CommandsTest extends TestCase
                 }
             },
         );
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->once())
-            ->method('arguments')
-            ->willReturn(Sequence::of('bin/console', 'ba'));
-        $env
-            ->expects($this->once())
-            ->method('exit')
-            ->with(64);
-        $env
-            ->expects($this->once())
-            ->method('error')
-            ->with(Str::of(" bar   \n baz   \n"))
-            ->will($this->returnSelf());
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'ba'],
+            [],
+            '/',
+        );
 
-        $this->assertInstanceOf(Environment::class, $run($env));
+        $env = $run($env);
+
+        $this->assertSame(64, $env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+        $this->assertSame(
+            [" bar   \n baz   \n"],
+            $env->errors(),
+        );
     }
 
     public function testExitWhenCommandMisused()
@@ -358,22 +331,24 @@ Bar
 USAGE;
             }
         });
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->once())
-            ->method('arguments')
-            ->willReturn(Sequence::of('bin/console'));
-        $env
-            ->expects($this->once())
-            ->method('exit')
-            ->with(64);
-        $env
-            ->expects($this->once())
-            ->method('error')
-            ->with(Str::of('usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar\n"))
-            ->will($this->returnSelf());
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console'],
+            [],
+            '/',
+        );
 
-        $this->assertInstanceOf(Environment::class, $run($env));
+        $env = $run($env);
+
+        $this->assertSame(64, $env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+        $this->assertSame(
+            ['usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar\n"],
+            $env->errors(),
+        );
     }
 
     public function testEnvNotTemperedWhenCommandThrows()
@@ -389,20 +364,13 @@ USAGE;
                 return 'watch container [output] --foo';
             }
         });
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->once())
-            ->method('arguments')
-            ->willReturn(Sequence::of('bin/console', 'foo', '--foo', 'bar'));
-        $env
-            ->expects($this->never())
-            ->method('exit');
-        $env
-            ->method('variables')
-            ->willReturn(Map::of());
-        $env
-            ->method('workingDirectory')
-            ->willReturn(Path::of('/'));
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'foo', '--foo', 'bar'],
+            [],
+            '/',
+        );
 
         $this->expectException(\Exception::class);
 
@@ -428,21 +396,24 @@ Bar
 USAGE;
             }
         });
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->once())
-            ->method('arguments')
-            ->willReturn(Sequence::of('bin/console', '--help'));
-        $env
-            ->expects($this->never())
-            ->method('exit');
-        $env
-            ->expects($this->once())
-            ->method('output')
-            ->with(Str::of('usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar\n"))
-            ->will($this->returnSelf());
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', '--help'],
+            [],
+            '/',
+        );
 
-        $this->assertInstanceOf(Environment::class, $run($env));
+        $env = $run($env);
+
+        $this->assertNull($env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+        $this->assertSame(
+            ['usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar\n"],
+            $env->outputs(),
+        );
     }
 
     public function testRunHelpCommand()
@@ -471,21 +442,24 @@ USAGE;
                 }
             },
         );
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->once())
-            ->method('arguments')
-            ->willReturn(Sequence::of('bin/console', 'help'));
-        $env
-            ->expects($this->never())
-            ->method('exit');
-        $env
-            ->expects($this->once())
-            ->method('output')
-            ->with(Str::of(" foo    Description                \n watch  Watch dependency injection \n"))
-            ->will($this->returnSelf());
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'help'],
+            [],
+            '/',
+        );
 
-        $this->assertInstanceOf(Environment::class, $run($env));
+        $env = $run($env);
+
+        $this->assertNull($env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+        $this->assertSame(
+            [" foo    Description                \n watch  Watch dependency injection \n"],
+            $env->outputs(),
+        );
     }
 
     public function testDisplayHelpWhenNoCommandProvided()
@@ -514,21 +488,23 @@ USAGE;
                 }
             },
         );
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->once())
-            ->method('arguments')
-            ->willReturn(Sequence::of('bin/console'));
-        $env
-            ->expects($this->once())
-            ->method('exit')
-            ->with(64);
-        $env
-            ->expects($this->once())
-            ->method('error')
-            ->with(Str::of(" foo     \n watch   \n"))
-            ->will($this->returnSelf());
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console'],
+            [],
+            '/',
+        );
 
-        $this->assertInstanceOf(Environment::class, $run($env));
+        $env = $run($env);
+
+        $this->assertSame(64, $env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+        $this->assertSame(
+            [" foo     \n watch   \n"],
+            $env->errors(),
+        );
     }
 }
