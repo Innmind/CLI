@@ -43,9 +43,9 @@ final class Options
         return new self($options);
     }
 
-    public function get(string $argument): string
+    public function get(string $option): string
     {
-        return $this->maybe($argument)->match(
+        return $this->maybe($option)->match(
             static fn($value) => $value,
             static fn() => throw new \RuntimeException,
         );
@@ -54,13 +54,13 @@ final class Options
     /**
      * @return Maybe<string>
      */
-    public function maybe(string $argument): Maybe
+    public function maybe(string $option): Maybe
     {
-        return $this->options->get($argument);
+        return $this->options->get($option);
     }
 
-    public function contains(string $argument): bool
+    public function contains(string $option): bool
     {
-        return $this->options->contains($argument);
+        return $this->options->contains($option);
     }
 }
