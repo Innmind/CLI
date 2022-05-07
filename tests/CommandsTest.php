@@ -261,7 +261,10 @@ class CommandsTest extends TestCase
             static fn() => null,
         ));
         $this->assertSame(
-            [" foo     \n watch   \n"],
+            [
+                " foo    \n",
+                " watch  \n",
+            ],
             $env->errors(),
         );
     }
@@ -307,7 +310,10 @@ class CommandsTest extends TestCase
             static fn() => null,
         ));
         $this->assertSame(
-            [" bar   \n baz   \n"],
+            [
+                " bar  \n",
+                " baz  \n",
+            ],
             $env->errors(),
         );
     }
@@ -457,7 +463,10 @@ USAGE;
             static fn() => null,
         ));
         $this->assertSame(
-            [" foo    Description                \n watch  Watch dependency injection \n"],
+            [
+                " foo    Description\n",
+                " watch  Watch dependency injection\n",
+            ],
             $env->outputs(),
         );
     }
@@ -503,7 +512,7 @@ USAGE;
             static fn() => null,
         ));
         $this->assertSame(
-            [" foo     \n watch   \n"],
+            [" foo    \n", " watch  \n"],
             $env->errors(),
         );
     }

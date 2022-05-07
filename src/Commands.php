@@ -8,9 +8,6 @@ use Innmind\CLI\{
     Command\Arguments,
     Command\Options,
     Exception\Exception,
-    Output\Table,
-    Output\Table\Row\Row,
-    Output\Table\Row\Cell\Cell,
 };
 use Innmind\Immutable\{
     Map,
@@ -185,18 +182,33 @@ final class Commands
         bool $error,
         Sequence $specifications,
     ): Environment {
-        $rows = $specifications->map(
-            static fn(Specification $spec) => new Row(
-                new Cell($spec->name()),
-                new Cell($spec->shortDescription()),
-            ),
+        $names = $specifications->map(
+            static fn($spec) => Str::of($spec->name()),
         );
-        $table = Table::borderless(null, ...$rows->toList());
+        $lengths = $names
+            ->map(static fn($name) => $name->length())
+            ->toList();
+        /** @var positive-int */
+        $maxLength = \max(...$lengths);
+
+        $rows = $specifications->map(
+            static fn($spec) => Str::of(' ')
+                ->append(Str::of($spec->name())->rightPad($maxLength)->toString())
+                ->append('  ')
+                ->append($spec->shortDescription())
+                ->append("\n"),
+        );
 
         if ($error) {
-            return $env->error(Str::of($table->toString()));
+            return $rows->reduce(
+                $env,
+                static fn(Environment $env, $row) => $env->error($row),
+            );
         }
 
-        return $env->output(Str::of($table->toString()));
+        return $rows->reduce(
+            $env,
+            static fn(Environment $env, $row) => $env->output($row),
+        );
     }
 }
