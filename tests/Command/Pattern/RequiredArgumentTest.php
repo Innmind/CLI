@@ -8,7 +8,6 @@ use Innmind\CLI\{
     Command\Pattern\Input,
     Command\Pattern\Argument,
     Exception\MissingArgument,
-    Exception\PatternNotRecognized,
 };
 use Innmind\Immutable\{
     Str,
@@ -27,21 +26,33 @@ class RequiredArgumentTest extends TestCase
 
     public function testInterface()
     {
-        $this->assertInstanceOf(Input::class, RequiredArgument::of(Str::of('foo')));
-        $this->assertInstanceOf(Argument::class, RequiredArgument::of(Str::of('foo')));
+        $this->assertInstanceOf(
+            Input::class,
+            RequiredArgument::of(Str::of('foo'))->match(
+                static fn($input) => $input,
+                static fn() => null,
+            ),
+        );
+        $this->assertInstanceOf(
+            Argument::class,
+            RequiredArgument::of(Str::of('foo'))->match(
+                static fn($input) => $input,
+                static fn() => null,
+            ),
+        );
     }
 
-    public function testThrowWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern()
     {
         $this
             ->forAll(Set\Strings::any()->filter(
                 static fn(string $s) => !\preg_match('~^[a-zA-Z0-9]+$~', $s),
             ))
             ->then(function(string $string): void {
-                $this->expectException(PatternNotRecognized::class);
-                $this->expectExceptionMessage($string);
-
-                RequiredArgument::of(Str::of($string));
+                $this->assertNull(RequiredArgument::of(Str::of($string))->match(
+                    static fn($input) => $input,
+                    static fn() => null,
+                ));
             });
     }
 
@@ -52,14 +63,20 @@ class RequiredArgumentTest extends TestCase
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,
-                    RequiredArgument::of(Str::of($string))->toString(),
+                    RequiredArgument::of(Str::of($string))->match(
+                        static fn($input) => $input->toString(),
+                        static fn() => null,
+                    ),
                 );
             });
     }
 
     public function testExtract()
     {
-        $input = RequiredArgument::of(Str::of('foo'));
+        $input = RequiredArgument::of(Str::of('foo'))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
 
         $arguments = $input->extract(
             Map::of(),
@@ -77,7 +94,10 @@ class RequiredArgumentTest extends TestCase
 
     public function testThrowWhenArgumentNotFound()
     {
-        $input = RequiredArgument::of(Str::of('foo'));
+        $input = RequiredArgument::of(Str::of('foo'))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
 
         $this->expectException(MissingArgument::class);
         $this->expectExceptionMessage('foo');

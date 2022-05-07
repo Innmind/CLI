@@ -7,6 +7,7 @@ use Innmind\Immutable\{
     Str,
     Sequence,
     Map,
+    Maybe,
 };
 
 /**
@@ -14,7 +15,10 @@ use Innmind\Immutable\{
  */
 interface Input
 {
-    public static function of(Str $pattern): self;
+    /**
+     * @return Maybe<self>
+     */
+    public static function of(Str $pattern): Maybe;
 
     /**
      * @param Map<string, string|Sequence<string>> $parsed

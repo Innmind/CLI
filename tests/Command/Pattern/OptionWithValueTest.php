@@ -7,8 +7,6 @@ use Innmind\CLI\{
     Command\Pattern\OptionWithValue,
     Command\Pattern\Input,
     Command\Pattern\Option,
-    Exception\MissingArgument,
-    Exception\PatternNotRecognized,
 };
 use Innmind\Immutable\{
     Str,
@@ -27,11 +25,23 @@ class OptionWithValueTest extends TestCase
 
     public function testInterface()
     {
-        $this->assertInstanceOf(Input::class, OptionWithValue::of(Str::of('--foo=')));
-        $this->assertInstanceOf(Option::class, OptionWithValue::of(Str::of('--foo=')));
+        $this->assertInstanceOf(
+            Input::class,
+            OptionWithValue::of(Str::of('--foo='))->match(
+                static fn($input) => $input,
+                static fn() => null,
+            ),
+        );
+        $this->assertInstanceOf(
+            Option::class,
+            OptionWithValue::of(Str::of('--foo='))->match(
+                static fn($input) => $input,
+                static fn() => null,
+            ),
+        );
     }
 
-    public function testThrowWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern()
     {
         $this
             ->forAll(Set\Strings::any()->filter(
@@ -39,10 +49,11 @@ class OptionWithValueTest extends TestCase
             ))
             ->then(function(string $string): void {
                 $string = '--'.$string.'=';
-                $this->expectException(PatternNotRecognized::class);
-                $this->expectExceptionMessage($string);
 
-                OptionWithValue::of(Str::of($string));
+                $this->assertNull(OptionWithValue::of(Str::of($string))->match(
+                    static fn($input) => $input,
+                    static fn() => null,
+                ));
             });
     }
 
@@ -53,14 +64,20 @@ class OptionWithValueTest extends TestCase
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,
-                    OptionWithValue::of(Str::of($string))->toString(),
+                    OptionWithValue::of(Str::of($string))->match(
+                        static fn($input) => $input->toString(),
+                        static fn() => null,
+                    ),
                 );
             });
     }
 
     public function testExtract()
     {
-        $input = OptionWithValue::of(Str::of('--foo='));
+        $input = OptionWithValue::of(Str::of('--foo='))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
 
         $arguments = $input->extract(
             Map::of(),
@@ -78,7 +95,10 @@ class OptionWithValueTest extends TestCase
 
     public function testExtractShortOptionWithValueRightAfterIt()
     {
-        $input = OptionWithValue::of(Str::of('-f|--foo='));
+        $input = OptionWithValue::of(Str::of('-f|--foo='))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
 
         $arguments = $input->extract(
             Map::of(),
@@ -96,7 +116,10 @@ class OptionWithValueTest extends TestCase
 
     public function testExtractShortOptionWithValueAsNextArgument()
     {
-        $input = OptionWithValue::of(Str::of('-f|--foo='));
+        $input = OptionWithValue::of(Str::of('-f|--foo='))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
 
         $arguments = $input->extract(
             Map::of(),
@@ -114,7 +137,10 @@ class OptionWithValueTest extends TestCase
 
     public function testDoesNothingWhenNoOption()
     {
-        $input = OptionWithValue::of(Str::of('--foo='));
+        $input = OptionWithValue::of(Str::of('--foo='))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
 
         $arguments = $input->extract(
             $expected = Map::of(),
@@ -127,7 +153,10 @@ class OptionWithValueTest extends TestCase
 
     public function testDoesNothingWhenNoShortOption()
     {
-        $input = OptionWithValue::of(Str::of('-f|--foo='));
+        $input = OptionWithValue::of(Str::of('-f|--foo='))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
 
         $arguments = $input->extract(
             $expected = Map::of(),
@@ -140,7 +169,10 @@ class OptionWithValueTest extends TestCase
 
     public function testCleanWhenNoOption()
     {
-        $input = OptionWithValue::of(Str::of('-f|--foo='));
+        $input = OptionWithValue::of(Str::of('-f|--foo='))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
 
         $arguments = $input->clean(
             $expected = Sequence::of('watev', 'f', 'bar', 'baz'),
@@ -151,7 +183,10 @@ class OptionWithValueTest extends TestCase
 
     public function testCleanWhenOptionWithValueAttached()
     {
-        $input = OptionWithValue::of(Str::of('-f|--foo='));
+        $input = OptionWithValue::of(Str::of('-f|--foo='))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
 
         $arguments = $input->clean(
             Sequence::of('watev', '--foo=foo', 'bar', 'baz'),
@@ -163,7 +198,10 @@ class OptionWithValueTest extends TestCase
 
     public function testCleanWhenShortOptionWithValueAttached()
     {
-        $input = OptionWithValue::of(Str::of('-f|--foo='));
+        $input = OptionWithValue::of(Str::of('-f|--foo='))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
 
         $arguments = $input->clean(
             Sequence::of('watev', '-f=foo', 'bar', 'baz'),
@@ -175,7 +213,10 @@ class OptionWithValueTest extends TestCase
 
     public function testCleanWhenShortOptionWithValueAsNextArgument()
     {
-        $input = OptionWithValue::of(Str::of('-f|--foo='));
+        $input = OptionWithValue::of(Str::of('-f|--foo='))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
 
         $arguments = $input->clean(
             Sequence::of('watev', '-f', 'bar', 'baz'),

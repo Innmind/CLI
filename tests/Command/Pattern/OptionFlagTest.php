@@ -7,8 +7,6 @@ use Innmind\CLI\{
     Command\Pattern\OptionFlag,
     Command\Pattern\Input,
     Command\Pattern\Option,
-    Exception\MissingArgument,
-    Exception\PatternNotRecognized,
 };
 use Innmind\Immutable\{
     Str,
@@ -27,11 +25,23 @@ class OptionFlagTest extends TestCase
 
     public function testInterface()
     {
-        $this->assertInstanceOf(Input::class, OptionFlag::of(Str::of('--foo')));
-        $this->assertInstanceOf(Option::class, OptionFlag::of(Str::of('--foo')));
+        $this->assertInstanceOf(
+            Input::class,
+            OptionFlag::of(Str::of('--foo'))->match(
+                static fn($input) => $input,
+                static fn() => null,
+            ),
+        );
+        $this->assertInstanceOf(
+            Option::class,
+            OptionFlag::of(Str::of('--foo'))->match(
+                static fn($input) => $input,
+                static fn() => null,
+            ),
+        );
     }
 
-    public function testThrowWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern()
     {
         $this
             ->forAll(Set\Strings::any()->filter(
@@ -39,10 +49,11 @@ class OptionFlagTest extends TestCase
             ))
             ->then(function(string $string): void {
                 $string = '--'.$string;
-                $this->expectException(PatternNotRecognized::class);
-                $this->expectExceptionMessage($string);
 
-                OptionFlag::of(Str::of($string));
+                $this->assertNull(OptionFlag::of(Str::of($string))->match(
+                    static fn($input) => $input,
+                    static fn() => null,
+                ));
             });
     }
 
@@ -53,14 +64,20 @@ class OptionFlagTest extends TestCase
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,
-                    OptionFlag::of(Str::of($string))->toString(),
+                    OptionFlag::of(Str::of($string))->match(
+                        static fn($input) => $input->toString(),
+                        static fn() => null,
+                    ),
                 );
             });
     }
 
     public function testExtract()
     {
-        $input = OptionFlag::of(Str::of('--foo'));
+        $input = OptionFlag::of(Str::of('--foo'))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
 
         $arguments = $input->extract(
             Map::of(),
@@ -78,7 +95,10 @@ class OptionFlagTest extends TestCase
 
     public function testDoesNothingWhenNoFlag()
     {
-        $input = OptionFlag::of(Str::of('--foo'));
+        $input = OptionFlag::of(Str::of('--foo'))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
 
         $arguments = $input->extract(
             $expected = Map::of(),
@@ -91,7 +111,10 @@ class OptionFlagTest extends TestCase
 
     public function testClean()
     {
-        $input = OptionFlag::of(Str::of('-f|--foo'));
+        $input = OptionFlag::of(Str::of('-f|--foo'))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
 
         $arguments = $input->clean(
             Sequence::of('watev', '--foo', 'bar', 'baz', '-f'),

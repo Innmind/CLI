@@ -4,7 +4,10 @@ declare(strict_types = 1);
 namespace Innmind\CLI\Command\Pattern;
 
 use Innmind\CLI\Exception\PatternNotRecognized;
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Maybe,
+};
 
 /**
  * @psalm-immutable
@@ -27,16 +30,17 @@ final class Inputs
 
     public function __invoke(Str $pattern): Input
     {
+        /** @var Maybe<Input> */
+        $parsed = Maybe::nothing();
+
         /** @var class-string<Input> $input */
         foreach ($this->inputs as $input) {
-            try {
-                /** @var Input */
-                return [$input, 'of']($pattern);
-            } catch (PatternNotRecognized $e) {
-                //pass
-            }
+            $parsed = $parsed->otherwise(static fn() => $input::of($pattern));
         }
 
-        throw new PatternNotRecognized($pattern->toString());
+        return $parsed->match(
+            static fn($input) => $input,
+            static fn() => throw new PatternNotRecognized($pattern->toString()),
+        );
     }
 }

@@ -7,8 +7,6 @@ use Innmind\CLI\{
     Command\Pattern\PackArgument,
     Command\Pattern\Input,
     Command\Pattern\Argument,
-    Exception\MissingArgument,
-    Exception\PatternNotRecognized,
 };
 use Innmind\Immutable\{
     Str,
@@ -27,21 +25,33 @@ class PackArgumentTest extends TestCase
 
     public function testInterface()
     {
-        $this->assertInstanceOf(Input::class, PackArgument::of(Str::of('...foo')));
-        $this->assertInstanceOf(Argument::class, PackArgument::of(Str::of('...foo')));
+        $this->assertInstanceOf(
+            Input::class,
+            PackArgument::of(Str::of('...foo'))->match(
+                static fn($input) => $input,
+                static fn() => null,
+            ),
+        );
+        $this->assertInstanceOf(
+            Argument::class,
+            PackArgument::of(Str::of('...foo'))->match(
+                static fn($input) => $input,
+                static fn() => null,
+            ),
+        );
     }
 
-    public function testThrowWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern()
     {
         $this
             ->forAll(Set\Strings::any()->filter(
                 static fn(string $s) => !\preg_match('~^[a-zA-Z0-9]+$~', $s),
             ))
             ->then(function(string $string): void {
-                $this->expectException(PatternNotRecognized::class);
-                $this->expectExceptionMessage('...'.$string);
-
-                PackArgument::of(Str::of('...'.$string));
+                $this->assertNull(PackArgument::of(Str::of('...'.$string))->match(
+                    static fn($input) => $input,
+                    static fn() => null,
+                ));
             });
     }
 
@@ -52,14 +62,20 @@ class PackArgumentTest extends TestCase
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,
-                    PackArgument::of(Str::of($string))->toString(),
+                    PackArgument::of(Str::of($string))->match(
+                        static fn($input) => $input->toString(),
+                        static fn() => null,
+                    ),
                 );
             });
     }
 
     public function testExtract()
     {
-        $input = PackArgument::of(Str::of('...foo'));
+        $input = PackArgument::of(Str::of('...foo'))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
 
         $arguments = $input->extract(
             Map::of(),
@@ -81,7 +97,10 @@ class PackArgumentTest extends TestCase
 
     public function testExtractEmptyStreamWhenNotFound()
     {
-        $input = PackArgument::of(Str::of('...foo'));
+        $input = PackArgument::of(Str::of('...foo'))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
 
         $arguments = $input->extract(
             Map::of(),

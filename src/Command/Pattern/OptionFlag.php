@@ -3,11 +3,11 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Command\Pattern;
 
-use Innmind\CLI\Exception\PatternNotRecognized;
 use Innmind\Immutable\{
     Str,
     Sequence,
     Map,
+    Maybe,
 };
 
 /**
@@ -40,7 +40,7 @@ final class OptionFlag implements Input, Option
     /**
      * @psalm-pure
      */
-    public static function of(Str $pattern): Input
+    public static function of(Str $pattern): Maybe
     {
         $parts = $pattern->capture(self::PATTERN);
         $short = $parts
@@ -52,14 +52,11 @@ final class OptionFlag implements Input, Option
                 static fn() => null,
             );
 
+        /** @var Maybe<Input> */
         return $parts
             ->get('name')
             ->map(static fn($name) => $name->drop(2)->toString())
-            ->map(static fn($name) => new self($name, $short))
-            ->match(
-                static fn($self) => $self,
-                static fn() => throw new PatternNotRecognized($pattern->toString()),
-            );
+            ->map(static fn($name) => new self($name, $short));
     }
 
     public function extract(
