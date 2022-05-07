@@ -6,6 +6,7 @@ namespace Innmind\CLI\Command;
 use Innmind\Immutable\{
     Map,
     Sequence,
+    Maybe,
 };
 
 /**
@@ -62,10 +63,18 @@ final class Arguments
 
     public function get(string $argument): string
     {
-        return $this->arguments->get($argument)->match(
+        return $this->maybe($argument)->match(
             static fn($value) => $value,
             static fn() => throw new \RuntimeException,
         );
+    }
+
+    /**
+     * @return Maybe<string>
+     */
+    public function maybe(string $argument): Maybe
+    {
+        return $this->arguments->get($argument);
     }
 
     /**
