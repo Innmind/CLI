@@ -22,7 +22,7 @@ final class Commands
     /** @var Sequence<Specification> */
     private Sequence $specifications;
 
-    public function __construct(Command $command, Command ...$commands)
+    private function __construct(Command $command, Command ...$commands)
     {
         $commands = Sequence::of($command, ...$commands)->map(
             static fn($command) => [new Specification($command), $command],
@@ -99,6 +99,11 @@ final class Commands
                 )
                 ->exit(64), // EX_USAGE The command was used incorrectly
         );
+    }
+
+    public static function of(Command $command, Command ...$commands): self
+    {
+        return new self($command, ...$commands);
     }
 
     private function run(Environment $env, Specification $spec): Environment

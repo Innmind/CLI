@@ -15,7 +15,7 @@ class CommandsTest extends TestCase
 {
     public function testRunSingleCommand()
     {
-        $run = new Commands(new class implements Command {
+        $run = Commands::of(new class implements Command {
             public function __invoke(Console $console): Console
             {
                 if (
@@ -52,7 +52,7 @@ class CommandsTest extends TestCase
 
     public function testRunCommandByName()
     {
-        $run = new Commands(
+        $run = Commands::of(
             new class implements Command {
                 public function __invoke(Console $console): Console
                 {
@@ -102,7 +102,7 @@ class CommandsTest extends TestCase
 
     public function testRunCommandByNameEvenWhenAnotherCommandStartsWithTheSameName()
     {
-        $run = new Commands(
+        $run = Commands::of(
             new class implements Command {
                 public function __invoke(Console $console): Console
                 {
@@ -142,7 +142,7 @@ class CommandsTest extends TestCase
 
     public function testRunCommandBySpecifyingOnlyTheStartOfItsName()
     {
-        $run = new Commands(
+        $run = Commands::of(
             new class implements Command {
                 public function __invoke(Console $console): Console
                 {
@@ -182,7 +182,7 @@ class CommandsTest extends TestCase
 
     public function testRunCommandBySpecifyingOnlyTheStartOfTheSectionsOfItsName()
     {
-        $run = new Commands(
+        $run = Commands::of(
             new class implements Command {
                 public function __invoke(Console $console): Console
                 {
@@ -222,7 +222,7 @@ class CommandsTest extends TestCase
 
     public function testExitWhenCommandNotFound()
     {
-        $run = new Commands(
+        $run = Commands::of(
             new class implements Command {
                 public function __invoke(Console $console): Console
                 {
@@ -271,7 +271,7 @@ class CommandsTest extends TestCase
 
     public function testExitWhenMultipleCommandsMatchTheGivenName()
     {
-        $run = new Commands(
+        $run = Commands::of(
             new class implements Command {
                 public function __invoke(Console $console): Console
                 {
@@ -320,7 +320,7 @@ class CommandsTest extends TestCase
 
     public function testExitWhenCommandMisused()
     {
-        $run = new Commands(new class implements Command {
+        $run = Commands::of(new class implements Command {
             public function __invoke(Console $console): Console
             {
                 return $console->exit(42);
@@ -359,7 +359,7 @@ USAGE;
 
     public function testEnvNotTemperedWhenCommandThrows()
     {
-        $run = new Commands(new class implements Command {
+        $run = Commands::of(new class implements Command {
             public function __invoke(Console $console): Console
             {
                 throw new \Exception;
@@ -385,7 +385,7 @@ USAGE;
 
     public function testDisplayUsageWhenHelpOptionFound()
     {
-        $run = new Commands(new class implements Command {
+        $run = Commands::of(new class implements Command {
             public function __invoke(Console $console): Console
             {
                 return $console->exit(42);
@@ -424,7 +424,7 @@ USAGE;
 
     public function testRunHelpCommand()
     {
-        $run = new Commands(
+        $run = Commands::of(
             new class implements Command {
                 public function __invoke(Console $console): Console
                 {
@@ -473,7 +473,7 @@ USAGE;
 
     public function testDisplayHelpWhenNoCommandProvided()
     {
-        $run = new Commands(
+        $run = Commands::of(
             new class implements Command {
                 public function __invoke(Console $console): Console
                 {
