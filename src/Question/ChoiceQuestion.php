@@ -3,14 +3,12 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Question;
 
-use Innmind\CLI\{
-    Environment,
-    Exception\NonInteractiveTerminal,
-};
+use Innmind\CLI\Environment;
 use Innmind\Immutable\{
     Str,
     Map,
     Set,
+    Maybe,
 };
 
 /**
@@ -32,14 +30,13 @@ final class ChoiceQuestion
     }
 
     /**
-     * @throws NonInteractiveTerminal
-     *
-     * @return array{Map<scalar, scalar>, Environment}
+     * @return array{Maybe<Map<scalar, scalar>>, Environment} Returns nothing when no interactions available
      */
     public function __invoke(Environment $env): array
     {
         if (!$env->interactive() || $env->arguments()->contains('--no-interaction')) {
-            throw new NonInteractiveTerminal;
+            /** @var array{Maybe<Map<scalar, scalar>>, Environment} */
+            return [Maybe::nothing(), $env];
         }
 
         $env = $env->output($this->question->append("\n"));
@@ -68,9 +65,9 @@ final class ChoiceQuestion
             ->map(static fn($choice) => $choice->trim()->toString());
 
         return [
-            $this->values->filter(static function($key) use ($choices): bool {
+            Maybe::just($this->values->filter(static function($key) use ($choices): bool {
                 return $choices->contains((string) $key);
-            }),
+            })),
             $env,
         ];
     }

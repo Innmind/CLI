@@ -3,11 +3,11 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Question;
 
-use Innmind\CLI\{
-    Environment,
-    Exception\NonInteractiveTerminal,
+use Innmind\CLI\Environment;
+use Innmind\Immutable\{
+    Str,
+    Maybe,
 };
-use Innmind\Immutable\Str;
 
 /**
  * @psalm-immutable
@@ -22,14 +22,13 @@ final class Question
     }
 
     /**
-     * @throws NonInteractiveTerminal
-     *
-     * @return array{Str, Environment}
+     * @return array{Maybe<Str>, Environment} Returns nothing when no interactions available
      */
     public function __invoke(Environment $env): array
     {
         if (!$env->interactive() || $env->arguments()->contains('--no-interaction')) {
-            throw new NonInteractiveTerminal;
+            /** @var array{Maybe<Str>, Environment} */
+            return [Maybe::nothing(), $env];
         }
 
         $env = $env->output($this->question);
@@ -45,6 +44,6 @@ final class Question
             );
         } while (!$response->contains("\n"));
 
-        return [$response->dropEnd(1), $env]; // remove the new line character
+        return [Maybe::just($response->dropEnd(1)), $env]; // remove the new line character
     }
 }

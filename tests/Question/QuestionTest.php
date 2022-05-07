@@ -6,7 +6,6 @@ namespace Tests\Innmind\CLI\Question;
 use Innmind\CLI\{
     Question\Question,
     Environment,
-    Exception\NonInteractiveTerminal,
 };
 use Innmind\Immutable\Str;
 use PHPUnit\Framework\TestCase;
@@ -25,6 +24,10 @@ class QuestionTest extends TestCase
         );
 
         [$response, $env] = $question($env);
+        $response = $response->match(
+            static fn($response) => $response,
+            static fn() => null,
+        );
 
         $this->assertInstanceOf(Str::class, $response);
         $this->assertSame('foo', $response->toString());
@@ -34,7 +37,7 @@ class QuestionTest extends TestCase
         );
     }
 
-    public function testThrowWhenEnvNonInteractive()
+    public function testReturnNothingWhenEnvNonInteractive()
     {
         $question = new Question('watev');
 
@@ -46,12 +49,15 @@ class QuestionTest extends TestCase
             '/',
         );
 
-        $this->expectException(NonInteractiveTerminal::class);
+        [$response, $env] = $question($env);
 
-        $question($env);
+        $this->assertNull($response->match(
+            static fn($response) => $response,
+            static fn() => null,
+        ));
     }
 
-    public function testThrowWhenOptionToSpecifyNoInteractionIsRequired()
+    public function testReturnNothingWhenOptionToSpecifyNoInteractionIsRequired()
     {
         $question = new Question('watev');
 
@@ -63,8 +69,11 @@ class QuestionTest extends TestCase
             '/',
         );
 
-        $this->expectException(NonInteractiveTerminal::class);
+        [$response, $env] = $question($env);
 
-        $question($env);
+        $this->assertNull($response->match(
+            static fn($response) => $response,
+            static fn() => null,
+        ));
     }
 }

@@ -6,7 +6,6 @@ namespace Tests\Innmind\CLI\Question;
 use Innmind\CLI\{
     Question\ChoiceQuestion,
     Environment,
-    Exception\NonInteractiveTerminal,
 };
 use Innmind\Immutable\Map;
 use PHPUnit\Framework\TestCase;
@@ -32,6 +31,10 @@ class ChoiceQuestionTest extends TestCase
         );
 
         [$response, $env] = $question($env);
+        $response = $response->match(
+            static fn($response) => $response,
+            static fn() => null,
+        );
 
         $this->assertInstanceOf(Map::class, $response);
         $this->assertCount(2, $response);
@@ -56,7 +59,7 @@ class ChoiceQuestionTest extends TestCase
         );
     }
 
-    public function testThrowWhenEnvNonInteractive()
+    public function testReturnNothingWhenEnvNonInteractive()
     {
         $question = new ChoiceQuestion('watev', Map::of());
 
@@ -68,12 +71,15 @@ class ChoiceQuestionTest extends TestCase
             '/',
         );
 
-        $this->expectException(NonInteractiveTerminal::class);
+        [$response, $env] = $question($env);
 
-        $question($env);
+        $this->assertNull($response->match(
+            static fn($response) => $response,
+            static fn() => null,
+        ));
     }
 
-    public function testThrowWhenOptionToSpecifyNoInteractionIsRequired()
+    public function testReturnNothingWhenOptionToSpecifyNoInteractionIsRequired()
     {
         $question = new ChoiceQuestion('watev', Map::of());
 
@@ -85,8 +91,11 @@ class ChoiceQuestionTest extends TestCase
             '/',
         );
 
-        $this->expectException(NonInteractiveTerminal::class);
+        [$response, $env] = $question($env);
 
-        $question($env);
+        $this->assertNull($response->match(
+            static fn($response) => $response,
+            static fn() => null,
+        ));
     }
 }
