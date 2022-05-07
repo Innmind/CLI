@@ -5,6 +5,7 @@ namespace Innmind\CLI\Command\Pattern;
 
 /**
  * @psalm-immutable
+ * @internal
  */
 interface Argument
 {

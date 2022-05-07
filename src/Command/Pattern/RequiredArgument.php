@@ -13,6 +13,7 @@ use Innmind\Immutable\{
 
 /**
  * @psalm-immutable
+ * @internal
  */
 final class RequiredArgument implements Input, Argument
 {

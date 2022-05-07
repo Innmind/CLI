@@ -12,6 +12,7 @@ use Innmind\Immutable\{
 
 /**
  * @psalm-immutable
+ * @internal
  */
 final class OptionWithValue implements Input, Option
 {
