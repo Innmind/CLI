@@ -123,4 +123,48 @@ class OptionFlagTest extends TestCase
         $this->assertInstanceOf(Sequence::class, $arguments);
         $this->assertSame(['watev', 'bar', 'baz'], $arguments->toList());
     }
+
+    public function testParse()
+    {
+        $input = OptionFlag::of(Str::of('-f|--foo'))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
+
+        [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+            Sequence::of('watev', '--foo', 'bar', '--unknown', 'baz', '-f'),
+            Map::of(),
+            Sequence::of(),
+            Map::of(),
+        );
+
+        $this->assertSame(['watev', 'bar', '--unknown', 'baz'], $arguments->toList());
+        $this->assertTrue($parsedArguments->empty());
+        $this->assertTrue($pack->empty());
+        $this->assertCount(1, $options);
+        $this->assertSame('', $options->get('foo')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+    }
+
+    public function testParseWhenNoOption()
+    {
+        $input = OptionFlag::of(Str::of('-f|--foo'))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
+
+        [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+            Sequence::of('watev', 'bar', '--unknown', 'baz'),
+            Map::of(),
+            Sequence::of(),
+            Map::of(),
+        );
+
+        $this->assertSame(['watev', 'bar', '--unknown', 'baz'], $arguments->toList());
+        $this->assertTrue($parsedArguments->empty());
+        $this->assertTrue($pack->empty());
+        $this->assertTrue($options->empty());
+    }
 }

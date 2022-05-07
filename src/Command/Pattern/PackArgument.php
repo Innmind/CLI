@@ -34,6 +34,20 @@ final class PackArgument implements Input, Argument
             ->map(static fn($pattern) => new self($pattern->toString()));
     }
 
+    public function parse(
+        Sequence $arguments,
+        Map $parsedArguments,
+        Sequence $pack,
+        Map $options,
+    ): array {
+        return [
+            $arguments->clear(),
+            $parsedArguments,
+            $pack->append($arguments),
+            $options,
+        ];
+    }
+
     public function extract(
         Map $parsed,
         int $position,

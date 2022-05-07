@@ -34,6 +34,25 @@ final class RequiredArgument implements Input, Argument
             ->map(static fn($pattern) => new self($pattern->toString()));
     }
 
+    public function parse(
+        Sequence $arguments,
+        Map $parsedArguments,
+        Sequence $pack,
+        Map $options,
+    ): array {
+        $value = $arguments->first()->match(
+            static fn($value) => $value,
+            fn() => throw new MissingArgument($this->name),
+        );
+
+        return [
+            $arguments->drop(1),
+            ($parsedArguments)($this->name, $value),
+            $pack,
+            $options,
+        ];
+    }
+
     public function extract(
         Map $parsed,
         int $position,

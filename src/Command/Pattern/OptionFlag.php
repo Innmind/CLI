@@ -59,6 +59,26 @@ final class OptionFlag implements Input, Option
             ->map(static fn($name) => new self($name, $short));
     }
 
+    public function parse(
+        Sequence $arguments,
+        Map $parsedArguments,
+        Sequence $pack,
+        Map $options,
+    ): array {
+        $value = $arguments->find(
+            fn($argument) => Str::of($argument)->matches($this->pattern),
+        );
+        [$arguments, $options] = $value->match(
+            fn() => [
+                $arguments->filter(fn($argument) => !Str::of($argument)->matches($this->pattern)),
+                ($options)($this->name, ''),
+            ],
+            static fn() => [$arguments, $options],
+        );
+
+        return [$arguments, $parsedArguments, $pack, $options];
+    }
+
     public function extract(
         Map $parsed,
         int $position,

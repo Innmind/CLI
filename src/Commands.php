@@ -134,8 +134,9 @@ final class Commands
         }
 
         try {
-            $options = Options::of($spec, $arguments);
-            $arguments = Arguments::of($spec, $arguments);
+            $pattern = $spec->pattern();
+
+            [$arguments, $options] = $pattern($arguments);
         } catch (Exception $e) {
             return $this
                 ->displayUsage(

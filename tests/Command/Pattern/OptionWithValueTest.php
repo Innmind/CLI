@@ -225,4 +225,120 @@ class OptionWithValueTest extends TestCase
         $this->assertInstanceOf(Sequence::class, $arguments);
         $this->assertSame(['watev', 'baz'], $arguments->toList());
     }
+
+    public function testParseShortOption()
+    {
+        $input = OptionWithValue::of(Str::of('-f|--foo='))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
+
+        [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+            Sequence::of('watev', '-f=baz', 'bar'),
+            Map::of(),
+            Sequence::of(),
+            Map::of(),
+        );
+
+        $this->assertSame(['watev', 'bar'], $arguments->toList());
+        $this->assertTrue($parsedArguments->empty());
+        $this->assertTrue($pack->empty());
+        $this->assertCount(1, $options);
+        $this->assertSame('baz', $options->get('foo')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+    }
+
+    public function testParseShortOptionWithValueInNextArgument()
+    {
+        $input = OptionWithValue::of(Str::of('-f|--foo='))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
+
+        [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+            Sequence::of('watev', '-f', 'baz', 'bar'),
+            Map::of(),
+            Sequence::of(),
+            Map::of(),
+        );
+
+        $this->assertSame(['watev', 'bar'], $arguments->toList());
+        $this->assertTrue($parsedArguments->empty());
+        $this->assertTrue($pack->empty());
+        $this->assertCount(1, $options);
+        $this->assertSame('baz', $options->get('foo')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+    }
+
+    public function testParseShortOptionWithValueInNextArgumentButNoNextValue()
+    {
+        $input = OptionWithValue::of(Str::of('-f|--foo='))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
+
+        [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+            Sequence::of('watev', '-f'),
+            Map::of(),
+            Sequence::of(),
+            Map::of(),
+        );
+
+        $this->assertSame(['watev'], $arguments->toList());
+        $this->assertTrue($parsedArguments->empty());
+        $this->assertTrue($pack->empty());
+        $this->assertCount(1, $options);
+        $this->assertSame('', $options->get('foo')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+    }
+
+    public function testParseLongOption()
+    {
+        $input = OptionWithValue::of(Str::of('-f|--foo='))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
+
+        [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+            Sequence::of('watev', '--foo=baz', 'bar'),
+            Map::of(),
+            Sequence::of(),
+            Map::of(),
+        );
+
+        $this->assertSame(['watev', 'bar'], $arguments->toList());
+        $this->assertTrue($parsedArguments->empty());
+        $this->assertTrue($pack->empty());
+        $this->assertCount(1, $options);
+        $this->assertSame('baz', $options->get('foo')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+    }
+
+    public function testParseWhenNoOption()
+    {
+        $input = OptionWithValue::of(Str::of('-f|--foo='))->match(
+            static fn($input) => $input,
+            static fn() => null,
+        );
+
+        [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+            Sequence::of('watev', '--unknown', 'foo'),
+            Map::of(),
+            Sequence::of(),
+            Map::of(),
+        );
+
+        $this->assertSame(['watev', '--unknown', 'foo'], $arguments->toList());
+        $this->assertTrue($parsedArguments->empty());
+        $this->assertTrue($pack->empty());
+        $this->assertTrue($options->empty());
+    }
 }
