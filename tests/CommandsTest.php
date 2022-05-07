@@ -346,7 +346,7 @@ USAGE;
             static fn() => null,
         ));
         $this->assertSame(
-            ['usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar\n"],
+            ['usage: bin/console watch container [output] --foo --help --no-interaction'."\n\nFoo\n\nBar\n"],
             $env->errors(),
         );
     }
@@ -411,7 +411,7 @@ USAGE;
             static fn() => null,
         ));
         $this->assertSame(
-            ['usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar\n"],
+            ['usage: bin/console watch container [output] --foo --help --no-interaction'."\n\nFoo\n\nBar\n"],
             $env->outputs(),
         );
     }

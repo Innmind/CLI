@@ -59,11 +59,14 @@ DESCRIPTION;
 
         $this->assertSame($expected, $spec->description());
         $this->assertSame(
-            'watch container [output] ...proxy',
+            'watch container [output] ...proxy --help --no-interaction',
             $spec->toString(),
         );
         $this->assertInstanceOf(Pattern::class, $spec->pattern());
-        $this->assertSame('container [output] ...proxy', $spec->pattern()->toString());
+        $this->assertSame(
+            'container [output] ...proxy --help --no-interaction',
+            $spec->pattern()->toString(),
+        );
     }
 
     public function testMatchesItsOwnName()

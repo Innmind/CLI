@@ -10,6 +10,7 @@ use Innmind\CLI\{
 use Innmind\Immutable\{
     Sequence,
     Str,
+    Maybe,
 };
 
 /**
@@ -110,8 +111,7 @@ final class Specification
     {
         return new Pattern(
             ...$this
-                ->lines()
-                ->first()
+                ->firstLine()
                 ->map(static fn($line) => $line->split(' ')->drop(1))
                 ->match(
                     static fn($parts) => $parts->toList(),
@@ -123,8 +123,7 @@ final class Specification
     public function toString(): string
     {
         return $this
-            ->lines()
-            ->first()
+            ->firstLine()
             ->match(
                 static fn($line) => $line->toString(),
                 static fn() => '',
@@ -143,5 +142,16 @@ final class Specification
         }
 
         return $declaration->split("\n");
+    }
+
+    /**
+     * @return Maybe<Str>
+     */
+    private function firstLine(): Maybe
+    {
+        return $this
+            ->lines()
+            ->first()
+            ->map(static fn($line) => $line->append(' --help --no-interaction'));
     }
 }
