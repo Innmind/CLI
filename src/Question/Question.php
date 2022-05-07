@@ -3,7 +3,10 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Question;
 
-use Innmind\CLI\Environment;
+use Innmind\CLI\{
+    Environment,
+    Console,
+};
 use Innmind\Immutable\{
     Str,
     Maybe,
@@ -22,12 +25,19 @@ final class Question
     }
 
     /**
-     * @return array{Maybe<Str>, Environment} Returns nothing when no interactions available
+     * @template T of Environment|Console
+     *
+     * @return array{Maybe<Str>, T} Returns nothing when no interactions available
      */
-    public function __invoke(Environment $env): array
+    public function __invoke(Environment|Console $env): array
     {
-        if (!$env->interactive() || $env->arguments()->contains('--no-interaction')) {
-            /** @var array{Maybe<Str>, Environment} */
+        $noInteraction = match ($env::class) {
+            Console::class => $env->options()->contains('no-interaction'),
+            default => $env->arguments()->contains('--no-interaction'),
+        };
+
+        if (!$env->interactive() || $noInteraction) {
+            /** @var array{Maybe<Str>, T} */
             return [Maybe::nothing(), $env];
         }
 
@@ -44,6 +54,7 @@ final class Question
             );
         } while (!$response->contains("\n"));
 
+        /** @var array{Maybe<Str>, T} */
         return [Maybe::just($response->dropEnd(1)), $env]; // remove the new line character
     }
 }

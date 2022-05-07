@@ -3,7 +3,10 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Question;
 
-use Innmind\CLI\Environment;
+use Innmind\CLI\{
+    Environment,
+    Console,
+};
 use Innmind\Immutable\{
     Str,
     Map,
@@ -30,21 +33,28 @@ final class ChoiceQuestion
     }
 
     /**
-     * @return array{Maybe<Map<scalar, scalar>>, Environment} Returns nothing when no interactions available
+     * @template T of Environment|Console
+     *
+     * @return array{Maybe<Map<scalar, scalar>>, T} Returns nothing when no interactions available
      */
-    public function __invoke(Environment $env): array
+    public function __invoke(Environment|Console $env): array
     {
-        if (!$env->interactive() || $env->arguments()->contains('--no-interaction')) {
-            /** @var array{Maybe<Map<scalar, scalar>>, Environment} */
+        $noInteraction = match ($env::class) {
+            Console::class => $env->options()->contains('no-interaction'),
+            default => $env->arguments()->contains('--no-interaction'),
+        };
+
+        if (!$env->interactive() || $noInteraction) {
+            /** @var array{Maybe<Map<scalar, scalar>>, T} */
             return [Maybe::nothing(), $env];
         }
 
         $env = $env->output($this->question->append("\n"));
         $env = $this->values->reduce(
             $env,
-            static function(Environment $env, $key, $value): Environment {
-                return $env->output(Str::of("[%s] %s\n")->sprintf((string) $key, (string) $value));
-            },
+            static fn(Environment|Console $env, $key, $value) => $env->output(
+                Str::of("[%s] %s\n")->sprintf((string) $key, (string) $value),
+            ),
         );
         $env = $env->output(Str::of('> '));
 
@@ -64,6 +74,7 @@ final class ChoiceQuestion
             ->split(',')
             ->map(static fn($choice) => $choice->trim()->toString());
 
+        /** @var array{Maybe<Map<scalar, scalar>>, T} */
         return [
             Maybe::just($this->values->filter(static function($key) use ($choices): bool {
                 return $choices->contains((string) $key);
