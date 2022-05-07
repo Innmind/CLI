@@ -25,24 +25,6 @@ final class Options
         $this->options = $options ?? Map::of();
     }
 
-    /**
-     * @psalm-pure
-     *
-     * @param Sequence<string> $arguments
-     */
-    public static function of(
-        Specification $specification,
-        Sequence $arguments,
-    ): self {
-        /** @var Map<string, string> */
-        $options = $specification
-            ->pattern()
-            ->options()
-            ->extract($arguments);
-
-        return new self($options);
-    }
-
     public function get(string $option): string
     {
         return $this->maybe($option)->match(

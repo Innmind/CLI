@@ -40,16 +40,5 @@ interface Input
         Map $options,
     ): array;
 
-    /**
-     * @param Map<string, string|Sequence<string>> $parsed
-     * @param Sequence<string> $arguments
-     *
-     * @return Map<string, string|Sequence<string>>
-     */
-    public function extract(
-        Map $parsed,
-        int $position,
-        Sequence $arguments,
-    ): Map;
     public function toString(): string;
 }

@@ -79,28 +79,6 @@ final class OptionFlag implements Input, Option
         return [$arguments, $parsedArguments, $pack, $options];
     }
 
-    public function extract(
-        Map $parsed,
-        int $position,
-        Sequence $arguments,
-    ): Map {
-        return $arguments
-            ->find(
-                fn(string $argument): bool => Str::of($argument)->matches($this->pattern),
-            )
-            ->match(
-                fn() => ($parsed)($this->name, ''),
-                static fn() => $parsed,
-            );
-    }
-
-    public function clean(Sequence $arguments): Sequence
-    {
-        return $arguments->filter(function(string $argument): bool {
-            return !Str::of($argument)->matches($this->pattern);
-        });
-    }
-
     public function toString(): string
     {
         if (!\is_string($this->short)) {

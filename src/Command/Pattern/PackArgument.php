@@ -48,15 +48,6 @@ final class PackArgument implements Input, Argument
         ];
     }
 
-    public function extract(
-        Map $parsed,
-        int $position,
-        Sequence $arguments,
-    ): Map {
-        /** @psalm-suppress ArgumentTypeCoercion */
-        return ($parsed)($this->name, $arguments->drop($position));
-    }
-
     public function toString(): string
     {
         return '...'.$this->name;

@@ -70,56 +70,6 @@ class PackArgumentTest extends TestCase
             });
     }
 
-    public function testExtract()
-    {
-        $input = PackArgument::of(Str::of('...foo'))->match(
-            static fn($input) => $input,
-            static fn() => null,
-        );
-
-        $arguments = $input->extract(
-            Map::of(),
-            1,
-            Sequence::of('watev', 'foo', 'bar', 'baz'),
-        );
-
-        $this->assertInstanceOf(Map::class, $arguments);
-        $this->assertCount(1, $arguments);
-        $this->assertInstanceOf(Sequence::class, $arguments->get('foo')->match(
-            static fn($value) => $value,
-            static fn() => null,
-        ));
-        $this->assertSame(['foo', 'bar', 'baz'], $arguments->get('foo')->match(
-            static fn($value) => $value->toList(),
-            static fn() => null,
-        ));
-    }
-
-    public function testExtractEmptyStreamWhenNotFound()
-    {
-        $input = PackArgument::of(Str::of('...foo'))->match(
-            static fn($input) => $input,
-            static fn() => null,
-        );
-
-        $arguments = $input->extract(
-            Map::of(),
-            42,
-            Sequence::of('watev', 'foo', 'bar', 'baz'),
-        );
-
-        $this->assertInstanceOf(Map::class, $arguments);
-        $this->assertCount(1, $arguments);
-        $this->assertInstanceOf(Sequence::class, $arguments->get('foo')->match(
-            static fn($value) => $value,
-            static fn() => null,
-        ));
-        $this->assertTrue($arguments->get('foo')->match(
-            static fn($value) => $value->empty(),
-            static fn() => null,
-        ));
-    }
-
     public function testParse()
     {
         $this

@@ -70,43 +70,6 @@ class OptionalArgumentTest extends TestCase
             });
     }
 
-    public function testExtract()
-    {
-        $input = OptionalArgument::of(Str::of('[foo]'))->match(
-            static fn($input) => $input,
-            static fn() => null,
-        );
-
-        $arguments = $input->extract(
-            Map::of(),
-            0,
-            $args = Sequence::of('watev', 'foo', 'bar', 'baz'),
-        );
-
-        $this->assertInstanceOf(Map::class, $arguments);
-        $this->assertCount(1, $arguments);
-        $this->assertSame('watev', $arguments->get('foo')->match(
-            static fn($value) => $value,
-            static fn() => null,
-        ));
-    }
-
-    public function testDoNothingWhenArgumentNotFound()
-    {
-        $input = OptionalArgument::of(Str::of('[foo]'))->match(
-            static fn($input) => $input,
-            static fn() => null,
-        );
-
-        $arguments = $input->extract(
-            $expected = Map::of(),
-            42,
-            Sequence::of('watev', 'foo', 'bar', 'baz'),
-        );
-
-        $this->assertSame($expected, $arguments);
-    }
-
     public function testParse()
     {
         $this

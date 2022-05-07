@@ -53,19 +53,6 @@ final class OptionalArgument implements Input, Argument
         return [$arguments, $parsedArguments, $pack, $options];
     }
 
-    public function extract(
-        Map $parsed,
-        int $position,
-        Sequence $arguments,
-    ): Map {
-        return $arguments
-            ->get($position)
-            ->match(
-                fn($argument) => ($parsed)($this->name, $argument),
-                static fn() => $parsed,
-            );
-    }
-
     public function toString(): string
     {
         return '['.$this->name.']';

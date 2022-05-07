@@ -71,44 +71,6 @@ class RequiredArgumentTest extends TestCase
             });
     }
 
-    public function testExtract()
-    {
-        $input = RequiredArgument::of(Str::of('foo'))->match(
-            static fn($input) => $input,
-            static fn() => null,
-        );
-
-        $arguments = $input->extract(
-            Map::of(),
-            0,
-            Sequence::of('watev', 'foo', 'bar', 'baz'),
-        );
-
-        $this->assertInstanceOf(Map::class, $arguments);
-        $this->assertCount(1, $arguments);
-        $this->assertSame('watev', $arguments->get('foo')->match(
-            static fn($value) => $value,
-            static fn() => null,
-        ));
-    }
-
-    public function testThrowWhenArgumentNotFound()
-    {
-        $input = RequiredArgument::of(Str::of('foo'))->match(
-            static fn($input) => $input,
-            static fn() => null,
-        );
-
-        $this->expectException(MissingArgument::class);
-        $this->expectExceptionMessage('foo');
-
-        $input->extract(
-            Map::of(),
-            42,
-            Sequence::of('watev', 'foo', 'bar', 'baz'),
-        );
-    }
-
     public function testParse()
     {
         $this

@@ -3,12 +3,7 @@ declare(strict_types = 1);
 
 namespace Tests\Innmind\CLI\Command;
 
-use Innmind\CLI\{
-    Command\Arguments,
-    Command\Specification,
-    Command,
-    Console,
-};
+use Innmind\CLI\Command\Arguments;
 use Innmind\Immutable\{
     Sequence,
     Map,
@@ -19,63 +14,18 @@ class ArgumentsTest extends TestCase
 {
     public function testInterface()
     {
-        $spec = new Specification(new class implements Command {
-            public function __invoke(Console $console): Console
-            {
-            }
-
-            public function usage(): string
-            {
-                return 'watch container --foo [output]';
-            }
-        });
-
-        $arguments = new Arguments(
-            $spec
-                ->pattern()
-                ->arguments()
-                ->extract(Sequence::of('foo')),
-        );
+        $arguments = new Arguments(Map::of(['container', 'foo']));
 
         $this->assertTrue($arguments->contains('container'));
         $this->assertSame('foo', $arguments->get('container'));
         $this->assertFalse($arguments->contains('output'));
 
-        $arguments = new Arguments(
-            $spec
-                ->pattern()
-                ->arguments()
-                ->extract(Sequence::of('foo', 'bar')),
-        );
+        $arguments = new Arguments(Map::of(['container', 'foo'], ['output', 'bar']));
 
         $this->assertTrue($arguments->contains('container'));
         $this->assertSame('foo', $arguments->get('container'));
         $this->assertTrue($arguments->contains('output'));
         $this->assertSame('bar', $arguments->get('output'));
-    }
-
-    public function testOf()
-    {
-        $spec = new Specification(new class implements Command {
-            public function __invoke(Console $console): Console
-            {
-            }
-
-            public function usage(): string
-            {
-                return 'watch container --foo [output]';
-            }
-        });
-
-        $arguments = Arguments::of(
-            $spec,
-            Sequence::of('foo'),
-        );
-
-        $this->assertInstanceOf(Arguments::class, $arguments);
-        $this->assertTrue($arguments->contains('container'));
-        $this->assertSame('foo', $arguments->get('container'));
-        $this->assertFalse($arguments->contains('output'));
     }
 
     public function testArgumentsCanBeBuiltWithoutAnyValue()

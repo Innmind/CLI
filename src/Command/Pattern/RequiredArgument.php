@@ -53,19 +53,6 @@ final class RequiredArgument implements Input, Argument
         ];
     }
 
-    public function extract(
-        Map $parsed,
-        int $position,
-        Sequence $arguments,
-    ): Map {
-        return $arguments
-            ->get($position)
-            ->match(
-                fn($value) => ($parsed)($this->name, $value),
-                fn() => throw new MissingArgument($this->name),
-            );
-    }
-
     public function toString(): string
     {
         return $this->name;
