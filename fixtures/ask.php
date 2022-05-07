@@ -22,10 +22,16 @@ new class extends Main {
         $pwd = new Question('password :');
 
         [$response, $env] = $user($env);
-        $env->output($response->append("\n"));
+        $env = $response->match(
+            static fn($response) => $env->output($response->append("\n")),
+            static fn() => $env->output(Str::of("No response\n")),
+        );
 
         [$response, $env] = $pwd($env);
-        $env->output($response->append("\n"));
+        $env = $response->match(
+            static fn($response) => $env->output($response->append("\n")),
+            static fn() => $env->output(Str::of("No response\n")),
+        );
 
         $ask = new ChoiceQuestion(
             'choices:',
@@ -37,6 +43,10 @@ new class extends Main {
         );
 
         [$choices, $env] = $ask($env);
+        $choices = $choices->match(
+            static fn($choices) => $choices,
+            static fn() => Map::of(),
+        );
 
         return $choices->reduce(
             $env,
