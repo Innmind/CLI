@@ -61,7 +61,5 @@ new class extends Main {
                 );
             },
         );
-
-        return $env;
     }
 };
