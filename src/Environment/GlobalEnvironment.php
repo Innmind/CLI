@@ -118,6 +118,7 @@ final class GlobalEnvironment implements Environment
             ->flatMap(fn($ready) => $ready->toRead()->find(
                 fn($stream) => $stream === $this->input,
             ))
+            ->filter(static fn(Readable $input) => !$input->end())
             ->flatMap(static fn(Readable $input) => $input->read($length))
             ->map(static fn($data) => $data->toEncoding('ASCII'));
 
