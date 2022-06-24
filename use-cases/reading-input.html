@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>innmind/cli</title>
+    <link rel="stylesheet" href="https://innmind.github.io/CLI/static/main.css"/>
+    <link rel="stylesheet" href="https://innmind.github.io/CLI/static/styles/default.css"/>
+    <link rel="stylesheet" href="https://innmind.github.io/CLI/static/styles/atom-one-dark.css"/>
+    <script src="https://innmind.github.io/CLI/static/highlight.pack.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+</head>
+<body>
+    <header>
+        <a href="https://innmind.github.io/CLI/"><code>cli</code></a>
+    </header>
+    <aside>
+        <ul>
+                    <li>
+                                    <a href="https://innmind.github.io/CLI/index.html">
+                        Getting started
+                    </a>
+                            </li>
+                    <li>
+                                    <details open>
+                        <summary>
+                                                            Use cases
+                                                    </summary>
+                        <ul>
+                                                            <li class="sub-item ">
+                                    <a href="https://innmind.github.io/CLI/use-cases/hello-world.html">
+                                        Hello world
+                                    </a>
+                                </li>
+                                                            <li class="sub-item current">
+                                    <a href="https://innmind.github.io/CLI/use-cases/reading-input.html">
+                                        Reading the input
+                                    </a>
+                                </li>
+                                                            <li class="sub-item ">
+                                    <a href="https://innmind.github.io/CLI/use-cases/commands.html">
+                                        Commands
+                                    </a>
+                                </li>
+                                                    </ul>
+                    </details>
+                            </li>
+                    <li>
+                                    <a href="https://innmind.github.io/CLI/testing.html">
+                        Testing
+                    </a>
+                            </li>
+                </ul>
+    </aside>
+    <main><h1 id="reading-the-input"><a href="#reading-the-input" class="anchor">#</a>Reading the input</h1>
+<p>In some cases you want your cli app to be in the middle of a pipeline by feeding the input via <code>stdin</code>.</p>
+<p>The example below will greet all the users:</p>
+<pre><code class="language-php"># greet.php
+declare(strict_types = 1);
+
+require 'path/to/composer/autoload.php';
+
+use Innmind\CLI\{
+    Main,
+    Environment,
+};
+use Innmind\OperatingSystem\OperatingSystem;
+use Innmind\Immutable\Str;
+
+new class extends Main {
+    protected function main(Environment $env, OperatingSystem $os): Environment
+    {
+        $buffer = Str::of('');
+
+        do {
+            [$read, $env] = $env->read();
+            $buffer = $read->match(
+                static fn($chunk) => $buffer->append($chunk->toString()),
+                static fn() => $buffer,
+            );
+
+            if ($buffer->contains("\n")) {
+                [$buffer, $env] = $buffer
+                    ->split("\n")
+                    ->match(
+                        static fn($name, $buffer) => [
+                            Str::of("\n")->join($buffer->map(fn($chunk) => $chunk->toString())),
+                            $env->output(Str::of("Hello {$name->toString()}\n")),
+                        ],
+                        static fn() => [$buffer, $env],
+                    );
+            }
+        } while ($read->match(
+            static fn() => true,
+            static fn() => false,
+        )); // stops when no more input
+
+        return $env;
+    }
+};</code></pre>
+<p>You can test this via <code>cat list-of-names.txt | php greet.php</code>.</p></main>
+    <footer>
+        <a href="https://github.com/innmind/CLI/" target="_blank">GitHub</a>
+    </footer>
+</body>
+</html>

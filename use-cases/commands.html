@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>innmind/cli</title>
+    <link rel="stylesheet" href="https://innmind.github.io/CLI/static/main.css"/>
+    <link rel="stylesheet" href="https://innmind.github.io/CLI/static/styles/default.css"/>
+    <link rel="stylesheet" href="https://innmind.github.io/CLI/static/styles/atom-one-dark.css"/>
+    <script src="https://innmind.github.io/CLI/static/highlight.pack.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+</head>
+<body>
+    <header>
+        <a href="https://innmind.github.io/CLI/"><code>cli</code></a>
+    </header>
+    <aside>
+        <ul>
+                    <li>
+                                    <a href="https://innmind.github.io/CLI/index.html">
+                        Getting started
+                    </a>
+                            </li>
+                    <li>
+                                    <details open>
+                        <summary>
+                                                            Use cases
+                                                    </summary>
+                        <ul>
+                                                            <li class="sub-item ">
+                                    <a href="https://innmind.github.io/CLI/use-cases/hello-world.html">
+                                        Hello world
+                                    </a>
+                                </li>
+                                                            <li class="sub-item ">
+                                    <a href="https://innmind.github.io/CLI/use-cases/reading-input.html">
+                                        Reading the input
+                                    </a>
+                                </li>
+                                                            <li class="sub-item current">
+                                    <a href="https://innmind.github.io/CLI/use-cases/commands.html">
+                                        Commands
+                                    </a>
+                                </li>
+                                                    </ul>
+                    </details>
+                            </li>
+                    <li>
+                                    <a href="https://innmind.github.io/CLI/testing.html">
+                        Testing
+                    </a>
+                            </li>
+                </ul>
+    </aside>
+    <main><h1 id="commands"><a href="#commands" class="anchor">#</a>Commands</h1>
+<p>Commands are a way to define the arguments and options the user can provide to interact with your tool.</p>
+<h2 id="single-command-tool"><a href="#single-command-tool" class="anchor">#</a>Single command tool</h2>
+<p>Some tools are so simple that it provides a single command. You can build one like this:</p>
+<pre><code class="language-php"># Greet.php
+declare(strict_types = 1);
+
+use Innmind\CLI\{
+    Command,
+    Console,
+};
+use Innmind\Immutable\Str;
+
+final class Greet implements Command
+{
+    public function __invoke(Console $console): Console
+    {
+        return $console->output(
+            Str::of('Hi ')
+                ->append($console->arguments()->get('name'))
+                ->append("\n"),
+        );
+    }
+
+    public function usage(): string
+    {
+        return 'greet name';
+    }
+}</code></pre>
+<pre><code class="language-php"># cli.php
+declare(strict_types = 1);
+
+require 'path/to/composer/autoload.php';
+
+use Innmind\CLI\{
+    Main,
+    Environment,
+    Commands,
+};
+use Innmind\OperatingSystem\OperatingSystem;
+
+new class extends Main {
+    protected function main(Environment $env, OperatingSystem $os): Environment
+    {
+        $run = Commands::of(new Greet);
+
+        return $run($env);
+    }
+};</code></pre>
+<p>You can run this with <code>php cli.php greet Bob</code> and it will print <code>Hi Bob</code>. And since it's a single command tool you can omit the <code>greet</code> and run it with <code>php cli.php Bob</code> and it will print the same thing.</p>
+<h2 id="multi-commands-tool"><a href="#multi-commands-tool" class="anchor">#</a>Multi commands tool</h2>
+<p>For more complex tools you'll want to provide mutiple commands to the user. The process is the same as the example above but you only need to provide multiple commands to the <code>Commands</code> object like so:</p>
+<pre><code class="language-php"># cli.php
+declare(strict_types = 1);
+
+require 'path/to/composer/autoload.php';
+
+use Innmind\CLI\{
+    Main,
+    Environment,
+    Commands,
+};
+use Innmind\OperatingSystem\OperatingSystem;
+
+new class extends Main {
+    protected function main(Environment $env, OperatingSystem $os): Environment
+    {
+        $run = Commands::of(new Command1, new Command2, new Etc);
+
+        return $run($env);
+    }
+};</code></pre>
+<p>In this case however you always need to provide the name of the command you want to run.</p>
+<h2 id="declaring-a-command-usage"><a href="#declaring-a-command-usage" class="anchor">#</a>Declaring a command usage</h2>
+<p>The <code>usage</code> method of a command is the way to declare the name, the arguments/options and the descriptions of the command. It's always formatted like this:</p>
+<pre><code>{command-name} {list of arguments and options}
+
+{Optional short description}
+
+{Optional long description}</code></pre>
+<p>The short description is displayed when listing all the commands (via <code>php cli.php --help</code>).</p>
+<p>The long description is displayed when asking for help on a specific command (via <code>php cli.php command-name --help</code>).</p>
+<p>Here are all the syntax to declare arguments and options:</p>
+<ul>
+<li><code>argument-name</code> in plain text means it's a required argument, access it via <code>$console->arguments()->get('argument-name')</code></li>
+<li><code>[argument-name]</code> means it's an optional argument, access it via <code>$console->arguments()->maybe('argument-name')</code></li>
+<li><code>...arguments</code> means it's a variadic argument, you can only declare one as a last argument and access it via <code>$console->arguments()->pack()</code></li>
+<li><code>-f|--flag</code> declares an option that cannot have a value, access it via <code>$console->options()->contains('flag')</code></li>
+<li><code>-o|--option=</code> declares an option that can have a value, access it via <code>$console->options()->maybe('option')</code></li>
+</ul></main>
+    <footer>
+        <a href="https://github.com/innmind/CLI/" target="_blank">GitHub</a>
+    </footer>
+</body>
+</html>

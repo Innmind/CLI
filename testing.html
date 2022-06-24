@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>innmind/cli</title>
+    <link rel="stylesheet" href="https://innmind.github.io/CLI/static/main.css"/>
+    <link rel="stylesheet" href="https://innmind.github.io/CLI/static/styles/default.css"/>
+    <link rel="stylesheet" href="https://innmind.github.io/CLI/static/styles/atom-one-dark.css"/>
+    <script src="https://innmind.github.io/CLI/static/highlight.pack.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+</head>
+<body>
+    <header>
+        <a href="https://innmind.github.io/CLI/"><code>cli</code></a>
+    </header>
+    <aside>
+        <ul>
+                    <li>
+                                    <a href="https://innmind.github.io/CLI/index.html">
+                        Getting started
+                    </a>
+                            </li>
+                    <li>
+                                    <details>
+                        <summary>
+                                                            Use cases
+                                                    </summary>
+                        <ul>
+                                                            <li class="sub-item ">
+                                    <a href="https://innmind.github.io/CLI/use-cases/hello-world.html">
+                                        Hello world
+                                    </a>
+                                </li>
+                                                            <li class="sub-item ">
+                                    <a href="https://innmind.github.io/CLI/use-cases/reading-input.html">
+                                        Reading the input
+                                    </a>
+                                </li>
+                                                            <li class="sub-item ">
+                                    <a href="https://innmind.github.io/CLI/use-cases/commands.html">
+                                        Commands
+                                    </a>
+                                </li>
+                                                    </ul>
+                    </details>
+                            </li>
+                    <li class="current">
+                                    <a href="https://innmind.github.io/CLI/testing.html">
+                        Testing
+                    </a>
+                            </li>
+                </ul>
+    </aside>
+    <main><h1 id="testing"><a href="#testing" class="anchor">#</a>Testing</h1>
+<p>To ease the process of testing your <a href="use-cases/commands.html">commands</a> this package provides an implementation of <code>Environment</code> just for this case. This implementation has the same behaviour as the one provided provided when running your tool.</p>
+<p>You can write such a test like this:</p>
+<pre><code class="language-php">use Innmind\CLI\{
+    Commands,
+    Environment\InMemory,
+};
+use PHPUnit\Framework\TestCase;
+
+class GreetTest extends TestCase
+{
+    public function testCommandGreetsTheUser()
+    {
+        $commands = Commands::of(new Greet);
+        $environment = $commands(InMemory::of(
+            [], // no chunks in STDIN
+            false, // non interactive mode
+            ['cli.php', 'greet', 'Bob'], // to simulate `php cli.php greet Bob`
+            [], // environment variables
+            '/tmp/', // working directory path
+        ));
+
+        // it asked to output "Hi Bob\n"
+        $this->assertSame(["Hi Bob\n"], $environment->outputs());
+        // it didn't write anything to STDERR
+        $this->assertSame([], $environment->errors());
+        // it didn't specify any exit code, meaning it will default to 0
+        $this->assertFalse($environment->exitCode()->match(
+            static fn() => true,
+            static fn() => false,
+        ));
+    }
+}</code></pre></main>
+    <footer>
+        <a href="https://github.com/innmind/CLI/" target="_blank">GitHub</a>
+    </footer>
+</body>
+</html>

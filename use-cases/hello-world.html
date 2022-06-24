@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>innmind/cli</title>
+    <link rel="stylesheet" href="https://innmind.github.io/CLI/static/main.css"/>
+    <link rel="stylesheet" href="https://innmind.github.io/CLI/static/styles/default.css"/>
+    <link rel="stylesheet" href="https://innmind.github.io/CLI/static/styles/atom-one-dark.css"/>
+    <script src="https://innmind.github.io/CLI/static/highlight.pack.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+</head>
+<body>
+    <header>
+        <a href="https://innmind.github.io/CLI/"><code>cli</code></a>
+    </header>
+    <aside>
+        <ul>
+                    <li>
+                                    <a href="https://innmind.github.io/CLI/index.html">
+                        Getting started
+                    </a>
+                            </li>
+                    <li>
+                                    <details open>
+                        <summary>
+                                                            Use cases
+                                                    </summary>
+                        <ul>
+                                                            <li class="sub-item current">
+                                    <a href="https://innmind.github.io/CLI/use-cases/hello-world.html">
+                                        Hello world
+                                    </a>
+                                </li>
+                                                            <li class="sub-item ">
+                                    <a href="https://innmind.github.io/CLI/use-cases/reading-input.html">
+                                        Reading the input
+                                    </a>
+                                </li>
+                                                            <li class="sub-item ">
+                                    <a href="https://innmind.github.io/CLI/use-cases/commands.html">
+                                        Commands
+                                    </a>
+                                </li>
+                                                    </ul>
+                    </details>
+                            </li>
+                    <li>
+                                    <a href="https://innmind.github.io/CLI/testing.html">
+                        Testing
+                    </a>
+                            </li>
+                </ul>
+    </aside>
+    <main><h1 id="hello-world"><a href="#hello-world" class="anchor">#</a>Hello world</h1>
+<p>This is the simplest example to write a cli tool.</p>
+<pre><code class="language-php"># cli.php
+declare(strict_types = 1);
+
+require 'path/to/composer/autoload.php';
+
+use Innmind\CLI\{
+    Main,
+    Environment,
+};
+use Innmind\OperatingSystem\OperatingSystem;
+use Innmind\Immutable\Str;
+
+new class extends Main {
+    protected function main(Environment $env, OperatingSystem $os): Environment
+    {
+        return $env->output(Str::of("Hello world\n"));
+    }
+};</code></pre>
+<h2 id="greeting-someone-by-their-name"><a href="#greeting-someone-by-their-name" class="anchor">#</a>Greeting someone by their name</h2>
+<pre><code class="language-php"># cli.php
+declare(strict_types = 1);
+
+require 'path/to/composer/autoload.php';
+
+use Innmind\CLI\{
+    Main,
+    Environment,
+};
+use Innmind\OperatingSystem\OperatingSystem;
+use Innmind\Immutable\Str;
+
+new class extends Main {
+    protected function main(Environment $env, OperatingSystem $os): Environment
+    {
+        return $env
+            ->arguments()
+            ->get(1) // not zero because it's the cli name
+            ->match(
+                static fn($name) => $env->output(Str::of("Hello $name\n")),
+                static fn() => $env->error(Str::of("Sorry, I didn't catch your name\n")),
+            );
+    }
+};</code></pre>
+<p>You can run it via <code>php cli.php John</code> or <code>php cli.php</code> to have the error message.</p>
+<h2 id="ask-for-the-name-interactively"><a href="#ask-for-the-name-interactively" class="anchor">#</a>Ask for the name interactively</h2>
+<pre><code class="language-php"># cli.php
+declare(strict_types = 1);
+
+require 'path/to/composer/autoload.php';
+
+use Innmind\CLI\{
+    Main,
+    Environment,
+};
+use Innmind\OperatingSystem\OperatingSystem;
+use Innmind\Immutable\Str;
+
+new class extends Main {
+    protected function main(Environment $env, OperatingSystem $os): Environment
+    {
+        $question = new Question("What's your name?");
+        [$response, $env] = $question($env);
+
+        return $response->match(
+            static fn($name) => $env->output(Str::of("Hello $name\n")),
+            static fn() => $env->error(Str::of("Sorry, I didn't catch your name\n")),
+        );
+    }
+};</code></pre></main>
+    <footer>
+        <a href="https://github.com/innmind/CLI/" target="_blank">GitHub</a>
+    </footer>
+</body>
+</html>
