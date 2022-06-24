@@ -10,12 +10,13 @@ use Innmind\CLI\{
 use Innmind\Immutable\{
     Sequence,
     Str,
-};
-use function Innmind\Immutable\{
-    join,
-    unwrap,
+    Maybe,
 };
 
+/**
+ * @psalm-immutable
+ * @internal
+ */
 final class Specification
 {
     private Command $command;
@@ -30,9 +31,12 @@ final class Specification
         return $this
             ->lines()
             ->first()
-            ->split(' ')
-            ->first()
-            ->toString();
+            ->map(static fn($line) => $line->split(' '))
+            ->flatMap(static fn($parts) => $parts->first())
+            ->match(
+                static fn($name) => $name->toString(),
+                static fn() => throw new \LogicException('Command name not found'),
+            );
     }
 
     public function is(string $command): bool
@@ -54,84 +58,77 @@ final class Specification
         }
 
         $commandChunks = $command->split(':');
-        $nameChunks = $name->split(':');
-
-        if ($commandChunks->size() !== $nameChunks->size()) {
-            return false;
-        }
-
-        try {
-            $nameChunks->reduce(
-                $commandChunks,
-                static function(Sequence $command, Str $chunk): Sequence {
-                    /** @var Str */
-                    $current = $command->first();
-
-                    if (!$chunk->take($current->length())->equals($current)) {
-                        throw new \Exception('Chunks don\'t match');
-                    }
-
-                    return $command->drop(1);
-                },
+        /**
+         * @psalm-suppress ArgumentTypeCoercion
+         * @var Sequence<Str>
+         */
+        $nameChunks = $name
+            ->split(':')
+            ->reduce(
+                Sequence::of(),
+                static fn(Sequence $names, $chunk) => $commandChunks
+                    ->get($names->size())
+                    ->map(static fn($chunk) => $chunk->length())
+                    ->map(static fn($length) => $chunk->take($length))
+                    ->match(
+                        static fn($chunk) => ($names)($chunk),
+                        static fn() => ($names)($chunk),
+                    ),
             );
 
-            return true;
-        } catch (\Exception $e) {
+        if ($nameChunks->size() !== $commandChunks->size()) {
             return false;
         }
+
+        return $nameChunks
+            ->map(static fn($chunk) => $chunk->toString())
+            ->diff($commandChunks->map(static fn($chunk) => $chunk->toString()))
+            ->empty();
     }
 
     public function shortDescription(): string
     {
-        $lines = $this->lines();
-
-        // there must be a blank line before the short description
-        if ($lines->size() < 3) {
-            return '';
-        }
-
-        return $lines->get(2)->trim()->toString();
+        return $this
+            ->lines()
+            ->get(2)
+            ->map(static fn($line) => $line->trim()->toString())
+            ->match(
+                static fn($description) => $description,
+                static fn() => '',
+            );
     }
 
     public function description(): string
     {
-        $lines = $this->lines();
-
-        // there must be a blank line before the description
-        if ($lines->size() < 5) {
-            return '';
-        }
-
-        $lines = $lines
+        $lines = $this
+            ->lines()
             ->drop(4)
-            ->map(static function(Str $line): Str {
-                return $line->trim();
-            })
-            ->mapTo(
-                'string',
-                static fn(Str $line): string => $line->toString(),
-            );
+            ->map(static fn($line) => $line->trim()->toString());
 
-        return join("\n", $lines)->toString();
+        return Str::of("\n")->join($lines)->toString();
     }
 
     public function pattern(): Pattern
     {
-        return new Pattern(...unwrap(
-            $this
-                ->lines()
-                ->first()
-                ->split(' ')
-                ->drop(1)
-        ));
+        return new Pattern(
+            ...$this
+                ->firstLine()
+                ->map(static fn($line) => $line->split(' ')->drop(1))
+                ->match(
+                    static fn($parts) => $parts->toList(),
+                    static fn() => [],
+                ),
+        );
     }
 
     public function toString(): string
     {
         return $this
-            ->lines()
-            ->first()
-            ->toString();
+            ->firstLine()
+            ->match(
+                static fn($line) => $line->toString(),
+                static fn() => '',
+            );
     }
 
     /**
@@ -139,12 +136,23 @@ final class Specification
      */
     private function lines(): Sequence
     {
-        $declaration = Str::of($this->command->toString())->trim();
+        $declaration = Str::of($this->command->usage())->trim();
 
         if ($declaration->empty()) {
             throw new EmptyDeclaration(\get_class($this->command));
         }
 
         return $declaration->split("\n");
+    }
+
+    /**
+     * @return Maybe<Str>
+     */
+    private function firstLine(): Maybe
+    {
+        return $this
+            ->lines()
+            ->first()
+            ->map(static fn($line) => $line->append(' --help --no-interaction'));
     }
 }

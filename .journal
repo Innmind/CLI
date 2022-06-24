@@ -1,0 +1,39 @@
+<?php
+declare(strict_types = 1);
+
+use Halsey\Journal\{
+    Config,
+    Menu\Entry,
+};
+use Innmind\Url\Path;
+
+return static function(Config $config): Config
+{
+    return $config
+        ->package('innmind', 'cli', null, 'CLI')
+        ->menu(
+            Entry::markdown(
+                'Getting started',
+                Path::of('readme.md'),
+            ),
+            Entry::section(
+                'Use cases',
+                Entry::markdown(
+                    'Hello world',
+                    Path::of('use-cases/hello-world.md'),
+                ),
+                Entry::markdown(
+                    'Reading the input',
+                    Path::of('use-cases/reading-input.md'),
+                ),
+                Entry::markdown(
+                    'Commands',
+                    Path::of('use-cases/commands.md'),
+                ),
+            ),
+            Entry::markdown(
+                'Testing',
+                Path::of('testing.md'),
+            ),
+        );
+};

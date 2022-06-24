@@ -12,8 +12,8 @@ use Innmind\CLI\{
 use Innmind\OperatingSystem\OperatingSystem;
 use Innmind\Immutable\Str;
 
-new class(true) extends Main {
-    protected function main(Environment $env, OperatingSystem $os): void
+new class extends Main {
+    protected function main(Environment $env, OperatingSystem $os): Environment
     {
         throw new LogicException('waaat');
     }

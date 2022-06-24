@@ -4,12 +4,6 @@ declare(strict_types = 1);
 namespace Innmind\CLI\Environment;
 
 use Innmind\CLI\Environment;
-use Innmind\OperatingSystem\Sockets;
-use Innmind\TimeContinuum\Earth\ElapsedPeriod;
-use Innmind\Stream\{
-    Readable,
-    Writable,
-};
 use Innmind\Url\Path;
 use Innmind\Immutable\{
     Sequence,
@@ -19,17 +13,18 @@ use Innmind\Immutable\{
 };
 
 /**
+ * Use this implementation for tests only
  * @psalm-immutable
  */
-final class GlobalEnvironment implements Environment
+final class InMemory implements Environment
 {
+    /** @var Sequence<Str> */
+    private Sequence $input;
+    /** @var Sequence<Str> */
+    private Sequence $output;
+    /** @var Sequence<Str> */
+    private Sequence $error;
     private bool $interactive;
-    private Readable\NonBlocking $input;
-    /** @var Output<'stdout'> */
-    private Output $output;
-    /** @var Output<'stderr'> */
-    private Output $error;
-    private Sockets $sockets;
     /** @var Sequence<string> */
     private Sequence $arguments;
     /** @var Map<string, string> */
@@ -39,61 +34,57 @@ final class GlobalEnvironment implements Environment
     private Path $workingDirectory;
 
     /**
-     * @param Output<'stdout'> $output
-     * @param Output<'stderr'> $error
+     * @param Sequence<Str> $input
+     * @param Sequence<Str> $output
+     * @param Sequence<Str> $error
      * @param Sequence<string> $arguments
      * @param Map<string, string> $variables
      * @param Maybe<ExitCode> $exitCode
      */
     private function __construct(
-        Sockets $sockets,
-        Readable\NonBlocking $input,
-        Output $output,
-        Output $error,
+        Sequence $input,
+        Sequence $output,
+        Sequence $error,
         bool $interactive,
         Sequence $arguments,
         Map $variables,
         Maybe $exitCode,
         Path $workingDirectory,
     ) {
-        $this->interactive = $interactive;
         $this->input = $input;
         $this->output = $output;
         $this->error = $error;
-        $this->sockets = $sockets;
+        $this->interactive = $interactive;
         $this->arguments = $arguments;
         $this->variables = $variables;
         $this->exitCode = $exitCode;
         $this->workingDirectory = $workingDirectory;
     }
 
-    public static function of(Sockets $sockets): self
-    {
-        /** @var list<string> */
-        $argv = $_SERVER['argv'];
-        $env = \getenv();
-        /** @var Map<string, string> */
-        $variables = Map::of();
-
-        foreach ($env as $key => $value) {
-            $variables = ($variables)($key, $value);
-        }
-
+    /**
+     * @param list<string> $input
+     * @param list<string> $arguments
+     * @param list<array{string, string}> $variables
+     */
+    public static function of(
+        array $input,
+        bool $interactive,
+        array $arguments,
+        array $variables,
+        string $workingDirectory,
+    ): self {
         /** @var Maybe<ExitCode> */
         $exitCode = Maybe::nothing();
 
         return new self(
-            $sockets,
-            Readable\NonBlocking::of(
-                Readable\Stream::of(\STDIN),
-            ),
-            Output::stdout(Writable\Stream::of(\fopen('php://output', 'w'))),
-            Output::stderr(Writable\Stream::of(\fopen('php://stderr', 'w'))),
-            \stream_isatty(\STDIN),
-            Sequence::strings(...$argv),
-            $variables,
+            Sequence::of(...$input)->map(static fn($string) => Str::of($string, 'ASCII')),
+            Sequence::of(),
+            Sequence::of(),
+            $interactive,
+            Sequence::of(...$arguments),
+            Map::of(...$variables),
             $exitCode,
-            Path::of(\getcwd().'/'),
+            Path::of(\rtrim($workingDirectory, '/').'/'),
         );
     }
 
@@ -104,34 +95,39 @@ final class GlobalEnvironment implements Environment
 
     public function read(int $length = null): array
     {
-        /** @psalm-suppress ImpureMethodCall */
-        $watch = $this
-            ->sockets
-            ->watch(new ElapsedPeriod(60_000)) // one minute
-            ->forRead($this->input);
+        $data = $this->input->first();
+        $input = $this->input->drop(1);
 
-        /**
-         * @psalm-suppress ImpureMethodCall
-         * @psalm-suppress InvalidArgument
-         */
-        $data = $watch()
-            ->flatMap(fn($ready) => $ready->toRead()->find(
-                fn($stream) => $stream === $this->input,
-            ))
-            ->filter(static fn(Readable $input) => !$input->end())
-            ->flatMap(static fn(Readable $input) => $input->read($length))
-            ->map(static fn($data) => $data->toEncoding('ASCII'));
+        if (\is_int($length)) {
+            // if the read data is longer than the wished length then we re-add
+            // the remaining to the start of the input list
+            $input = $data
+                ->map(static fn($data) => $data->drop($length))
+                ->filter(static fn($data) => !$data->empty())
+                ->match(
+                    static fn($data) => Sequence::of($data)->append($input),
+                    static fn() => $input,
+                );
+            $data = $data->map(static fn($data) => $data->take($length));
+        }
 
-        /** @var array{Maybe<Str>, Environment} */
-        return [$data, $this];
+        return [$data, new self(
+            $input,
+            $this->output,
+            $this->error,
+            $this->interactive,
+            $this->arguments,
+            $this->variables,
+            $this->exitCode,
+            $this->workingDirectory,
+        )];
     }
 
     public function output(Str $data): self
     {
         return new self(
-            $this->sockets,
             $this->input,
-            ($this->output)($data),
+            ($this->output)($data->toEncoding('ASCII')),
             $this->error,
             $this->interactive,
             $this->arguments,
@@ -144,10 +140,9 @@ final class GlobalEnvironment implements Environment
     public function error(Str $data): self
     {
         return new self(
-            $this->sockets,
             $this->input,
             $this->output,
-            ($this->error)($data),
+            ($this->error)($data->toEncoding('ASCII')),
             $this->interactive,
             $this->arguments,
             $this->variables,
@@ -169,7 +164,6 @@ final class GlobalEnvironment implements Environment
     public function exit(int $code): self
     {
         return new self(
-            $this->sockets,
             $this->input,
             $this->output,
             $this->error,
@@ -189,5 +183,27 @@ final class GlobalEnvironment implements Environment
     public function workingDirectory(): Path
     {
         return $this->workingDirectory;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function outputs(): array
+    {
+        return $this
+            ->output
+            ->map(static fn($string) => $string->toString())
+            ->toList();
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function errors(): array
+    {
+        return $this
+            ->error
+            ->map(static fn($string) => $string->toString())
+            ->toList();
     }
 }

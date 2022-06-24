@@ -6,13 +6,12 @@ namespace Innmind\CLI\Command;
 use Innmind\Immutable\{
     Map,
     Sequence,
-    Exception\NoElementMatchingPredicateFound,
-};
-use function Innmind\Immutable\{
-    assertMap,
-    assertSequence,
+    Maybe,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class Arguments
 {
     /** @var Map<string, string> */
@@ -26,53 +25,22 @@ final class Arguments
      */
     public function __construct(Map $arguments = null, Sequence $pack = null)
     {
-        $arguments ??= Map::of('string', 'string');
-        $pack ??= Sequence::strings();
-
-        assertMap('string', 'string', $arguments, 1);
-        assertSequence('string', $pack, 2);
-
-        $this->arguments = $arguments;
-        $this->pack = $pack;
-    }
-
-    /**
-     * @param Sequence<string> $arguments
-     */
-    public static function of(
-        Specification $specification,
-        Sequence $arguments
-    ): self {
-        $arguments = $specification->pattern()->options()->clean($arguments);
-        $arguments = $specification
-            ->pattern()
-            ->arguments()
-            ->extract($arguments);
-
-        try {
-            /** @var Sequence<string> */
-            $pack = $arguments->values()->find(
-                static fn($argument): bool => $argument instanceof Sequence,
-            );
-        } catch (NoElementMatchingPredicateFound $e) {
-            $pack = null;
-        }
-
-        /** @var Map<string, string> */
-        $arguments = $arguments
-            ->filter(static fn(string $_, $argument): bool => \is_string($argument))
-            ->toMapOf(
-                'string',
-                'string',
-                static function(string $key, $argument): \Generator {
-                    yield $key => $argument;
-                },
-            );
-
-        return new self($arguments, $pack);
+        $this->arguments = $arguments ?? Map::of();
+        $this->pack = $pack ?? Sequence::strings();
     }
 
     public function get(string $argument): string
+    {
+        return $this->maybe($argument)->match(
+            static fn($value) => $value,
+            static fn() => throw new \RuntimeException,
+        );
+    }
+
+    /**
+     * @return Maybe<string>
+     */
+    public function maybe(string $argument): Maybe
     {
         return $this->arguments->get($argument);
     }

@@ -5,12 +5,16 @@ namespace Innmind\CLI\Question;
 
 use Innmind\CLI\{
     Environment,
-    Exception\NonInteractiveTerminal,
+    Console,
 };
-use Innmind\OperatingSystem\Sockets;
-use Innmind\TimeContinuum\Earth\ElapsedPeriod;
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Maybe,
+};
 
+/**
+ * @psalm-immutable
+ */
 final class Question
 {
     private Str $question;
@@ -21,33 +25,36 @@ final class Question
     }
 
     /**
-     * @throws NonInteractiveTerminal
+     * @template T of Environment|Console
+     *
+     * @return array{Maybe<Str>, T} Returns nothing when no interactions available
      */
-    public function __invoke(Environment $env, Sockets $sockets): Str
+    public function __invoke(Environment|Console $env): array
     {
-        if (!$env->interactive() || $env->arguments()->contains('--no-interaction')) {
-            throw new NonInteractiveTerminal;
+        $noInteraction = match ($env::class) {
+            Console::class => $env->options()->contains('no-interaction'),
+            default => $env->arguments()->contains('--no-interaction'),
+        };
+
+        if (!$env->interactive() || $noInteraction) {
+            /** @var array{Maybe<Str>, T} */
+            return [Maybe::nothing(), $env];
         }
 
-        $input = $env->input();
-        $output = $env->output();
-        $output->write($this->question);
-
-        /** @psalm-suppress InvalidArgument $input must be a Selectable */
-        $watch = $sockets->watch(new ElapsedPeriod(60 * 1000)) // one minute
-            ->forRead($input);
+        $env = $env->output($this->question);
 
         $response = Str::of('');
 
         do {
-            $ready = $watch();
+            [$input, $env] = $env->read();
 
-            /** @psalm-suppress InvalidArgument $input must be a Selectable */
-            if ($ready->toRead()->contains($input)) {
-                $response = $response->append($input->read()->toString());
-            }
+            $response = $input->match(
+                static fn($input) => $response->append($input->toString()),
+                static fn() => $response,
+            );
         } while (!$response->contains("\n"));
 
-        return $response->substring(0, -1); // remove the new line character
+        /** @var array{Maybe<Str>, T} */
+        return [Maybe::just($response->dropEnd(1)), $env]; // remove the new line character
     }
 }

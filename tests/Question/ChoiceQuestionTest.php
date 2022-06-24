@@ -6,25 +6,8 @@ namespace Tests\Innmind\CLI\Question;
 use Innmind\CLI\{
     Question\ChoiceQuestion,
     Environment,
-    Exception\NonInteractiveTerminal,
 };
-use Innmind\OperatingSystem\Sockets;
-use Innmind\Stream\{
-    Readable,
-    Writable,
-    Selectable,
-    Stream,
-    Stream\Position,
-    Stream\Position\Mode,
-    Stream\Size,
-    Watch\Select,
-};
-use Innmind\TimeContinuum\Earth\ElapsedPeriod;
-use Innmind\Immutable\{
-    Str,
-    Map,
-    Sequence,
-};
+use Innmind\Immutable\Map;
 use PHPUnit\Framework\TestCase;
 
 class ChoiceQuestionTest extends TestCase
@@ -33,188 +16,86 @@ class ChoiceQuestionTest extends TestCase
     {
         $question = new ChoiceQuestion(
             'message',
-            Map::of('scalar', 'scalar')
+            Map::of()
                 ('foo', 'bar')
                 (1, 'baz')
                 (2, 3)
-                ('bar', 3)
+                ('bar', 3),
         );
-        $input = new class implements Readable, Selectable {
-            private $resource;
+        $env = Environment\InMemory::of(
+            [' foo,  ', "2\n"],
+            true,
+            [],
+            [],
+            '/',
+        );
 
-            public function close(): void
-            {
-            }
-
-            public function closed(): bool
-            {
-                return false;
-            }
-
-            public function position(): Position
-            {
-            }
-
-            public function seek(Position $position, Mode $mode = null): void
-            {
-            }
-
-            public function rewind(): void
-            {
-            }
-
-            public function end(): bool
-            {
-                return false;
-            }
-
-            public function size(): Size
-            {
-            }
-
-            public function knowsSize(): bool
-            {
-                return false;
-            }
-
-            public function resource()
-            {
-                return $this->resource ?? $this->resource = \tmpfile();
-            }
-
-            public function read(int $length = null): Str
-            {
-                static $flag = false;
-
-                if ($flag) {
-                    return Str::of("2\n");
-                }
-
-                $flag = true;
-
-                return Str::of(' foo,  ');
-            }
-
-            public function readLine(): Str
-            {
-                return Str::of('not used');
-            }
-
-            public function toString(): string
-            {
-                return 'not used';
-            }
-        };
-        $output = $this->createMock(Writable::class);
-        $output
-            ->expects($this->exactly(6))
-            ->method('write')
-            ->withConsecutive(
-                [$this->callback(static function($line): bool {
-                    return $line->toString() === "message\n";
-                })],
-                [$this->callback(static function($line): bool {
-                    return $line->toString() === "[foo] bar\n";
-                })],
-                [$this->callback(static function($line): bool {
-                    return $line->toString() === "[1] baz\n";
-                })],
-                [$this->callback(static function($line): bool {
-                    return $line->toString() === "[2] 3\n";
-                })],
-                [$this->callback(static function($line): bool {
-                    return $line->toString() === "[bar] 3\n";
-                })],
-                [$this->callback(static function($line): bool {
-                    return $line->toString() === '> ';
-                })],
-            );
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->any())
-            ->method('input')
-            ->willReturn($input);
-        $env
-            ->expects($this->any())
-            ->method('output')
-            ->willReturn($output);
-        $env
-            ->expects($this->once())
-            ->method('interactive')
-            ->willReturn(true);
-        $env
-            ->expects($this->once())
-            ->method('arguments')
-            ->willReturn(Sequence::strings());
-        $sockets = $this->createMock(Sockets::class);
-        $sockets
-            ->expects($this->once())
-            ->method('watch')
-            ->willReturn(new Select(new ElapsedPeriod(1000)));
-
-        $response = $question($env, $sockets);
+        [$response, $env] = $question($env);
+        $response = $response->match(
+            static fn($response) => $response,
+            static fn() => null,
+        );
 
         $this->assertInstanceOf(Map::class, $response);
-        $this->assertSame('scalar', (string) $response->keyType());
-        $this->assertSame('scalar', (string) $response->valueType());
         $this->assertCount(2, $response);
-        $this->assertSame('bar', $response->get('foo'));
-        $this->assertSame(3, $response->get(2));
-    }
-
-    public function testThrowWhenInvalidValuesKey()
-    {
-        $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 2 must be of type Map<scalar, scalar>');
-
-        new ChoiceQuestion(
-            'foo',
-            Map::of('int', 'scalar')
+        $this->assertSame('bar', $response->get('foo')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame(3, $response->get(2)->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame(
+            [
+                "message\n",
+                "[foo] bar\n",
+                "[1] baz\n",
+                "[2] 3\n",
+                "[bar] 3\n",
+                '> ',
+            ],
+            $env->outputs(),
         );
     }
 
-    public function testThrowWhenInvalidValuesValue()
+    public function testReturnNothingWhenEnvNonInteractive()
     {
-        $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 2 must be of type Map<scalar, scalar>');
+        $question = new ChoiceQuestion('watev', Map::of());
 
-        new ChoiceQuestion(
-            'foo',
-            Map::of('scalar', 'int')
+        $env = Environment\InMemory::of(
+            [],
+            false,
+            [],
+            [],
+            '/',
         );
+
+        [$response, $env] = $question($env);
+
+        $this->assertNull($response->match(
+            static fn($response) => $response,
+            static fn() => null,
+        ));
     }
 
-    public function testThrowWhenEnvNonInteractive()
+    public function testReturnNothingWhenOptionToSpecifyNoInteractionIsRequired()
     {
-        $question = new ChoiceQuestion('watev', Map::of('scalar', 'scalar'));
+        $question = new ChoiceQuestion('watev', Map::of());
 
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->once())
-            ->method('interactive')
-            ->willReturn(false);
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['foo', '--no-interaction', 'bar'],
+            [],
+            '/',
+        );
 
-        $this->expectException(NonInteractiveTerminal::class);
+        [$response, $env] = $question($env);
 
-        $question($env, $this->createMock(Sockets::class));
-    }
-
-    public function testThrowWhenOptionToSpecifyNoInteractionIsRequired()
-    {
-        $question = new ChoiceQuestion('watev', Map::of('scalar', 'scalar'));
-
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->once())
-            ->method('interactive')
-            ->willReturn(true);
-        $env
-            ->expects($this->once())
-            ->method('arguments')
-            ->willReturn(Sequence::strings('foo', '--no-interaction', 'bar'));
-
-        $this->expectException(NonInteractiveTerminal::class);
-
-        $question($env, $this->createMock(Sockets::class));
+        $this->assertNull($response->match(
+            static fn($response) => $response,
+            static fn() => null,
+        ));
     }
 }

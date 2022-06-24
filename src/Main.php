@@ -7,7 +7,6 @@ use Innmind\OperatingSystem\{
     Factory,
     OperatingSystem,
 };
-use Innmind\Stream\Writable;
 use Innmind\StackTrace\{
     StackTrace,
     Throwable,
@@ -20,32 +19,23 @@ use Innmind\Immutable\{
 
 abstract class Main
 {
-    final public function __construct(bool $displayBinInError = false)
+    final public function __construct()
     {
         $os = Factory::build();
-        $env = new Environment\WriteAsASCII(
-            new Environment\ChunkWriteByLine(
-                new Environment\BackPressureWrites(
-                    new Environment\GlobalEnvironment,
-                    $os->clock(),
-                    $os->process(),
-                ),
-            ),
-        );
+        $env = Environment\GlobalEnvironment::of($os->sockets());
 
         try {
-            $this->main($env, $os);
+            $env = $this->main($env, $os);
         } catch (\Throwable $e) {
-            $this->print(
-                $displayBinInError,
-                $env->arguments()->first(),
-                $e,
-                $env->error(),
-            );
-            $env->exit(1);
+            $env = $this
+                ->print($e, $env)
+                ->exit(1);
         }
 
-        exit($env->exitCode()->toInt());
+        exit($env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => 0,
+        ));
     }
 
     final public function __destruct()
@@ -53,11 +43,11 @@ abstract class Main
         //main() is the only place to run code
     }
 
-    abstract protected function main(Environment $env, OperatingSystem $os): void;
+    abstract protected function main(Environment $env, OperatingSystem $os): Environment;
 
-    private function print(bool $displayBin, string $bin, \Throwable $e, Writable $stream): void
+    private function print(\Throwable $e, Environment $env): Environment
     {
-        $stack = new StackTrace($e);
+        $stack = StackTrace::of($e);
 
         /** @var Sequence<Str> */
         $chunks = $stack->previous()->reduce(
@@ -70,17 +60,11 @@ abstract class Main
                     ->append($this->renderError($e));
             },
         );
-        $chunks
-            ->map(static function(Str $line) use ($bin, $displayBin): Str {
-                if ($displayBin) {
-                    return $line->prepend("$bin: ");
-                }
 
-                return $line;
-            })
-            ->foreach(
-                static fn(Str $line) => $stream->write($line->append("\n")),
-            );
+        return $chunks->reduce(
+            $env,
+            static fn(Environment $env, Str $line) => $env->error($line->append("\n")),
+        );
     }
 
     /**
@@ -88,9 +72,7 @@ abstract class Main
      */
     private function renderError(Throwable $e): Sequence
     {
-        /** @var Sequence<Str> */
         $lines = Sequence::of(
-            Str::class,
             Str::of('%s(%s, %s)')->sprintf(
                 $e->class()->toString(),
                 $e->message()->toString(),
@@ -110,7 +92,7 @@ abstract class Main
                 $lines,
                 function(Sequence $lines, CallFrame $frame): Sequence {
                     return $lines->add($this->renderCallFrame($frame));
-                }
+                },
             );
     }
 

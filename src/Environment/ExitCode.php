@@ -3,17 +3,28 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Environment;
 
+/**
+ * @psalm-immutable
+ */
 final class ExitCode
 {
+    /**
+     * 255 is reserved by PHP
+     * @var int<0, 254>
+     */
     private int $code;
 
+    /**
+     * @param int<0, 254> $code
+     */
     public function __construct(int $code)
     {
-        $code = $code < 0 ? 0 : $code;
-        $code = $code > 254 ? 254 : $code; //255 is reserved by PHP
         $this->code = $code;
     }
 
+    /**
+     * @return int<0, 254>
+     */
     public function toInt(): int
     {
         return $this->code;

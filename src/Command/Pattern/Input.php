@@ -7,22 +7,39 @@ use Innmind\Immutable\{
     Str,
     Sequence,
     Map,
+    Maybe,
 };
 
+/**
+ * @psalm-immutable
+ * @internal
+ */
 interface Input
 {
-    public static function of(Str $pattern): self;
+    /**
+     * @return Maybe<self>
+     */
+    public static function of(Str $pattern): Maybe;
 
     /**
-     * @param Map<string, string|Sequence<string>> $parsed
      * @param Sequence<string> $arguments
+     * @param Map<string, string> $parsedArguments
+     * @param Sequence<string> $pack
+     * @param Map<string, string> $options
      *
-     * @return Map<string, string|Sequence<string>>
+     * @return array{
+     *     Sequence<string>,
+     *     Map<string, string>,
+     *     Sequence<string>,
+     *     Map<string, string>,
+     * }
      */
-    public function extract(
-        Map $parsed,
-        int $position,
-        Sequence $arguments
-    ): Map;
+    public function parse(
+        Sequence $arguments,
+        Map $parsedArguments,
+        Sequence $pack,
+        Map $options,
+    ): array;
+
     public function toString(): string;
 }

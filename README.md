@@ -8,6 +8,8 @@ CLI is a small library to wrap all the needed informations to build a command li
 
 The said approach is to have a `main` function as the starting point of execution of your code. This function has a the environment it runs in passed as argument so there's no need for global variables. However since not everything can be passed down as argument (it would complicate the interface), [ambient authority](https://en.wikipedia.org/wiki/Ambient_authority) can be exercised (as in regular PHP script).
 
+**Important**: to correctly use this library you must validate your code with [`vimeo/psalm`](https://packagist.org/packages/vimeo/psalm)
+
 ## Installation
 
 ```sh
@@ -23,7 +25,7 @@ To start a new CLI tool you need this boilerplate code:
 <?php
 declare(strict_types = 1);
 
-require 'path/to/composer/autoload.php'
+require 'path/to/composer/autoload.php';
 
 use Innmind\CLI\{
     Main,
@@ -32,16 +34,17 @@ use Innmind\CLI\{
 use Innmind\OperatingSystem\OperatingSystem;
 
 new class extends Main {
-    protected function main(Environment $env, OperatingSystem $os): void
+    protected function main(Environment $env, OperatingSystem $os): Environment
     {
         //your code here
+        return $env;
     }
-}
+};
 ```
 
 This will directly call the `main` function. The `$env` variable gives you access to the 3 standard streams (`stdin`, `stdout`, `stderr`), the list of arguments passed in the cli, all the environment variables, the working directory, if the terminal is interactive and a method to specify the exit code.
 
-**Note**: Calling `$env->exit(1)` will _not_ exit directly your program, you _must_ call `return;` in order to make the `main` function to stop.
+**Note**: Calling `$env->exit(1)` will _not_ exit directly your program, you _must_ call `return $env->exit(1);` in order to make the `main` function to stop.
 
 ## Commands
 
@@ -53,32 +56,34 @@ use Innmind\CLI\{
     Command,
     Command\Arguments,
     Command\Options,
+    Console,
 };
 
 function main(Environment $env, OperatingSystem $os): void
 {
-    $run = new Commands(
+    $run = Commands::of(
         new class implements Command {
-            public function __invoke(Environment $env, Arguments $arguments, Options $options): env
+            public function __invoke(Console $console): Console
             {
                 //your code here
             }
 
-            public function toString(): string
+            public function usage(): string
             {
                 return 'foo';
             }
         }
     );
-    $run($env);
-}
+
+    return $run($env);
+};
 ```
 
 In your terminal you would call this command like this `php cli.php foo`. But since here a single command is defined you could simply call `php cli.php`. Of course you can define as many commands as you wish.
 
 Here the command is an anonymous class to simplify the example, but it can be a normal class implementing `Command`. Since the command simply needs to implement an interface, you have full control of the dependencies you can inject into it. Meaning your commands instances can comme from a dependency injection container. The other advantage since the interface is simple is that you can easily unit test your commands.
 
-The `Command` interface requires you to implement 2 methods: `__invoke` and `toString`. The first one is the one that will be called if it's the desired command to be called. `toString` is the place where you define the _structure_ of your command, by that I mean the name of the command, the list of its arguments/options, its short description and full description.
+The `Command` interface requires you to implement 2 methods: `__invoke` and `usage`. The first one is the one that will be called if it's the desired command to be called. `usage` is the place where you define the _structure_ of your command, by that I mean the name of the command, the list of its arguments/options, its short description and full description.
 
 To define all properties of your command it would ressemble to this:
 
@@ -94,9 +99,9 @@ Command name and short description are displayed when you run the `help` command
 
 To define arguments you have access to 3 patterns:
 
-* `foo` with this you ask for a required argument that will be accessed like so `$arguments->get('foo')`
-* `[bar]` with this you ask for an optional argument, you must verify its presence via `$arguments->contains('bar')` before accessing it. Optional arguments can't be followed by required ones
-* `...baz` with this you ask that all extra arguments will be regrouped as a list with the name `baz`, it will provide a `Sequence<string>` of any length. You can only have one argument of this type and must be the last one, you access via `$arguments->pack()`
+* `foo` with this you ask for a required argument that will be accessed like so `$console->arguments()->get('foo')`
+* `[bar]` with this you ask for an optional argument, you must verify its presence via `$console->arguments()->contains('bar')` before accessing it. Optional arguments can't be followed by required ones
+* `...baz` with this you ask that all extra arguments will be regrouped as a list with the name `baz`, it will provide a `Sequence<string>` of any length. You can only have one argument of this type and must be the last one, you access via `$console->arguments()->pack()`
 
 To define options you have access to 2 patterns:
 

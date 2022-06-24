@@ -3,11 +3,9 @@ declare(strict_types = 1);
 
 namespace Tests\Innmind\CLI;
 
-use Innmind\Server\Control\{
-    ServerFactory,
-    Server\Command
-};
-use Innmind\Stream\Readable\Stream;
+use Innmind\OperatingSystem\Factory;
+use Innmind\Server\Control\Server\Command;
+use Innmind\Filesystem\File\Content;
 use Innmind\Server\Control\Server\Process\Output\Type;
 use Innmind\Url\Path;
 use Innmind\Immutable\Str;
@@ -19,7 +17,7 @@ class MainTest extends TestCase
 
     public function setUp(): void
     {
-        $this->processes = ServerFactory::build()->processes();
+        $this->processes = Factory::build()->control()->processes();
     }
 
     public function testExit()
@@ -30,16 +28,14 @@ class MainTest extends TestCase
                 Command::foreground('php')
                     ->withArgument('fixtures/exiter.php')
                     ->withArgument('10')
-                    ->withWorkingDirectory(Path::of(\getcwd()))
+                    ->withWorkingDirectory(Path::of(\getcwd())),
             );
-        $process->wait();
-
-        $this->assertSame(
-            10,
-            $process
-                ->exitCode()
-                ->toInt()
+        $exitCode = $process->wait()->match(
+            static fn() => null,
+            static fn($e) => $e->exitCode()->toInt(),
         );
+
+        $this->assertSame(10, $exitCode);
     }
 
     public function testEcho()
@@ -50,12 +46,10 @@ class MainTest extends TestCase
                 Command::foreground('php')
                     ->withArgument('fixtures/echo.php')
                     ->withArgument('10')
-                    ->withInput(Stream::ofContent('foobar'."\n".'baz'))
-                    ->withWorkingDirectory(Path::of(\getcwd()))
+                    ->withInput(Content\Lines::ofContent('foobar'."\n".'baz'))
+                    ->withWorkingDirectory(Path::of(\getcwd())),
             );
-        $process->wait();
 
-        $this->assertSame(0, $process->exitCode()->toInt());
         $this->assertSame('foobar'."\n".'baz', $process->output()->toString());
     }
 
@@ -66,75 +60,51 @@ class MainTest extends TestCase
             ->execute(
                 Command::foreground('php')
                     ->withArgument('fixtures/thrower.php')
-                    ->withWorkingDirectory(Path::of(\getcwd()))
+                    ->withWorkingDirectory(Path::of(\getcwd())),
             );
         $process->output()->foreach(function(Str $line, Type $type): void {
-            $this->assertSame(Type::error(), $type);
+            $this->assertSame(Type::error, $type);
         });
-        $process->wait();
-
-        $this->assertSame(1, $process->exitCode()->toInt());
 
         $cwd = \getcwd();
-        $output = Str::of($process->output()->toString())->split("\n");
+        $output = Str::of($process->output()->toString())->split("\n")->toList();
 
         $this->assertCount(6, $output);
         $this->assertSame(
-            "fixtures/thrower.php: Innmind\CLI\Exception\LogicException(waaat, 0)",
-            $output->get(0)->toString()
+            "Innmind\CLI\Exception\LogicException(waaat, 0)",
+            $output[0]->toString(),
         );
         $this->assertSame(
-            "fixtures/thrower.php: $cwd/fixtures/thrower.php:18",
-            $output->get(1)->toString()
-        );
-        $this->assertSame(
-            'fixtures/thrower.php: ',
-            $output->get(2)->toString()
-        );
-
-        if (\PHP_MAJOR_VERSION === 7) {
-            $this->assertSame(
-                'fixtures/thrower.php: class@anonymous',
-                $output->get(3)->substring(0, 37)->toString()
-            );
-            $this->assertSame(
-                "$cwd",
-                $output->get(3)->substring(38, \strlen($cwd))->toString()
-            );
-            $this->assertSame(
-                '/fixtures/thrower.php',
-                $output->get(3)->substring(38 + \strlen($cwd), 21)->toString()
-            );
-            $this->assertMatchesRegularExpression(
-                "~^->main\(\) at $cwd/src/Main.php:(46|37)$~",
-                $output->get(3)->substring(-28 - \strlen($cwd))->toString()
-            );
-        } else {
-            $this->assertSame(
-                'fixtures/thrower.php: Innmind\CLI\Main@anonymous',
-                $output->get(3)->substring(0, 48)->toString()
-            );
-            $this->assertSame(
-                "$cwd",
-                $output->get(3)->substring(49, \strlen($cwd))->toString()
-            );
-            $this->assertSame(
-                '/fixtures/thrower.php',
-                $output->get(3)->substring(49 + \strlen($cwd), 21)->toString()
-            );
-            $this->assertMatchesRegularExpression(
-                "~^->main\(\) at $cwd/src/Main.php:(46|37)$~",
-                $output->get(3)->substring(-28 - \strlen($cwd))->toString()
-            );
-        }
-
-        $this->assertSame(
-            "fixtures/thrower.php: Innmind\CLI\Main->__construct() at $cwd/fixtures/thrower.php:15",
-            $output->get(4)->toString()
+            "$cwd/fixtures/thrower.php:18",
+            $output[1]->toString(),
         );
         $this->assertSame(
             '',
-            $output->get(5)->toString()
+            $output[2]->toString(),
+        );
+        $this->assertSame(
+            'Innmind\CLI\Main@anonymous',
+            $output[3]->substring(0, 26)->toString(),
+        );
+        $this->assertSame(
+            "$cwd",
+            $output[3]->substring(27, \strlen($cwd))->toString(),
+        );
+        $this->assertSame(
+            '/fixtures/thrower.php',
+            $output[3]->substring(27 + \strlen($cwd), 21)->toString(),
+        );
+        $this->assertMatchesRegularExpression(
+            "~^->main\(\) at $cwd/src/Main.php:(37|28)$~",
+            $output[3]->substring(-28 - \strlen($cwd))->toString(),
+        );
+        $this->assertSame(
+            "Innmind\CLI\Main->__construct() at $cwd/fixtures/thrower.php:15",
+            $output[4]->toString(),
+        );
+        $this->assertSame(
+            '',
+            $output[5]->toString(),
         );
     }
 }

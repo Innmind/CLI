@@ -3,16 +3,18 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Command\Pattern;
 
-use Innmind\CLI\Exception\{
-    PatternNotRecognized,
-    MissingArgument,
-};
+use Innmind\CLI\Exception\MissingArgument;
 use Innmind\Immutable\{
     Str,
     Sequence,
     Map,
+    Maybe,
 };
 
+/**
+ * @psalm-immutable
+ * @internal
+ */
 final class RequiredArgument implements Input, Argument
 {
     private string $name;
@@ -22,25 +24,34 @@ final class RequiredArgument implements Input, Argument
         $this->name = $name;
     }
 
-    public static function of(Str $pattern): Input
+    /**
+     * @psalm-pure
+     */
+    public static function of(Str $pattern): Maybe
     {
-        if (!$pattern->matches('~^[a-zA-Z0-9]+$~')) {
-            throw new PatternNotRecognized($pattern->toString());
-        }
-
-        return new self($pattern->toString());
+        /** @var Maybe<Input> */
+        return Maybe::just($pattern)
+            ->filter(static fn($pattern) => $pattern->matches('~^[a-zA-Z0-9]+$~'))
+            ->map(static fn($pattern) => new self($pattern->toString()));
     }
 
-    public function extract(
-        Map $parsed,
-        int $position,
-        Sequence $arguments
-    ): Map {
-        if (!$arguments->indices()->contains($position)) {
-            throw new MissingArgument($this->name);
-        }
+    public function parse(
+        Sequence $arguments,
+        Map $parsedArguments,
+        Sequence $pack,
+        Map $options,
+    ): array {
+        $value = $arguments->first()->match(
+            static fn($value) => $value,
+            fn() => throw new MissingArgument($this->name),
+        );
 
-        return ($parsed)($this->name, $arguments->get($position));
+        return [
+            $arguments->drop(1),
+            ($parsedArguments)($this->name, $value),
+            $pack,
+            $options,
+        ];
     }
 
     public function toString(): string

@@ -8,26 +8,24 @@
     "authors": [
         {
             "name": "Baptiste Langlade",
-            "email": "langlade.baptiste@gmail.com"
+            "email": "baptiste.langlade@hey.com"
         }
     ],
     "support": {
         "issues": "http://github.com/Innmind/CLI/issues"
     },
     "require": {
-        "php": "~7.4|~8.0",
-        "innmind/stream": "~2.0",
-        "innmind/immutable": "~3.6",
-        "innmind/url": "~3.0",
-        "innmind/operating-system": "~2.0",
-        "innmind/stack-trace": "~3.0",
-        "symfony/dotenv": "~5.0"
+        "php": "~8.1",
+        "innmind/stream": "~3.0",
+        "innmind/immutable": "~4.0",
+        "innmind/url": "~4.0",
+        "innmind/operating-system": "~3.0",
+        "innmind/stack-trace": "~4.0"
     },
     "autoload": {
         "psr-4": {
             "Innmind\\CLI\\": "src/"
-        },
-        "files": ["src/functions.php"]
+        }
     },
     "autoload-dev": {
         "psr-4": {
@@ -38,6 +36,6 @@
         "phpunit/phpunit": "~9.0",
         "vimeo/psalm": "~4.4",
         "innmind/black-box": "^4.10",
-        "innmind/coding-standard": "^1.1"
+        "innmind/coding-standard": "~2.0"
     }
 }

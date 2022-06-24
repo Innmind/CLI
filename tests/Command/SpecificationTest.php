@@ -5,11 +5,9 @@ namespace Tests\Innmind\CLI\Command;
 
 use Innmind\CLI\{
     Command\Specification,
-    Command\Arguments,
-    Command\Options,
     Command\Pattern,
     Command,
-    Environment,
+    Console,
     Exception\EmptyDeclaration,
 };
 use PHPUnit\Framework\TestCase;
@@ -25,11 +23,11 @@ class SpecificationTest extends TestCase
     public function testInterface()
     {
         $command = new class implements Command {
-            public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+            public function __invoke(Console $console): Console
             {
             }
 
-            public function toString(): string
+            public function usage(): string
             {
                 return <<<USAGE
     watch container [output] ...proxy
@@ -49,7 +47,7 @@ USAGE;
         $this->assertSame('watch', $spec->name());
         $this->assertSame(
             'Watch a container definition file for changes and generate corresponding graph',
-            $spec->shortDescription()
+            $spec->shortDescription(),
         );
 
         $expected = <<<DESCRIPTION
@@ -61,11 +59,14 @@ DESCRIPTION;
 
         $this->assertSame($expected, $spec->description());
         $this->assertSame(
-            'watch container [output] ...proxy',
+            'watch container [output] ...proxy --help --no-interaction',
             $spec->toString(),
         );
         $this->assertInstanceOf(Pattern::class, $spec->pattern());
-        $this->assertSame('container [output] ...proxy', $spec->pattern()->toString());
+        $this->assertSame(
+            'container [output] ...proxy --help --no-interaction',
+            $spec->pattern()->toString(),
+        );
     }
 
     public function testMatchesItsOwnName()
@@ -85,11 +86,11 @@ DESCRIPTION;
                         $this->usage = $usage;
                     }
 
-                    public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                    public function __invoke(Console $console): Console
                     {
                     }
 
-                    public function toString(): string
+                    public function usage(): string
                     {
                         return $this->usage;
                     }
@@ -118,11 +119,11 @@ DESCRIPTION;
                         $this->usage = $usage;
                     }
 
-                    public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                    public function __invoke(Console $console): Console
                     {
                     }
 
-                    public function toString(): string
+                    public function usage(): string
                     {
                         return $this->usage;
                     }
@@ -151,11 +152,11 @@ DESCRIPTION;
                         $this->usage = $usage;
                     }
 
-                    public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                    public function __invoke(Console $console): Console
                     {
                     }
 
-                    public function toString(): string
+                    public function usage(): string
                     {
                         return $this->usage;
                     }
@@ -183,11 +184,11 @@ DESCRIPTION;
                         $this->usage = $usage;
                     }
 
-                    public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                    public function __invoke(Console $console): Console
                     {
                     }
 
-                    public function toString(): string
+                    public function usage(): string
                     {
                         return $this->usage;
                     }
@@ -216,11 +217,11 @@ DESCRIPTION;
                         $this->usage = $usage;
                     }
 
-                    public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                    public function __invoke(Console $console): Console
                     {
                     }
 
-                    public function toString(): string
+                    public function usage(): string
                     {
                         return $this->usage;
                     }
@@ -236,11 +237,11 @@ DESCRIPTION;
     public function testThrowWhenEmptyDeclaration()
     {
         $command = new class implements Command {
-            public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+            public function __invoke(Console $console): Console
             {
             }
 
-            public function toString(): string
+            public function usage(): string
             {
                 return '  ';
             }

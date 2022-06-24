@@ -6,9 +6,12 @@ namespace Innmind\CLI\Command;
 use Innmind\Immutable\{
     Map,
     Sequence,
+    Maybe,
 };
-use function Innmind\Immutable\assertMap;
 
+/**
+ * @psalm-immutable
+ */
 final class Options
 {
     /** @var Map<string, string> */
@@ -19,43 +22,27 @@ final class Options
      */
     public function __construct(Map $options = null)
     {
-        $options ??= Map::of('string', 'string');
+        $this->options = $options ?? Map::of();
+    }
 
-        assertMap('string', 'string', $options, 1);
-
-        $this->options = $options;
+    public function get(string $option): string
+    {
+        return $this->maybe($option)->match(
+            static fn($value) => $value,
+            static fn() => throw new \RuntimeException,
+        );
     }
 
     /**
-     * @param Sequence<string> $arguments
+     * @return Maybe<string>
      */
-    public static function of(
-        Specification $specification,
-        Sequence $arguments
-    ): self {
-        /** @var Map<string, string> */
-        $options = $specification
-            ->pattern()
-            ->options()
-            ->extract($arguments)
-            ->toMapOf( // simply for a type change
-                'string',
-                'string',
-                static function(string $name, $value): \Generator {
-                    yield $name => $value;
-                },
-            );
-
-        return new self($options);
+    public function maybe(string $option): Maybe
+    {
+        return $this->options->get($option);
     }
 
-    public function get(string $argument): string
+    public function contains(string $option): bool
     {
-        return $this->options->get($argument);
-    }
-
-    public function contains(string $argument): bool
-    {
-        return $this->options->contains($argument);
+        return $this->options->contains($option);
     }
 }

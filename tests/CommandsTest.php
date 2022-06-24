@@ -6,14 +6,8 @@ namespace Tests\Innmind\CLI;
 use Innmind\CLI\{
     Commands,
     Command,
-    Command\Arguments,
-    Command\Options,
     Environment,
-};
-use Innmind\Stream\Writable;
-use Innmind\Immutable\{
-    Sequence,
-    Str,
+    Console,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -21,323 +15,318 @@ class CommandsTest extends TestCase
 {
     public function testRunSingleCommand()
     {
-        $run = new Commands(new class implements Command {
-            public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+        $run = Commands::of(new class implements Command {
+            public function __invoke(Console $console): Console
             {
                 if (
-                    !$arguments->contains('container') ||
-                    $arguments->get('container') !== 'foo' ||
-                    !$arguments->contains('output') ||
-                    $arguments->get('output') !== 'bar' ||
-                    !$options->contains('foo')
+                    !$console->arguments()->contains('container') ||
+                    $console->arguments()->get('container') !== 'foo' ||
+                    !$console->arguments()->contains('output') ||
+                    $console->arguments()->get('output') !== 'bar' ||
+                    !$console->options()->contains('foo')
                 ) {
                     throw new \Exception;
                 }
 
-                $env->exit(42);
+                return $console->exit(42);
             }
 
-            public function toString(): string
+            public function usage(): string
             {
                 return 'watch container [output] --foo';
             }
         });
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->once())
-            ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console', 'foo', '--foo', 'bar'));
-        $env
-            ->expects($this->once())
-            ->method('exit')
-            ->with(42);
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'foo', '--foo', 'bar'],
+            [],
+            '/',
+        );
 
-        $this->assertNull($run($env));
+        $this->assertSame(42, $run($env)->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
     }
 
     public function testRunCommandByName()
     {
-        $run = new Commands(
+        $run = Commands::of(
             new class implements Command {
-                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                public function __invoke(Console $console): Console
                 {
-                    $env->exit(42);
+                    return $console->exit(42);
                 }
 
-                public function toString(): string
+                public function usage(): string
                 {
                     return 'foo';
                 }
             },
             new class implements Command {
-                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                public function __invoke(Console $console): Console
                 {
                     if (
-                        !$arguments->contains('container') ||
-                        $arguments->get('container') !== 'foo' ||
-                        !$arguments->contains('output') ||
-                        $arguments->get('output') !== 'bar' ||
-                        !$options->contains('foo')
+                        !$console->arguments()->contains('container') ||
+                        $console->arguments()->get('container') !== 'foo' ||
+                        !$console->arguments()->contains('output') ||
+                        $console->arguments()->get('output') !== 'bar' ||
+                        !$console->options()->contains('foo')
                     ) {
                         throw new \Exception;
                     }
 
-                    $env->exit(24);
+                    return $console->exit(24);
                 }
 
-                public function toString(): string
+                public function usage(): string
                 {
                     return 'watch container [output] --foo';
                 }
-            }
+            },
         );
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->exactly(2))
-            ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console', 'watch', 'foo', '--foo', 'bar'));
-        $env
-            ->expects($this->once())
-            ->method('exit')
-            ->with(24);
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'watch', 'foo', '--foo', 'bar'],
+            [],
+            '/',
+        );
 
-        $this->assertNull($run($env));
+        $this->assertSame(24, $run($env)->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
     }
 
     public function testRunCommandByNameEvenWhenAnotherCommandStartsWithTheSameName()
     {
-        $run = new Commands(
+        $run = Commands::of(
             new class implements Command {
-                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                public function __invoke(Console $console): Console
                 {
-                    $env->exit(42);
+                    return $console->exit(42);
                 }
 
-                public function toString(): string
+                public function usage(): string
                 {
                     return 'foo';
                 }
             },
             new class implements Command {
-                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                public function __invoke(Console $console): Console
                 {
-                    $env->exit(24);
+                    return $console->exit(24);
                 }
 
-                public function toString(): string
+                public function usage(): string
                 {
                     return 'foobar';
                 }
-            }
+            },
         );
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->exactly(2))
-            ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console', 'foo'));
-        $env
-            ->expects($this->once())
-            ->method('exit')
-            ->with(42);
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'foo'],
+            [],
+            '/',
+        );
 
-        $this->assertNull($run($env));
+        $this->assertSame(42, $run($env)->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
     }
 
     public function testRunCommandBySpecifyingOnlyTheStartOfItsName()
     {
-        $run = new Commands(
+        $run = Commands::of(
             new class implements Command {
-                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                public function __invoke(Console $console): Console
                 {
-                    $env->exit(42);
+                    return $console->exit(42);
                 }
 
-                public function toString(): string
+                public function usage(): string
                 {
                     return 'foo';
                 }
             },
             new class implements Command {
-                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                public function __invoke(Console $console): Console
                 {
-                    $env->exit(24);
+                    return $console->exit(24);
                 }
 
-                public function toString(): string
+                public function usage(): string
                 {
                     return 'watch';
                 }
-            }
+            },
         );
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->any())
-            ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console', 'w'));
-        $env
-            ->expects($this->once())
-            ->method('exit')
-            ->with(24);
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'w'],
+            [],
+            '/',
+        );
 
-        $this->assertNull($run($env));
+        $this->assertSame(24, $run($env)->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
     }
 
     public function testRunCommandBySpecifyingOnlyTheStartOfTheSectionsOfItsName()
     {
-        $run = new Commands(
+        $run = Commands::of(
             new class implements Command {
-                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                public function __invoke(Console $console): Console
                 {
-                    $env->exit(42);
+                    return $console->exit(42);
                 }
 
-                public function toString(): string
+                public function usage(): string
                 {
                     return 'foo:bar:baz';
                 }
             },
             new class implements Command {
-                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                public function __invoke(Console $console): Console
                 {
-                    $env->exit(24);
+                    return $console->exit(24);
                 }
 
-                public function toString(): string
+                public function usage(): string
                 {
                     return 'watch';
                 }
-            }
+            },
         );
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->any())
-            ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console', 'f:b:b'));
-        $env
-            ->expects($this->once())
-            ->method('exit')
-            ->with(42);
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'f:b:b'],
+            [],
+            '/',
+        );
 
-        $this->assertNull($run($env));
+        $this->assertSame(42, $run($env)->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
     }
 
     public function testExitWhenCommandNotFound()
     {
-        $run = new Commands(
+        $run = Commands::of(
             new class implements Command {
-                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                public function __invoke(Console $console): Console
                 {
-                    $env->exit(42);
+                    return $console->exit(42);
                 }
 
-                public function toString(): string
+                public function usage(): string
                 {
                     return 'foo';
                 }
             },
             new class implements Command {
-                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                public function __invoke(Console $console): Console
                 {
-                    $env->exit(24);
+                    return $console->exit(24);
                 }
 
-                public function toString(): string
+                public function usage(): string
                 {
                     return 'watch container [output] --foo';
                 }
-            }
+            },
         );
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->once())
-            ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console', 'bar'));
-        $env
-            ->expects($this->once())
-            ->method('exit')
-            ->with(64);
-        $env
-            ->expects($this->once())
-            ->method('error')
-            ->willReturn ($output = $this->createMock(Writable::class));
-        $output
-            ->expects($this->exactly(2))
-            ->method('write')
-            ->withConsecutive(
-                [$this->callback(static function(Str $value): bool {
-                    return $value->toString() === " foo     \n watch   ";
-                })],
-                [$this->callback(static function(Str $value): bool {
-                    return $value->toString() === "\n";
-                })],
-            );
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'bar'],
+            [],
+            '/',
+        );
 
-        $this->assertNull($run($env));
+        $env = $run($env);
+
+        $this->assertSame(64, $env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+        $this->assertSame(
+            [
+                " foo    \n",
+                " watch  \n",
+            ],
+            $env->errors(),
+        );
     }
 
     public function testExitWhenMultipleCommandsMatchTheGivenName()
     {
-        $run = new Commands(
+        $run = Commands::of(
             new class implements Command {
-                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                public function __invoke(Console $console): Console
                 {
-                    $env->exit(42);
+                    return $console->exit(42);
                 }
 
-                public function toString(): string
+                public function usage(): string
                 {
                     return 'bar';
                 }
             },
             new class implements Command {
-                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                public function __invoke(Console $console): Console
                 {
-                    $env->exit(24);
+                    return $console->exit(24);
                 }
 
-                public function toString(): string
+                public function usage(): string
                 {
                     return 'baz';
                 }
-            }
+            },
         );
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->once())
-            ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console', 'ba'));
-        $env
-            ->expects($this->once())
-            ->method('exit')
-            ->with(64);
-        $env
-            ->expects($this->once())
-            ->method('error')
-            ->willReturn ($output = $this->createMock(Writable::class));
-        $output
-            ->expects($this->exactly(2))
-            ->method('write')
-            ->withConsecutive(
-                [$this->callback(static function(Str $value): bool {
-                    return $value->toString() === " bar   \n baz   ";
-                })],
-                [$this->callback(static function(Str $value): bool {
-                    return $value->toString() === "\n";
-                })],
-            );
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'ba'],
+            [],
+            '/',
+        );
 
-        $this->assertNull($run($env));
+        $env = $run($env);
+
+        $this->assertSame(64, $env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+        $this->assertSame(
+            [
+                " bar  \n",
+                " baz  \n",
+            ],
+            $env->errors(),
+        );
     }
 
     public function testExitWhenCommandMisused()
     {
-        $run = new Commands(new class implements Command {
-            public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+        $run = Commands::of(new class implements Command {
+            public function __invoke(Console $console): Console
             {
-                $env->exit(42);
+                return $console->exit(42);
             }
 
-            public function toString(): string
+            public function usage(): string
             {
                 return <<<USAGE
 watch container [output] --foo
@@ -348,50 +337,46 @@ Bar
 USAGE;
             }
         });
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->exactly(2))
-            ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console'));
-        $env
-            ->expects($this->once())
-            ->method('exit')
-            ->with(64);
-        $env
-            ->expects($this->once())
-            ->method('error')
-            ->willReturn ($output = $this->createMock(Writable::class));
-        $output
-            ->expects($this->once())
-            ->method('write')
-            ->with($this->callback(static function(Str $value): bool {
-                return $value->toString() === 'usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar\n";
-            }));
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console'],
+            [],
+            '/',
+        );
 
-        $this->assertNull($run($env));
+        $env = $run($env);
+
+        $this->assertSame(64, $env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+        $this->assertSame(
+            ['usage: bin/console watch container [output] --foo --help --no-interaction'."\n\nFoo\n\nBar\n"],
+            $env->errors(),
+        );
     }
 
     public function testEnvNotTemperedWhenCommandThrows()
     {
-        $run = new Commands(new class implements Command {
-            public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+        $run = Commands::of(new class implements Command {
+            public function __invoke(Console $console): Console
             {
                 throw new \Exception;
             }
 
-            public function toString(): string
+            public function usage(): string
             {
                 return 'watch container [output] --foo';
             }
         });
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->once())
-            ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console', 'foo', '--foo', 'bar'));
-        $env
-            ->expects($this->never())
-            ->method('exit');
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'foo', '--foo', 'bar'],
+            [],
+            '/',
+        );
 
         $this->expectException(\Exception::class);
 
@@ -400,13 +385,13 @@ USAGE;
 
     public function testDisplayUsageWhenHelpOptionFound()
     {
-        $run = new Commands(new class implements Command {
-            public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+        $run = Commands::of(new class implements Command {
+            public function __invoke(Console $console): Console
             {
-                $env->exit(42);
+                return $console->exit(42);
             }
 
-            public function toString(): string
+            public function usage(): string
             {
                 return <<<USAGE
 watch container [output] --foo
@@ -417,132 +402,118 @@ Bar
 USAGE;
             }
         });
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->exactly(2))
-            ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console', '--help'));
-        $env
-            ->expects($this->never())
-            ->method('exit');
-        $env
-            ->expects($this->once())
-            ->method('output')
-            ->willReturn ($output = $this->createMock(Writable::class));
-        $output
-            ->expects($this->once())
-            ->method('write')
-            ->with($this->callback(static function(Str $value): bool {
-                return $value->toString() === 'usage: bin/console watch container [output] --foo'."\n\nFoo\n\nBar\n";
-            }));
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', '--help'],
+            [],
+            '/',
+        );
 
-        $this->assertNull($run($env));
+        $env = $run($env);
+
+        $this->assertNull($env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+        $this->assertSame(
+            ['usage: bin/console watch container [output] --foo --help --no-interaction'."\n\nFoo\n\nBar\n"],
+            $env->outputs(),
+        );
     }
 
     public function testRunHelpCommand()
     {
-        $run = new Commands(
+        $run = Commands::of(
             new class implements Command {
-                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                public function __invoke(Console $console): Console
                 {
-                    $env->exit(42);
+                    return $console->exit(42);
                 }
 
-                public function toString(): string
+                public function usage(): string
                 {
                     return 'foo'."\n\n".'Description';
                 }
             },
             new class implements Command {
-                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                public function __invoke(Console $console): Console
                 {
-                    $env->exit(24);
+                    return $console->exit(24);
                 }
 
-                public function toString(): string
+                public function usage(): string
                 {
                     return 'watch container [output] --foo'."\n\n".'Watch dependency injection';
                 }
-            }
+            },
         );
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->once())
-            ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console', 'help'));
-        $env
-            ->expects($this->never())
-            ->method('exit');
-        $env
-            ->expects($this->once())
-            ->method('output')
-            ->willReturn ($output = $this->createMock(Writable::class));
-        $output
-            ->expects($this->exactly(2))
-            ->method('write')
-            ->withConsecutive(
-                [$this->callback(static function(Str $value): bool {
-                    return $value->toString() === " foo    Description                \n watch  Watch dependency injection ";
-                })],
-                [$this->callback(static function(Str $value): bool {
-                    return $value->toString() === "\n";
-                })],
-            );
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'help'],
+            [],
+            '/',
+        );
 
-        $this->assertNull($run($env));
+        $env = $run($env);
+
+        $this->assertNull($env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+        $this->assertSame(
+            [
+                " foo    Description\n",
+                " watch  Watch dependency injection\n",
+            ],
+            $env->outputs(),
+        );
     }
 
     public function testDisplayHelpWhenNoCommandProvided()
     {
-        $run = new Commands(
+        $run = Commands::of(
             new class implements Command {
-                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                public function __invoke(Console $console): Console
                 {
-                    $env->exit(42);
+                    return $console->exit(42);
                 }
 
-                public function toString(): string
+                public function usage(): string
                 {
                     return 'foo';
                 }
             },
             new class implements Command {
-                public function __invoke(Environment $env, Arguments $arguments, Options $options): void
+                public function __invoke(Console $console): Console
                 {
-                    $env->exit(24);
+                    return $console->exit(24);
                 }
 
-                public function toString(): string
+                public function usage(): string
                 {
                     return 'watch container [output] --foo';
                 }
-            }
+            },
         );
-        $env = $this->createMock(Environment::class);
-        $env
-            ->expects($this->once())
-            ->method('arguments')
-            ->willReturn(Sequence::of('string', 'bin/console'));
-        $env
-            ->expects($this->once())
-            ->method('exit')
-            ->with(64);
-        $env
-            ->expects($this->once())
-            ->method('error')
-            ->willReturn ($output = $this->createMock(Writable::class));
-        $output
-            ->expects($this->exactly(2))
-            ->method('write')
-            ->withConsecutive(
-                [$this->callback(static function(Str $value): bool {
-                    return $value->toString() === " foo     \n watch   ";
-                })],
-                [$this->callback(static function(Str $value): bool {
-                    return $value->toString() === "\n";
-                })],
-            );
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console'],
+            [],
+            '/',
+        );
 
-        $this->assertNull($run($env));
+        $env = $run($env);
+
+        $this->assertSame(64, $env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+        $this->assertSame(
+            [" foo    \n", " watch  \n"],
+            $env->errors(),
+        );
     }
 }

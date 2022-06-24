@@ -8,145 +8,158 @@ use Innmind\CLI\{
     Command\Arguments,
     Command\Options,
     Exception\Exception,
-    Output\Table,
-    Output\Table\Row\Row,
-    Output\Table\Row\Cell\Cell,
 };
-use Innmind\Stream\Writable;
 use Innmind\Immutable\{
-    Set,
     Map,
     Str,
     Sequence,
-    Exception\NoElementMatchingPredicateFound,
-};
-use function Innmind\Immutable\{
-    unwrap,
-    first,
 };
 
 final class Commands
 {
     /** @var Map<Specification, Command> */
     private Map $commands;
-    /** @var Set<Specification> */
-    private Set $specifications;
+    /** @var Sequence<Specification> */
+    private Sequence $specifications;
 
-    public function __construct(Command $command, Command ...$commands)
+    private function __construct(Command $command, Command ...$commands)
     {
-        /** @var Map<Specification, Command> */
-        $this->commands = Set::of(Command::class, $command, ...$commands)->toMapOf(
-            Specification::class,
-            Command::class,
-            static function(Command $command): \Generator {
-                yield new Specification($command) => $command;
-            },
+        $commands = Sequence::of($command, ...$commands)->map(
+            static fn($command) => [new Specification($command), $command],
         );
-        $this->specifications = $this->commands->keys();
+        $this->commands = Map::of(...$commands->toList());
+        $this->specifications = $commands->map(static fn($command) => $command[0]);
     }
 
-    public function __invoke(Environment $env): void
+    public function __invoke(Environment $env): Environment
     {
         if ($this->commands->size() === 1) {
-            $this->run(
-                $env,
-                first($this->specifications),
-            );
-
-            return;
+            return $this
+                ->specifications
+                ->find(static fn() => true) // first
+                ->match(
+                    fn($specification) => $this->run($env, $specification),
+                    static fn() => $env,
+                );
         }
 
-        $arguments = $env->arguments();
-
-        if (!$arguments->indices()->contains(1)) {
-            $this->displayHelp(
-                $env->error(),
-                $this->specifications,
+        $command = $env
+            ->arguments()
+            ->get(1) // 0 being the tool name
+            ->match(
+                static fn($command) => $command,
+                static fn() => null,
             );
-            $env->exit(64); //EX_USAGE The command was used incorrectly
 
-            return;
+        if (!\is_string($command)) {
+            return $this
+                ->displayHelp(
+                    $env,
+                    true,
+                    $this->specifications,
+                )
+                ->exit(64); // EX_USAGE The command was used incorrectly
         }
-
-        $command = $arguments->get(1); //0 being the tool name
 
         if ($command === 'help') {
-            $this->displayHelp(
-                $env->output(),
+            return $this->displayHelp(
+                $env,
+                false,
                 $this->specifications,
             );
-
-            return;
         }
 
-        try {
-            $specification = $this->specifications->find(
-                static fn(Specification $spec): bool => $spec->is($command),
+        $specifications = $this
+            ->specifications
+            ->find(static fn($spec) => $spec->is($command))
+            ->map(static fn($spec) => Sequence::of($spec))
+            ->match(
+                static fn($specifications) => $specifications,
+                fn() => $this->specifications->filter(
+                    static fn($spec) => $spec->matches($command),
+                ),
             );
-            $this->run($env, $specification);
 
-            return;
-        } catch (NoElementMatchingPredicateFound $e) {
-            // attempt pattern matching
-        }
-
-        $specifications = $this->specifications->filter(
-            static fn(Specification $spec): bool => $spec->matches($command),
+        return $specifications->match(
+            fn($spec, $rest) => match ($rest->empty()) {
+                true => $this->run($env, $spec),
+                false => $this
+                    ->displayHelp(
+                        $env,
+                        true,
+                        Sequence::of($spec)->append($rest),
+                    )
+                    ->exit(64), // EX_USAGE The command was used incorrectly
+            },
+            fn() => $this
+                ->displayHelp(
+                    $env,
+                    true,
+                    $this->specifications,
+                )
+                ->exit(64), // EX_USAGE The command was used incorrectly
         );
-
-        if ($specifications->size() === 1) {
-            $this->run($env, first($specifications));
-
-            return;
-        }
-
-        $this->displayHelp(
-            $env->error(),
-            $specifications->empty() ? $this->specifications : $specifications,
-        );
-        $env->exit(64); //EX_USAGE The command was used incorrectly
     }
 
-    private function run(Environment $env, Specification $spec): void
+    public static function of(Command $command, Command ...$commands): self
     {
-        $run = $this->commands->get($spec);
-        $arguments = $env->arguments()->drop(1); //drop script name
+        return new self($command, ...$commands);
+    }
 
-        if (!$arguments->empty() && $spec->matches($arguments->first())) {
-            //drop command name, conditional as it can be omitted when only one
-            //command defined
-            $arguments = $arguments->drop(1);
-        }
+    private function run(Environment $env, Specification $spec): Environment
+    {
+        $run = $this->commands->get($spec)->match(
+            static fn($command) => $command,
+            static fn() => throw new \LogicException('This case should not be possible'),
+        );
+        [$bin, $arguments] = $env->arguments()->match(
+            static fn($bin, $arguments) => [$bin, $arguments],
+            static fn() => throw new \LogicException('Arguments list should not be empty'),
+        );
+
+        // drop command name, conditional as it can be omitted when only one
+        // command defined
+        $arguments = $arguments
+            ->first()
+            ->filter(static fn($first) => $spec->matches($first))
+            ->match(
+                static fn() => $arguments->drop(1),
+                static fn() => $arguments,
+            );
 
         if ($arguments->contains('--help')) {
-            $this->displayUsage(
-                $env->output(),
-                $env->arguments()->first(),
+            return $this->displayUsage(
+                $env->output(...),
+                $bin,
                 $spec,
             );
-
-            return;
         }
 
         try {
-            $options = Options::of($spec, $arguments);
-            $arguments = Arguments::of($spec, $arguments);
-        } catch (Exception $e) {
-            $this->displayUsage(
-                $env->error(),
-                $env->arguments()->first(),
-                $spec,
-            );
-            $env->exit(64); //EX_USAGE The command was used incorrectly
+            $pattern = $spec->pattern();
 
-            return;
+            [$arguments, $options] = $pattern($arguments);
+        } catch (Exception $e) {
+            return $this
+                ->displayUsage(
+                    $env->error(...),
+                    $bin,
+                    $spec,
+                )
+                ->exit(64); // EX_USAGE The command was used incorrectly
         }
 
-        $run($env, $arguments, $options);
+        return $run(Console::of($env, $arguments, $options))->environment();
     }
 
-    private function displayUsage(Writable $stream, string $bin, Specification $spec): void
-    {
+    /**
+     * @param callable(Str): Environment $write
+     */
+    private function displayUsage(
+        callable $write,
+        string $bin,
+        Specification $spec,
+    ): Environment {
         $description = Str::of($spec->shortDescription())
             ->append("\n\n")
             ->append($spec->description())
@@ -156,7 +169,7 @@ final class Commands
             $description = $description->prepend("\n\n");
         }
 
-        $stream->write(
+        return $write(
             Str::of('usage: ')
                 ->append($bin)
                 ->append(' ')
@@ -167,22 +180,40 @@ final class Commands
     }
 
     /**
-     * @param Set<Specification> $specifications
+     * @param Sequence<Specification> $specifications
      */
     private function displayHelp(
-        Writable $stream,
-        Set $specifications
-    ): void {
-        /** @var Sequence<Row> */
-        $rows = $specifications->toSequenceOf(
-            Row::class,
-            static fn(Specification $spec): \Generator => yield new Row(
-                new Cell($spec->name()),
-                new Cell($spec->shortDescription()),
-            ),
+        Environment $env,
+        bool $error,
+        Sequence $specifications,
+    ): Environment {
+        $names = $specifications->map(
+            static fn($spec) => Str::of($spec->name()),
         );
-        $printTo = Table::borderless(null, ...unwrap($rows));
-        $printTo($stream);
-        $stream->write(Str::of("\n"));
+        $lengths = $names
+            ->map(static fn($name) => $name->length())
+            ->toList();
+        /** @var positive-int */
+        $maxLength = \max(...$lengths);
+
+        $rows = $specifications->map(
+            static fn($spec) => Str::of(' ')
+                ->append(Str::of($spec->name())->rightPad($maxLength)->toString())
+                ->append('  ')
+                ->append($spec->shortDescription())
+                ->append("\n"),
+        );
+
+        if ($error) {
+            return $rows->reduce(
+                $env,
+                static fn(Environment $env, $row) => $env->error($row),
+            );
+        }
+
+        return $rows->reduce(
+            $env,
+            static fn(Environment $env, $row) => $env->output($row),
+        );
     }
 }

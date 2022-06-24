@@ -8,6 +8,7 @@ use Innmind\CLI\{
     Environment\ExitCode,
     Environment
 };
+use Innmind\OperatingSystem\Sockets;
 use Innmind\Stream\{
     Readable,
     Selectable,
@@ -17,8 +18,8 @@ use Innmind\Url\Path;
 use Innmind\Immutable\{
     Sequence,
     Map,
+    Maybe,
 };
-use function Innmind\Immutable\unwrap;
 use PHPUnit\Framework\TestCase;
 
 class GlobalEnvironmentTest extends TestCase
@@ -27,7 +28,7 @@ class GlobalEnvironmentTest extends TestCase
 
     public function setUp(): void
     {
-        $this->env = new GlobalEnvironment;
+        $this->env = GlobalEnvironment::of($this->createMock(Sockets::class));
     }
 
     public function testInterface()
@@ -42,41 +43,15 @@ class GlobalEnvironmentTest extends TestCase
         $this->assertFalse($this->env->interactive());
     }
 
-    public function testInput()
-    {
-        $this->assertInstanceOf(Readable::class, $this->env->input());
-        $this->assertInstanceOf(Selectable::class, $this->env->input());
-        $this->assertSame(\STDIN, $this->env->input()->resource());
-    }
-
-    public function testOutput()
-    {
-        $this->assertInstanceOf(Writable::class, $this->env->output());
-        $this->assertInstanceOf(Selectable::class, $this->env->output());
-        $info = \stream_get_meta_data($this->env->output()->resource());
-        $this->assertSame('php://output', $info['uri']);
-        $this->assertSame('wb', $info['mode']);
-    }
-
-    public function testError()
-    {
-        $this->assertInstanceOf(Writable::class, $this->env->error());
-        $this->assertInstanceOf(Selectable::class, $this->env->error());
-        $this->assertSame(\STDERR, $this->env->error()->resource());
-    }
-
     public function testArguments()
     {
         $this->assertInstanceOf(Sequence::class, $this->env->arguments());
-        $this->assertSame('string', (string) $this->env->arguments()->type());
-        $this->assertSame($_SERVER['argv'], unwrap($this->env->arguments()));
+        $this->assertSame($_SERVER['argv'], $this->env->arguments()->toList());
     }
 
     public function testVariables()
     {
         $this->assertInstanceOf(Map::class, $this->env->variables());
-        $this->assertSame('string', (string) $this->env->variables()->keyType());
-        $this->assertSame('string', (string) $this->env->variables()->valueType());
         $this->assertSame(
             \getenv(),
             $this->env->variables()->reduce(
@@ -85,17 +60,20 @@ class GlobalEnvironmentTest extends TestCase
                     $variables[$key] = $value;
 
                     return $variables;
-                }
-            )
+                },
+            ),
         );
     }
 
     public function testExitCode()
     {
-        $this->assertInstanceOf(ExitCode::class, $this->env->exitCode());
-        $this->assertSame(0, $this->env->exitCode()->toInt());
-        $this->assertNull($this->env->exit(1));
-        $this->assertSame(1, $this->env->exitCode()->toInt());
+        $this->assertEquals(Maybe::nothing(), $this->env->exitCode());
+        $env = $this->env->exit(1);
+        $this->assertInstanceOf(Environment::class, $env);
+        $this->assertSame(1, $env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
     }
 
     public function testWorkingDirectory()
