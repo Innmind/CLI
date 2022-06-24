@@ -7,15 +7,12 @@ use Innmind\CLI\{
     Command\Pattern\OptionFlag,
     Command\Pattern\Input,
     Command\Pattern\Option,
-    Exception\MissingArgument,
-    Exception\PatternNotRecognized,
 };
 use Innmind\Immutable\{
     Str,
     Sequence,
     Map,
 };
-use function Innmind\Immutable\unwrap;
 use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
@@ -28,11 +25,23 @@ class OptionFlagTest extends TestCase
 
     public function testInterface()
     {
-        $this->assertInstanceOf(Input::class, OptionFlag::of(Str::of('--foo')));
-        $this->assertInstanceOf(Option::class, OptionFlag::of(Str::of('--foo')));
+        $this->assertInstanceOf(
+            Input::class,
+            OptionFlag::of(Str::of('--foo'))->match(
+                static fn($input) => $input,
+                static fn() => null,
+            ),
+        );
+        $this->assertInstanceOf(
+            Option::class,
+            OptionFlag::of(Str::of('--foo'))->match(
+                static fn($input) => $input,
+                static fn() => null,
+            ),
+        );
     }
 
-    public function testThrowWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern()
     {
         $this
             ->forAll(Set\Strings::any()->filter(
@@ -40,10 +49,11 @@ class OptionFlagTest extends TestCase
             ))
             ->then(function(string $string): void {
                 $string = '--'.$string;
-                $this->expectException(PatternNotRecognized::class);
-                $this->expectExceptionMessage($string);
 
-                OptionFlag::of(Str::of($string));
+                $this->assertNull(OptionFlag::of(Str::of($string))->match(
+                    static fn($input) => $input,
+                    static fn() => null,
+                ));
             });
     }
 
@@ -54,51 +64,55 @@ class OptionFlagTest extends TestCase
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,
-                    OptionFlag::of(Str::of($string))->toString(),
+                    OptionFlag::of(Str::of($string))->match(
+                        static fn($input) => $input->toString(),
+                        static fn() => null,
+                    ),
                 );
             });
     }
 
-    public function testExtract()
+    public function testParse()
     {
-        $input = OptionFlag::of(Str::of('--foo'));
-
-        $arguments = $input->extract(
-            Map::of('string', 'mixed'),
-            0,
-            Sequence::of('string', 'watev', '--foo', 'bar', 'baz')
+        $input = OptionFlag::of(Str::of('-f|--foo'))->match(
+            static fn($input) => $input,
+            static fn() => null,
         );
 
-        $this->assertInstanceOf(Map::class, $arguments);
-        $this->assertSame('string', (string) $arguments->keyType());
-        $this->assertSame('mixed', (string) $arguments->valueType());
-        $this->assertCount(1, $arguments);
-        $this->assertSame('', $arguments->get('foo'));
+        [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+            Sequence::of('watev', '--foo', 'bar', '--unknown', 'baz', '-f'),
+            Map::of(),
+            Sequence::of(),
+            Map::of(),
+        );
+
+        $this->assertSame(['watev', 'bar', '--unknown', 'baz'], $arguments->toList());
+        $this->assertTrue($parsedArguments->empty());
+        $this->assertTrue($pack->empty());
+        $this->assertCount(1, $options);
+        $this->assertSame('', $options->get('foo')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
     }
 
-    public function testDoesNothingWhenNoFlag()
+    public function testParseWhenNoOption()
     {
-        $input = OptionFlag::of(Str::of('--foo'));
-
-        $arguments = $input->extract(
-            $expected = Map::of('string', 'mixed'),
-            42,
-            Sequence::of('string', 'watev', 'foo', 'bar', 'baz')
+        $input = OptionFlag::of(Str::of('-f|--foo'))->match(
+            static fn($input) => $input,
+            static fn() => null,
         );
 
-        $this->assertSame($expected, $arguments);
-    }
-
-    public function testClean()
-    {
-        $input = OptionFlag::of(Str::of('-f|--foo'));
-
-        $arguments = $input->clean(
-            Sequence::of('string', 'watev', '--foo', 'bar', 'baz', '-f')
+        [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+            Sequence::of('watev', 'bar', '--unknown', 'baz'),
+            Map::of(),
+            Sequence::of(),
+            Map::of(),
         );
 
-        $this->assertInstanceOf(Sequence::class, $arguments);
-        $this->assertSame('string', (string) $arguments->type());
-        $this->assertSame(['watev', 'bar', 'baz'], unwrap($arguments));
+        $this->assertSame(['watev', 'bar', '--unknown', 'baz'], $arguments->toList());
+        $this->assertTrue($parsedArguments->empty());
+        $this->assertTrue($pack->empty());
+        $this->assertTrue($options->empty());
     }
 }

@@ -7,15 +7,12 @@ use Innmind\CLI\{
     Command\Pattern\PackArgument,
     Command\Pattern\Input,
     Command\Pattern\Argument,
-    Exception\MissingArgument,
-    Exception\PatternNotRecognized,
 };
 use Innmind\Immutable\{
     Str,
     Sequence,
     Map,
 };
-use function Innmind\Immutable\unwrap;
 use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
@@ -28,21 +25,33 @@ class PackArgumentTest extends TestCase
 
     public function testInterface()
     {
-        $this->assertInstanceOf(Input::class, PackArgument::of(Str::of('...foo')));
-        $this->assertInstanceOf(Argument::class, PackArgument::of(Str::of('...foo')));
+        $this->assertInstanceOf(
+            Input::class,
+            PackArgument::of(Str::of('...foo'))->match(
+                static fn($input) => $input,
+                static fn() => null,
+            ),
+        );
+        $this->assertInstanceOf(
+            Argument::class,
+            PackArgument::of(Str::of('...foo'))->match(
+                static fn($input) => $input,
+                static fn() => null,
+            ),
+        );
     }
 
-    public function testThrowWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern()
     {
         $this
             ->forAll(Set\Strings::any()->filter(
                 static fn(string $s) => !\preg_match('~^[a-zA-Z0-9]+$~', $s),
             ))
             ->then(function(string $string): void {
-                $this->expectException(PatternNotRecognized::class);
-                $this->expectExceptionMessage('...'.$string);
-
-                PackArgument::of(Str::of('...'.$string));
+                $this->assertNull(PackArgument::of(Str::of('...'.$string))->match(
+                    static fn($input) => $input,
+                    static fn() => null,
+                ));
             });
     }
 
@@ -53,46 +62,42 @@ class PackArgumentTest extends TestCase
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,
-                    PackArgument::of(Str::of($string))->toString(),
+                    PackArgument::of(Str::of($string))->match(
+                        static fn($input) => $input->toString(),
+                        static fn() => null,
+                    ),
                 );
             });
     }
 
-    public function testExtract()
+    public function testParse()
     {
-        $input = PackArgument::of(Str::of('...foo'));
+        $this
+            ->forAll(Set\Sequence::of(
+                Set\Strings::atLeast(1),
+                Set\Integers::between(0, 10),
+            ))
+            ->then(function($strings) {
+                $input = PackArgument::of(Str::of('...foo'))->match(
+                    static fn($input) => $input,
+                    static fn() => null,
+                );
 
-        $arguments = $input->extract(
-            Map::of('string', 'mixed'),
-            1,
-            Sequence::of('string', 'watev', 'foo', 'bar', 'baz')
-        );
+                [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+                    Sequence::of(...$strings),
+                    Map::of(),
+                    Sequence::of(),
+                    Map::of(),
+                );
 
-        $this->assertInstanceOf(Map::class, $arguments);
-        $this->assertSame('string', (string) $arguments->keyType());
-        $this->assertSame('mixed', (string) $arguments->valueType());
-        $this->assertCount(1, $arguments);
-        $this->assertInstanceOf(Sequence::class, $arguments->get('foo'));
-        $this->assertSame('string', (string) $arguments->get('foo')->type());
-        $this->assertSame(['foo', 'bar', 'baz'], unwrap($arguments->get('foo')));
-    }
-
-    public function testExtractEmptyStreamWhenNotFound()
-    {
-        $input = PackArgument::of(Str::of('...foo'));
-
-        $arguments = $input->extract(
-            Map::of('string', 'mixed'),
-            42,
-            Sequence::of('string', 'watev', 'foo', 'bar', 'baz')
-        );
-
-        $this->assertInstanceOf(Map::class, $arguments);
-        $this->assertSame('string', (string) $arguments->keyType());
-        $this->assertSame('mixed', (string) $arguments->valueType());
-        $this->assertCount(1, $arguments);
-        $this->assertInstanceOf(Sequence::class, $arguments->get('foo'));
-        $this->assertSame('string', (string) $arguments->get('foo')->type());
-        $this->assertTrue($arguments->get('foo')->empty());
+                $this->assertTrue(
+                    $pack->equals(
+                        Sequence::of(...$strings),
+                    ),
+                );
+                $this->assertTrue($arguments->empty());
+                $this->assertTrue($parsedArguments->empty());
+                $this->assertTrue($options->empty());
+            });
     }
 }

@@ -4,25 +4,32 @@ declare(strict_types = 1);
 namespace Innmind\CLI;
 
 use Innmind\CLI\Environment\ExitCode;
-use Innmind\Stream\{
-    Readable,
-    Writable,
-};
 use Innmind\Url\Path;
 use Innmind\Immutable\{
     Map,
     Sequence,
+    Str,
+    Maybe,
 };
 
+/**
+ * @psalm-immutable
+ */
 interface Environment
 {
     /**
      * True if the environment running the script is an interactive terminal
      */
     public function interactive(): bool;
-    public function input(): Readable;
-    public function output(): Writable;
-    public function error(): Writable;
+
+    /**
+     * @param ?positive-int $length
+     *
+     * @return array{Maybe<Str>, self}
+     */
+    public function read(int $length = null): array;
+    public function output(Str $data): self;
+    public function error(Str $data): self;
 
     /**
      * @return Sequence<string>
@@ -33,7 +40,15 @@ interface Environment
      * @return Map<string, string>
      */
     public function variables(): Map;
-    public function exit(int $code): void;
-    public function exitCode(): ExitCode;
+
+    /**
+     * @param int<0, 254> $code
+     */
+    public function exit(int $code): self;
+
+    /**
+     * @return Maybe<ExitCode>
+     */
+    public function exitCode(): Maybe;
     public function workingDirectory(): Path;
 }

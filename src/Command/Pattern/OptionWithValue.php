@@ -3,15 +3,17 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Command\Pattern;
 
-use Innmind\CLI\Exception\PatternNotRecognized;
 use Innmind\Immutable\{
     Str,
     Sequence,
     Map,
-    Exception\NoElementMatchingPredicateFound,
+    Maybe,
 };
-use function Innmind\Immutable\join;
 
+/**
+ * @psalm-immutable
+ * @internal
+ */
 final class OptionWithValue implements Input, Option
 {
     private const PATTERN = '~^(?<short>-[a-zA-Z0-9]\|)?(?<name>--[a-zA-Z0-9\-]+)=$~';
@@ -36,84 +38,83 @@ final class OptionWithValue implements Input, Option
         }
     }
 
-    public static function of(Str $pattern): Input
+    /**
+     * @psalm-immutable
+     */
+    public static function of(Str $pattern): Maybe
     {
-        if (!$pattern->matches(self::PATTERN)) {
-            throw new PatternNotRecognized($pattern->toString());
-        }
-
         $parts = $pattern->capture(self::PATTERN);
-        $short = null;
+        $short = $parts
+            ->get('short')
+            ->filter(static fn($short) => !$short->empty())
+            ->map(static fn($short) => $short->substring(1, -1)->toString())
+            ->match(
+                static fn($short) => $short,
+                static fn() => null,
+            );
 
-        if ($parts->contains('short') && !$parts->get('short')->empty()) {
-            $short = $parts->get('short')->substring(1, -1)->toString();
-        }
-
-        return new self(
-            $parts->get('name')->substring(2)->toString(),
-            $short,
-        );
+        /** @var Maybe<Input> */
+        return $parts
+            ->get('name')
+            ->map(static fn($name) => $name->drop(2)->toString())
+            ->map(static fn($name) => new self($name, $short));
     }
 
-    public function extract(
-        Map $parsed,
-        int $position,
-        Sequence $arguments
-    ): Map {
-        try {
-            $flag = $arguments->find(
-                fn(string $argument): bool => Str::of($argument)->matches($this->pattern),
-            );
-        } catch (NoElementMatchingPredicateFound $e) {
-            return $parsed;
-        }
-
-        $parts = Str::of($flag)->split('=')->mapTo(
-            'string',
-            static fn(Str $part): string => $part->toString(),
+    public function parse(
+        Sequence $arguments,
+        Map $parsedArguments,
+        Sequence $pack,
+        Map $options,
+    ): array {
+        $value = $arguments->find(
+            fn($argument) => Str::of($argument)->matches($this->pattern),
         );
-
-        if ($parts->size() >= 2) {
-            //means it's of the form -{option}={value}
-            return ($parsed)(
-                $this->name,
-                join('=', $parts->drop(1))->toString(), //in case there is an "=" in the value
+        /** @psalm-suppress ArgumentTypeCoercion */
+        [$arguments, $options] = $value
+            ->map(
+                static fn($flag) => Str::of($flag)
+                    ->split('=')
+                    ->map(static fn($part) => $part->toString()),
+            )
+            ->map(fn($parts) => match ($parts->size()) {
+                0 => [$arguments, $options], // this case should not happen
+                1 => $arguments // this case means the value is in the _next_ argument
+                    ->indexOf(Str::of('=')->join($parts)->toString())
+                    ->map(
+                        fn($index) => $arguments
+                            ->get($index + 1)
+                            ->map(fn($value) => [
+                                $arguments->take($index)->append($arguments->drop($index + 2)),
+                                ($options)($this->name, $value),
+                            ])
+                            ->match(
+                                static fn($found) => $found,
+                                fn() => [ // if there is no _next_ argument
+                                    $arguments->take($index),
+                                    ($options)($this->name, ''), // if there is no next argument then empty string to be coherent with the annotation -{option}={value}
+                                ],
+                            ),
+                    )
+                    ->match(
+                        static fn($found) => $found,
+                        static fn() => [$arguments, $options], // this case should not happen
+                    ),
+                default => [ // means it's of the form -{option}={value}
+                    $arguments->filter(
+                        fn($argument) => !Str::of($argument)->matches($this->pattern),
+                    ),
+                    ($options)(
+                        $this->name,
+                        Str::of('=')->join($parts->drop(1))->toString(), // join in case there is an "=" in the value
+                    ),
+                ],
+            })
+            ->match(
+                static fn($found) => $found,
+                static fn() => [$arguments, $options],
             );
-        }
 
-        //if we're here it's that a short flag with its value as the _next_ argument
-        $index = $arguments->indexOf($flag);
-
-        return ($parsed)(
-            $this->name,
-            $arguments->get($index + 1),
-        );
-    }
-
-    public function clean(Sequence $arguments): Sequence
-    {
-        try {
-            $flag = $arguments->find(
-                fn(string $argument): bool => Str::of($argument)->matches($this->pattern),
-            );
-        } catch (NoElementMatchingPredicateFound $e) {
-            return $arguments;
-        }
-
-        $index = $arguments->indexOf($flag);
-        $parts = Str::of($flag)->split('=');
-
-        if ($parts->size() >= 2) {
-            //means it's of the form -{option}={value}
-            return $arguments
-                ->take($index)
-                ->append($arguments->drop($index + 1));
-        }
-
-        //if we're here it's that a short flag with its value as the _next_ argument
-        return $arguments
-            ->take($index)
-            ->append($arguments->drop($index + 2));
+        return [$arguments, $parsedArguments, $pack, $options];
     }
 
     public function toString(): string

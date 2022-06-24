@@ -3,14 +3,17 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Command\Pattern;
 
-use Innmind\CLI\Exception\PatternNotRecognized;
 use Innmind\Immutable\{
     Str,
     Sequence,
     Map,
-    Exception\NoElementMatchingPredicateFound,
+    Maybe,
 };
 
+/**
+ * @psalm-immutable
+ * @internal
+ */
 final class OptionFlag implements Input, Option
 {
     private const PATTERN = '~^(?<short>-[a-zA-Z0-9]\|)?(?<name>--[a-zA-Z0-9\-]+)$~';
@@ -35,46 +38,46 @@ final class OptionFlag implements Input, Option
         }
     }
 
-    public static function of(Str $pattern): Input
+    /**
+     * @psalm-pure
+     */
+    public static function of(Str $pattern): Maybe
     {
-        if (!$pattern->matches(self::PATTERN)) {
-            throw new PatternNotRecognized($pattern->toString());
-        }
-
         $parts = $pattern->capture(self::PATTERN);
-        $short = null;
-
-        if ($parts->contains('short') && !$parts->get('short')->empty()) {
-            $short = $parts->get('short')->substring(1, -1)->toString();
-        }
-
-        return new self(
-            $parts->get('name')->substring(2)->toString(),
-            $short,
-        );
-    }
-
-    public function extract(
-        Map $parsed,
-        int $position,
-        Sequence $arguments
-    ): Map {
-        try {
-            $arguments->find(
-                fn(string $argument): bool => Str::of($argument)->matches($this->pattern),
+        $short = $parts
+            ->get('short')
+            ->filter(static fn($short) => !$short->empty())
+            ->map(static fn($short) => $short->substring(1, -1)->toString())
+            ->match(
+                static fn($short) => $short,
+                static fn() => null,
             );
 
-            return ($parsed)($this->name, '');
-        } catch (NoElementMatchingPredicateFound $e) {
-            return $parsed;
-        }
+        /** @var Maybe<Input> */
+        return $parts
+            ->get('name')
+            ->map(static fn($name) => $name->drop(2)->toString())
+            ->map(static fn($name) => new self($name, $short));
     }
 
-    public function clean(Sequence $arguments): Sequence
-    {
-        return $arguments->filter(function(string $argument): bool {
-            return !Str::of($argument)->matches($this->pattern);
-        });
+    public function parse(
+        Sequence $arguments,
+        Map $parsedArguments,
+        Sequence $pack,
+        Map $options,
+    ): array {
+        $value = $arguments->find(
+            fn($argument) => Str::of($argument)->matches($this->pattern),
+        );
+        [$arguments, $options] = $value->match(
+            fn() => [
+                $arguments->filter(fn($argument) => !Str::of($argument)->matches($this->pattern)),
+                ($options)($this->name, ''),
+            ],
+            static fn() => [$arguments, $options],
+        );
+
+        return [$arguments, $parsedArguments, $pack, $options];
     }
 
     public function toString(): string

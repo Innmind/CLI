@@ -5,17 +5,18 @@ namespace Innmind\CLI\Question;
 
 use Innmind\CLI\{
     Environment,
-    Exception\NonInteractiveTerminal,
+    Console,
 };
-use Innmind\OperatingSystem\Sockets;
-use Innmind\TimeContinuum\Earth\ElapsedPeriod;
 use Innmind\Immutable\{
     Str,
     Map,
     Set,
+    Maybe,
 };
-use function Innmind\Immutable\assertMap;
 
+/**
+ * @psalm-immutable
+ */
 final class ChoiceQuestion
 {
     private Str $question;
@@ -27,56 +28,58 @@ final class ChoiceQuestion
      */
     public function __construct(string $question, Map $values)
     {
-        assertMap('scalar', 'scalar', $values, 2);
-
         $this->question = Str::of($question);
         $this->values = $values;
     }
 
     /**
-     * @throws NonInteractiveTerminal
+     * @template T of Environment|Console
      *
-     * @return Map<scalar, scalar>
+     * @return array{Maybe<Map<scalar, scalar>>, T} Returns nothing when no interactions available
      */
-    public function __invoke(Environment $env, Sockets $sockets): Map
+    public function __invoke(Environment|Console $env): array
     {
-        if (!$env->interactive() || $env->arguments()->contains('--no-interaction')) {
-            throw new NonInteractiveTerminal;
+        $noInteraction = match ($env::class) {
+            Console::class => $env->options()->contains('no-interaction'),
+            default => $env->arguments()->contains('--no-interaction'),
+        };
+
+        if (!$env->interactive() || $noInteraction) {
+            /** @var array{Maybe<Map<scalar, scalar>>, T} */
+            return [Maybe::nothing(), $env];
         }
 
-        $input = $env->input();
-        $output = $env->output();
-        $output->write($this->question->append("\n"));
-        $this->values->foreach(static function($key, $value) use ($output): void {
-            $output->write(Str::of("[%s] %s\n")->sprintf((string) $key, (string) $value));
-        });
-        $output->write(Str::of('> '));
-
-        /** @psalm-suppress InvalidArgument $input must be a Selectable */
-        $select = $sockets->watch(new ElapsedPeriod(60 * 1000)) // one minute
-            ->forRead($input);
+        $env = $env->output($this->question->append("\n"));
+        $env = $this->values->reduce(
+            $env,
+            static fn(Environment|Console $env, $key, $value) => $env->output(
+                Str::of("[%s] %s\n")->sprintf((string) $key, (string) $value),
+            ),
+        );
+        $env = $env->output(Str::of('> '));
 
         $response = Str::of('');
 
         do {
-            $ready = $select();
+            [$input, $env] = $env->read();
 
-            /** @psalm-suppress InvalidArgument $input must be a Selectable */
-            if ($ready->toRead()->contains($input)) {
-                $response = $response->append($input->read()->toString());
-            }
+            $response = $input->match(
+                static fn($input) => $response->append($input->toString()),
+                static fn() => $response,
+            );
         } while (!$response->contains("\n"));
 
         $choices = $response
-            ->substring(0, -1) // remove the new line character
+            ->dropEnd(1) // remove the new line character
             ->split(',')
-            ->toSetOf(
-                'string',
-                static fn(Str $choice): \Generator => yield $choice->trim()->toString(),
-            );
+            ->map(static fn($choice) => $choice->trim()->toString());
 
-        return $this->values->filter(static function($key) use ($choices): bool {
-            return $choices->contains((string) $key);
-        });
+        /** @var array{Maybe<Map<scalar, scalar>>, T} */
+        return [
+            Maybe::just($this->values->filter(static function($key) use ($choices): bool {
+                return $choices->contains((string) $key);
+            })),
+            $env,
+        ];
     }
 }

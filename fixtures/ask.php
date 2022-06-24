@@ -16,34 +16,50 @@ use Innmind\Immutable\{
 };
 
 new class extends Main {
-    protected function main(Environment $env, OperatingSystem $os): void
+    protected function main(Environment $env, OperatingSystem $os): Environment
     {
         $user = new Question('your name please :');
         $pwd = new Question('password :');
 
-        $env->output()->write($user($env, $os->sockets())->append("\n"));
-        $env->output()->write($pwd($env, $os->sockets())->append("\n"));
+        [$response, $env] = $user($env);
+        $env = $response->match(
+            static fn($response) => $env->output($response->append("\n")),
+            static fn() => $env->output(Str::of("No response\n")),
+        );
+
+        [$response, $env] = $pwd($env);
+        $env = $response->match(
+            static fn($response) => $env->output($response->append("\n")),
+            static fn() => $env->output(Str::of("No response\n")),
+        );
 
         $ask = new ChoiceQuestion(
             'choices:',
-            Map::of('scalar', 'scalar')
+            Map::of()
                 ('foo', 'bar')
                 (1, 'baz')
                 (2, 3)
                 (3, 'foo')
         );
 
-        $choices = $ask($env, $os->sockets());
+        [$choices, $env] = $ask($env);
+        $choices = $choices->match(
+            static fn($choices) => $choices,
+            static fn() => Map::of(),
+        );
 
-        $choices->foreach(static function($key, $value) use ($env): void {
-            $env->output()->write(
-                Str::of("%s(%s) => %s(%s)\n")->sprintf(
-                    (string) gettype($key),
-                    (string) $key,
-                    gettype($value),
-                    (string) $value,
-                ),
-            );
-        });
+        return $choices->reduce(
+            $env,
+            static function($env, $key, $value): Environment {
+                return $env->output(
+                    Str::of("%s(%s) => %s(%s)\n")->sprintf(
+                        (string) gettype($key),
+                        (string) $key,
+                        gettype($value),
+                        (string) $value,
+                    ),
+                );
+            },
+        );
     }
 };

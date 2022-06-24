@@ -3,13 +3,17 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Command\Pattern;
 
-use Innmind\CLI\Exception\PatternNotRecognized;
 use Innmind\Immutable\{
     Str,
     Sequence,
     Map,
+    Maybe,
 };
 
+/**
+ * @psalm-immutable
+ * @internal
+ */
 final class PackArgument implements Input, Argument
 {
     private string $name;
@@ -19,25 +23,30 @@ final class PackArgument implements Input, Argument
         $this->name = $name;
     }
 
-    public static function of(Str $pattern): Input
+    /**
+     * @psalm-pure
+     */
+    public static function of(Str $pattern): Maybe
     {
-        if (!$pattern->matches('~^\.\.\.[a-zA-Z0-9]+$~')) {
-            throw new PatternNotRecognized($pattern->toString());
-        }
-
-        return new self($pattern->substring(3)->toString());
+        /** @var Maybe<Input> */
+        return Maybe::just($pattern)
+            ->filter(static fn($pattern) => $pattern->matches('~^\.\.\.[a-zA-Z0-9]+$~'))
+            ->map(static fn($pattern) => $pattern->drop(3))
+            ->map(static fn($pattern) => new self($pattern->toString()));
     }
 
-    public function extract(
-        Map $parsed,
-        int $position,
-        Sequence $arguments
-    ): Map {
-        if (!$arguments->indices()->contains($position)) {
-            return ($parsed)($this->name, $arguments->clear());
-        }
-
-        return ($parsed)($this->name, $arguments->drop($position));
+    public function parse(
+        Sequence $arguments,
+        Map $parsedArguments,
+        Sequence $pack,
+        Map $options,
+    ): array {
+        return [
+            $arguments->clear(),
+            $parsedArguments,
+            $pack->append($arguments),
+            $options,
+        ];
     }
 
     public function toString(): string

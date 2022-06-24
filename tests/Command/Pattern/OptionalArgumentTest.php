@@ -7,8 +7,6 @@ use Innmind\CLI\{
     Command\Pattern\OptionalArgument,
     Command\Pattern\Input,
     Command\Pattern\Argument,
-    Exception\MissingArgument,
-    Exception\PatternNotRecognized,
 };
 use Innmind\Immutable\{
     Str,
@@ -27,21 +25,33 @@ class OptionalArgumentTest extends TestCase
 
     public function testInterface()
     {
-        $this->assertInstanceOf(Input::class, OptionalArgument::of(Str::of('[foo]')));
-        $this->assertInstanceOf(Argument::class, OptionalArgument::of(Str::of('[foo]')));
+        $this->assertInstanceOf(
+            Input::class,
+            OptionalArgument::of(Str::of('[foo]'))->match(
+                static fn($input) => $input,
+                static fn() => null,
+            ),
+        );
+        $this->assertInstanceOf(
+            Argument::class,
+            OptionalArgument::of(Str::of('[foo]'))->match(
+                static fn($input) => $input,
+                static fn() => null,
+            ),
+        );
     }
 
-    public function testThrowWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern()
     {
         $this
             ->forAll(Set\Strings::any()->filter(
                 static fn(string $s) => !\preg_match('~^[a-zA-Z0-9]+$~', $s),
             ))
             ->then(function(string $string): void {
-                $this->expectException(PatternNotRecognized::class);
-                $this->expectExceptionMessage('['.$string.']');
-
-                OptionalArgument::of(Str::of('['.$string.']'));
+                $this->assertNull(OptionalArgument::of(Str::of('['.$string.']'))->match(
+                    static fn($input) => $input,
+                    static fn() => null,
+                ));
             });
     }
 
@@ -52,38 +62,70 @@ class OptionalArgumentTest extends TestCase
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,
-                    OptionalArgument::of(Str::of($string))->toString(),
+                    OptionalArgument::of(Str::of($string))->match(
+                        static fn($input) => $input->toString(),
+                        static fn() => null,
+                    ),
                 );
             });
     }
 
-    public function testExtract()
+    public function testParse()
     {
-        $input = OptionalArgument::of(Str::of('[foo]'));
+        $this
+            ->forAll(Set\Sequence::of(
+                Set\Strings::atLeast(1),
+                Set\Integers::between(1, 10),
+            ))
+            ->then(function($strings) {
+                $input = OptionalArgument::of(Str::of('[foo]'))->match(
+                    static fn($input) => $input,
+                    static fn() => null,
+                );
 
-        $arguments = $input->extract(
-            Map::of('string', 'mixed'),
-            0,
-            $args = Sequence::of('string', 'watev', 'foo', 'bar', 'baz')
-        );
+                [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+                    Sequence::of(...$strings),
+                    Map::of(),
+                    Sequence::of(),
+                    Map::of(),
+                );
 
-        $this->assertInstanceOf(Map::class, $arguments);
-        $this->assertSame('string', (string) $arguments->keyType());
-        $this->assertSame('mixed', (string) $arguments->valueType());
-        $this->assertCount(1, $arguments);
-        $this->assertSame('watev', $arguments->get('foo'));
+                $this->assertCount(1, $parsedArguments);
+                $this->assertSame($strings[0], $parsedArguments->get('foo')->match(
+                    static fn($value) => $value,
+                    static fn() => null,
+                ));
+                $this->assertTrue(
+                    $arguments->equals(
+                        Sequence::of(...$strings)->drop(1),
+                    ),
+                );
+                $this->assertTrue($pack->empty());
+                $this->assertTrue($options->empty());
+            });
     }
 
-    public function testDoNothingWhenArgumentNotFound()
+    public function testParseWhenNoMoreArguments()
     {
-        $input = OptionalArgument::of(Str::of('[foo]'));
-
-        $arguments = $input->extract(
-            $expected = Map::of('string', 'mixed'),
-            42,
-            Sequence::of('string', 'watev', 'foo', 'bar', 'baz')
+        $input = OptionalArgument::of(Str::of('[foo]'))->match(
+            static fn($input) => $input,
+            static fn() => null,
         );
 
-        $this->assertSame($expected, $arguments);
+        [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+            Sequence::of(),
+            Map::of(),
+            Sequence::of(),
+            Map::of(),
+        );
+
+        $this->assertCount(0, $parsedArguments);
+        $this->assertNull($parsedArguments->get('foo')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertTrue($arguments->empty());
+        $this->assertTrue($pack->empty());
+        $this->assertTrue($options->empty());
     }
 }
