@@ -26,6 +26,14 @@ return static function(Config $config): Config
                     'Reading the input',
                     Path::of('use-cases/reading-input.md'),
                 ),
+                Entry::markdown(
+                    'Commands',
+                    Path::of('use-cases/commands.md'),
+                ),
+            ),
+            Entry::markdown(
+                'Testing',
+                Path::of('testing.md'),
             ),
         );
 };
