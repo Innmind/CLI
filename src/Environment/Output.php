@@ -45,7 +45,7 @@ final class Output
     {
         $stream = ($this->write)($this->stream, $data)->match(
             static fn($stream) => $stream,
-            static fn() => throw new \RuntimeException("Output '{$this->kind}' no longer writable"),
+            fn() => throw new \RuntimeException("Output '{$this->kind}' no longer writable"),
         );
 
         return new self($this->kind, $stream, $this->write);
