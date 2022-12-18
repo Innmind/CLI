@@ -69,7 +69,10 @@ final class GlobalEnvironment implements Environment
 
     public static function of(Sockets $sockets): self
     {
-        /** @var list<string> */
+        /**
+         * @psalm-suppress PossiblyUndefinedArrayOffset
+         * @var list<string>
+         */
         $argv = $_SERVER['argv'];
         $env = \getenv();
         /** @var Map<string, string> */
