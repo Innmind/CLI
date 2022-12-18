@@ -28,7 +28,8 @@ class MainTest extends TestCase
                 Command::foreground('php')
                     ->withArgument('fixtures/exiter.php')
                     ->withArgument('10')
-                    ->withWorkingDirectory(Path::of(\getcwd())),
+                    ->withWorkingDirectory(Path::of(\getcwd()))
+                    ->withEnvironment('PATH', $_SERVER['PATH']),
             );
         $exitCode = $process->wait()->match(
             static fn() => null,
@@ -47,7 +48,8 @@ class MainTest extends TestCase
                     ->withArgument('fixtures/echo.php')
                     ->withArgument('10')
                     ->withInput(Content\Lines::ofContent('foobar'."\n".'baz'))
-                    ->withWorkingDirectory(Path::of(\getcwd())),
+                    ->withWorkingDirectory(Path::of(\getcwd()))
+                    ->withEnvironment('PATH', $_SERVER['PATH']),
             );
 
         $this->assertSame('foobar'."\n".'baz', $process->output()->toString());
@@ -60,7 +62,8 @@ class MainTest extends TestCase
             ->execute(
                 Command::foreground('php')
                     ->withArgument('fixtures/thrower.php')
-                    ->withWorkingDirectory(Path::of(\getcwd())),
+                    ->withWorkingDirectory(Path::of(\getcwd()))
+                    ->withEnvironment('PATH', $_SERVER['PATH']),
             );
         $process->output()->foreach(function(Str $line, Type $type): void {
             $this->assertSame(Type::error, $type);
