@@ -8,7 +8,7 @@ interface Command
     public function __invoke(Console $console): Console;
 
     /**
-     * @psalm-pure
+     * @psalm-mutation-free
      */
     public function usage(): string;
 }

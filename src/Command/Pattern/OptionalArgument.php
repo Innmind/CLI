@@ -31,7 +31,7 @@ final class OptionalArgument implements Input, Argument
         /** @var Maybe<Input> */
         return Maybe::just($pattern)
             ->filter(static fn($pattern) => $pattern->matches('~^\[[a-zA-Z0-9]+\]$~'))
-            ->map(static fn($pattern) => $pattern->substring(1, -1))
+            ->map(static fn($pattern) => $pattern->drop(1)->dropEnd(1))
             ->map(static fn($pattern) => new self($pattern->toString()));
     }
 

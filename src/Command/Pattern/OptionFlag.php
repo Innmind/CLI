@@ -47,7 +47,7 @@ final class OptionFlag implements Input, Option
         $short = $parts
             ->get('short')
             ->filter(static fn($short) => !$short->empty())
-            ->map(static fn($short) => $short->substring(1, -1)->toString())
+            ->map(static fn($short) => $short->drop(1)->dropEnd(1)->toString())
             ->match(
                 static fn($short) => $short,
                 static fn() => null,
