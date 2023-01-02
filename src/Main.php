@@ -6,6 +6,7 @@ namespace Innmind\CLI;
 use Innmind\OperatingSystem\{
     Factory,
     OperatingSystem,
+    Config,
 };
 use Innmind\StackTrace\{
     StackTrace,
@@ -19,9 +20,9 @@ use Innmind\Immutable\{
 
 abstract class Main
 {
-    final public function __construct()
+    final public function __construct(Config $config = null)
     {
-        $os = Factory::build();
+        $os = Factory::build(null, $config);
         $env = Environment\GlobalEnvironment::of($os->sockets());
 
         try {

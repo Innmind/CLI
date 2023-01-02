@@ -19,7 +19,7 @@
         "innmind/stream": "~3.0",
         "innmind/immutable": "~4.0",
         "innmind/url": "~4.0",
-        "innmind/operating-system": "~3.0",
+        "innmind/operating-system": "~3.4",
         "innmind/stack-trace": "~4.0"
     },
     "autoload": {
