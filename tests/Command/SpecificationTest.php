@@ -73,8 +73,8 @@ DESCRIPTION;
     {
         $this
             ->forAll(
-                $this->name(),
-                $this->name(),
+                $this->names(),
+                $this->names(),
             )
             ->filter(fn($a, $b) => $a !== $b)
             ->then(function($a, $b) {
@@ -107,7 +107,7 @@ DESCRIPTION;
     {
         $this
             ->forAll(
-                $this->name(),
+                $this->names(),
                 Set\Integers::between(1, 10),
             )
             ->then(function($name, $shrink) {
@@ -204,7 +204,7 @@ DESCRIPTION;
     {
         $this
             ->forAll(
-                $this->name(),
+                $this->names(),
                 Set\Integers::between(1, 10),
                 Set\Integers::between(1, 10),
             )
@@ -252,9 +252,9 @@ DESCRIPTION;
         (new Specification($command))->toString();
     }
 
-    private function name(): Set
+    private function names(): Set
     {
-        return Set\Unicode::lengthBetween(1, 10)
+        return Set\Strings::madeOf(Set\Unicode::any())->between(1, 10)
             ->filter(static fn($s) => \strpos($s, ' ') === false)
             ->filter(static fn($s) => \strpos($s, "\n") === false)
             ->filter(static fn($s) => \strpos($s, "\r") === false)
@@ -271,10 +271,9 @@ DESCRIPTION;
                     'name' => $name,
                     'shrunk' => \mb_substr($name, 0, $shrink),
                 ],
-                $this->name(),
+                $this->names(),
                 Set\Integers::between(1, 9),
             ),
-            Set\Integers::between($min, 5),
-        );
+        )->between($min, 5);
     }
 }
