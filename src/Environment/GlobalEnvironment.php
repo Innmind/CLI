@@ -123,7 +123,7 @@ final class GlobalEnvironment implements Environment
             ))
             ->filter(static fn(Readable $input) => !$input->end())
             ->flatMap(static fn(Readable $input) => $input->read($length))
-            ->map(static fn($data) => $data->toEncoding('ASCII'));
+            ->map(static fn($data) => $data->toEncoding(Str\Encoding::ascii));
 
         /** @var array{Maybe<Str>, Environment} */
         return [$data, $this];

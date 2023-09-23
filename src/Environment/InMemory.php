@@ -77,7 +77,7 @@ final class InMemory implements Environment
         $exitCode = Maybe::nothing();
 
         return new self(
-            Sequence::of(...$input)->map(static fn($string) => Str::of($string, 'ASCII')),
+            Sequence::of(...$input)->map(static fn($string) => Str::of($string, Str\Encoding::ascii)),
             Sequence::of(),
             Sequence::of(),
             $interactive,
@@ -127,7 +127,7 @@ final class InMemory implements Environment
     {
         return new self(
             $this->input,
-            ($this->output)($data->toEncoding('ASCII')),
+            ($this->output)($data->toEncoding(Str\Encoding::ascii)),
             $this->error,
             $this->interactive,
             $this->arguments,
@@ -142,7 +142,7 @@ final class InMemory implements Environment
         return new self(
             $this->input,
             $this->output,
-            ($this->error)($data->toEncoding('ASCII')),
+            ($this->error)($data->toEncoding(Str\Encoding::ascii)),
             $this->interactive,
             $this->arguments,
             $this->variables,
