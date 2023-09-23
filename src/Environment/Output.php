@@ -84,7 +84,7 @@ final class Output
     {
         /** @var Maybe<Writable> */
         return $stream
-            ->write($data->toEncoding('ASCII'))
+            ->write($data->toEncoding(Str\Encoding::ascii))
             ->match(
                 static fn($stream) => Maybe::just($stream),
                 static fn() => Maybe::nothing(),

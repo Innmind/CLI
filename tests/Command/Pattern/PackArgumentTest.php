@@ -75,8 +75,7 @@ class PackArgumentTest extends TestCase
         $this
             ->forAll(Set\Sequence::of(
                 Set\Strings::atLeast(1),
-                Set\Integers::between(0, 10),
-            ))
+            )->between(0, 10))
             ->then(function($strings) {
                 $input = PackArgument::of(Str::of('...foo'))->match(
                     static fn($input) => $input,

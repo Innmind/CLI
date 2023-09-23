@@ -35,6 +35,8 @@ final class ChoiceQuestion
     /**
      * @template T of Environment|Console
      *
+     * @param T $env
+     *
      * @return array{Maybe<Map<scalar, scalar>>, T} Returns nothing when no interactions available
      */
     public function __invoke(Environment|Console $env): array

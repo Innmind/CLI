@@ -15,9 +15,9 @@
         "issues": "http://github.com/Innmind/CLI/issues"
     },
     "require": {
-        "php": "~8.1",
+        "php": "~8.2",
         "innmind/stream": "~3.0|~4.0",
-        "innmind/immutable": "~4.0",
+        "innmind/immutable": "~4.15|~5.0",
         "innmind/url": "~4.0",
         "innmind/operating-system": "~3.4",
         "innmind/stack-trace": "~4.0"
@@ -33,9 +33,9 @@
         }
     },
     "require-dev": {
-        "phpunit/phpunit": "~9.0",
-        "vimeo/psalm": "~4.4",
-        "innmind/black-box": "^4.10",
+        "phpunit/phpunit": "~10.2",
+        "vimeo/psalm": "~5.15",
+        "innmind/black-box": "~5.5",
         "innmind/coding-standard": "~2.0"
     }
 }
