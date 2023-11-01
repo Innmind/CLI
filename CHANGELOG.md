@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Matching commands with a name ending with `:`
+
 ## 3.5.0 - 2023-11-01
 
 ### Changed
