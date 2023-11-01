@@ -51,18 +51,19 @@ final class Specification
         }
 
         $command = Str::of($command);
-        $name = Str::of($this->name())->trim(':');
+        $name = Str::of($this->name());
 
         if ($name->equals($command)) {
             return true;
         }
 
-        $commandChunks = $command->split(':');
+        $commandChunks = $command->trim(':')->split(':');
         /**
          * @psalm-suppress ArgumentTypeCoercion
          * @var Sequence<Str>
          */
         $nameChunks = $name
+            ->trim(':')
             ->split(':')
             ->reduce(
                 Sequence::of(),

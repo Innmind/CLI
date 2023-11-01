@@ -103,6 +103,34 @@ DESCRIPTION;
             });
     }
 
+    public function testMatchesItsOwnNameRegression()
+    {
+        $a = ':';
+        $b = 'ᰀ';
+        $command = new class($a) implements Command {
+            private $usage;
+
+            public function __construct(string $usage)
+            {
+                $this->usage = $usage;
+            }
+
+            public function __invoke(Console $console): Console
+            {
+            }
+
+            public function usage(): string
+            {
+                return $this->usage;
+            }
+        };
+
+        $spec = new Specification($command);
+
+        $this->assertTrue($spec->matches($a));
+        $this->assertFalse($spec->matches($b));
+    }
+
     public function testMatchesStartOfItsOwnName()
     {
         $this
