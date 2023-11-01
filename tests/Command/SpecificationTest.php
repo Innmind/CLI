@@ -168,6 +168,34 @@ DESCRIPTION;
             });
     }
 
+    public function testMatchesStartOfSectionsOfItsOwnNameRegression()
+    {
+        $name = '둰ᰓ⁽𑐥𑓏:';
+        $shrunk = '둰ᰓ⁽';
+
+        $command = new class($name) implements Command {
+            private $usage;
+
+            public function __construct(string $usage)
+            {
+                $this->usage = $usage;
+            }
+
+            public function __invoke(Console $console): Console
+            {
+            }
+
+            public function usage(): string
+            {
+                return $this->usage;
+            }
+        };
+
+        $spec = new Specification($command);
+
+        $this->assertTrue($spec->matches($shrunk));
+    }
+
     public function testDoesnMatchLessSectionProvidedThanExpected()
     {
         $this

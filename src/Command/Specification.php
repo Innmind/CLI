@@ -51,7 +51,7 @@ final class Specification
         }
 
         $command = Str::of($command);
-        $name = Str::of($this->name());
+        $name = Str::of($this->name())->trim(':');
 
         if ($name->equals($command)) {
             return true;
