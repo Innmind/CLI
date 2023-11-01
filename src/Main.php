@@ -22,7 +22,7 @@ abstract class Main
 {
     final public function __construct(Config $config = null)
     {
-        $os = Factory::build(null, $config);
+        $os = Factory::build($config);
         $env = Environment\GlobalEnvironment::of($os->sockets());
 
         try {

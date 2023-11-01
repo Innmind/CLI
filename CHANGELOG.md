@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.5.0 - 2023-11-01
+
+### Changed
+
+- Requires `innmind/operating-system:~4.0`
+
+### Removed
+
+- Support for `innmind/stream:~3.0`
+
 ## 3.4.0 - 2023-09-23
 
 ### Added
