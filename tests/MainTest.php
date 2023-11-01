@@ -47,7 +47,7 @@ class MainTest extends TestCase
                 Command::foreground('php')
                     ->withArgument('fixtures/echo.php')
                     ->withArgument('10')
-                    ->withInput(Content\Lines::ofContent('foobar'."\n".'baz'))
+                    ->withInput(Content::ofString('foobar'."\n".'baz'))
                     ->withWorkingDirectory(Path::of(\getcwd()))
                     ->withEnvironment('PATH', $_SERVER['PATH']),
             );

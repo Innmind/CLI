@@ -16,10 +16,10 @@
     },
     "require": {
         "php": "~8.2",
-        "innmind/stream": "~3.0|~4.0",
+        "innmind/stream": "~4.0",
         "innmind/immutable": "~4.15|~5.0",
         "innmind/url": "~4.0",
-        "innmind/operating-system": "~3.4",
+        "innmind/operating-system": "~4.0",
         "innmind/stack-trace": "~4.0"
     },
     "autoload": {
