@@ -5,15 +5,9 @@ namespace Tests\Innmind\CLI\Environment;
 
 use Innmind\CLI\{
     Environment\GlobalEnvironment,
-    Environment\ExitCode,
-    Environment
+    Environment,
 };
 use Innmind\OperatingSystem\Sockets;
-use Innmind\Stream\{
-    Readable,
-    Selectable,
-    Writable
-};
 use Innmind\Url\Path;
 use Innmind\Immutable\{
     Sequence,

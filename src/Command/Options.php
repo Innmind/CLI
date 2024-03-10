@@ -5,7 +5,6 @@ namespace Innmind\CLI\Command;
 
 use Innmind\Immutable\{
     Map,
-    Sequence,
     Maybe,
 };
 
