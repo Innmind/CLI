@@ -4,10 +4,7 @@ declare(strict_types = 1);
 namespace Tests\Innmind\CLI\Command;
 
 use Innmind\CLI\Command\Options;
-use Innmind\Immutable\{
-    Sequence,
-    Map,
-};
+use Innmind\Immutable\Map;
 use PHPUnit\Framework\TestCase;
 
 class OptionsTest extends TestCase

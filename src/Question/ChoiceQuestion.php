@@ -10,7 +10,6 @@ use Innmind\CLI\{
 use Innmind\Immutable\{
     Str,
     Map,
-    Set,
     Maybe,
 };
 

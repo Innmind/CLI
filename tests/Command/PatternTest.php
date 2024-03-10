@@ -12,7 +12,6 @@ use Innmind\CLI\{
 use Innmind\Immutable\{
     Str,
     Sequence,
-    Map,
 };
 use PHPUnit\Framework\TestCase;
 

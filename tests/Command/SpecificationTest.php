@@ -76,7 +76,7 @@ DESCRIPTION;
                 $this->names(),
                 $this->names(),
             )
-            ->filter(fn($a, $b) => $a !== $b)
+            ->filter(static fn($a, $b) => $a !== $b)
             ->then(function($a, $b) {
                 $command = new class($a) implements Command {
                     private $usage;

@@ -5,8 +5,6 @@ namespace Innmind\CLI;
 
 use Innmind\CLI\{
     Command\Specification,
-    Command\Arguments,
-    Command\Options,
     Exception\Exception,
 };
 use Innmind\Immutable\{
