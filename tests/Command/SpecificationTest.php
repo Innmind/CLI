@@ -310,13 +310,22 @@ DESCRIPTION;
 
     private function names(): Set
     {
-        return Set\Strings::madeOf(Set\Unicode::any())->between(1, 10)
-            ->filter(static fn($s) => \strpos($s, ' ') === false)
-            ->filter(static fn($s) => \strpos($s, "\n") === false)
-            ->filter(static fn($s) => \strpos($s, "\r") === false)
-            ->filter(static fn($s) => \strpos($s, \chr(11)) === false)
-            ->filter(static fn($s) => \strpos($s, \chr(0)) === false)
-            ->filter(static fn($s) => \strpos($s, "\t") === false);
+        return Set\Strings::madeOf(Set\Unicode::any()->filter(
+            static fn($char) => !\in_array(
+                $char,
+                [
+                    ':',
+                    ' ',
+                    "\n",
+                    "\r",
+                    \chr(11),
+                    \chr(0),
+                    "\t",
+                ],
+                true,
+            ),
+        ))
+            ->between(1, 10);
     }
 
     private function chunks(int $min = 1): Set
