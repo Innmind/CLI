@@ -26,6 +26,7 @@ final class PackArgument implements Input, Argument
     /**
      * @psalm-pure
      */
+    #[\Override]
     public static function of(Str $pattern): Maybe
     {
         /** @var Maybe<Input> */
@@ -35,6 +36,7 @@ final class PackArgument implements Input, Argument
             ->map(static fn($pattern) => new self($pattern->toString()));
     }
 
+    #[\Override]
     public function parse(
         Sequence $arguments,
         Map $parsedArguments,
@@ -49,6 +51,7 @@ final class PackArgument implements Input, Argument
         ];
     }
 
+    #[\Override]
     public function toString(): string
     {
         return '...'.$this->name;

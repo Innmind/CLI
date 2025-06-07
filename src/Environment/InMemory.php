@@ -88,11 +88,13 @@ final class InMemory implements Environment
         );
     }
 
+    #[\Override]
     public function interactive(): bool
     {
         return $this->interactive;
     }
 
+    #[\Override]
     public function read(?int $length = null): array
     {
         $data = $this->input->first();
@@ -123,6 +125,7 @@ final class InMemory implements Environment
         )];
     }
 
+    #[\Override]
     public function output(Str $data): self
     {
         return new self(
@@ -137,6 +140,7 @@ final class InMemory implements Environment
         );
     }
 
+    #[\Override]
     public function error(Str $data): self
     {
         return new self(
@@ -151,16 +155,19 @@ final class InMemory implements Environment
         );
     }
 
+    #[\Override]
     public function arguments(): Sequence
     {
         return $this->arguments;
     }
 
+    #[\Override]
     public function variables(): Map
     {
         return $this->variables;
     }
 
+    #[\Override]
     public function exit(int $code): self
     {
         return new self(
@@ -175,11 +182,13 @@ final class InMemory implements Environment
         );
     }
 
+    #[\Override]
     public function exitCode(): Maybe
     {
         return $this->exitCode;
     }
 
+    #[\Override]
     public function workingDirectory(): Path
     {
         return $this->workingDirectory;

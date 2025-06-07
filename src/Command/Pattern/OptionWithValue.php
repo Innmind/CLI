@@ -44,6 +44,7 @@ final class OptionWithValue implements Input, Option
     /**
      * @psalm-immutable
      */
+    #[\Override]
     public static function of(Str $pattern): Maybe
     {
         $parts = $pattern->capture(self::PATTERN);
@@ -63,6 +64,7 @@ final class OptionWithValue implements Input, Option
             ->map(static fn($name) => new self($name, $short));
     }
 
+    #[\Override]
     public function parse(
         Sequence $arguments,
         Map $parsedArguments,
@@ -129,6 +131,7 @@ final class OptionWithValue implements Input, Option
         return [$arguments, $parsedArguments, $pack, $options];
     }
 
+    #[\Override]
     public function toString(): string
     {
         if (!\is_string($this->short)) {
