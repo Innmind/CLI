@@ -3,11 +3,14 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Command\Pattern;
 
+use Innmind\Validation\Is;
 use Innmind\Immutable\{
     Str,
     Sequence,
     Map,
     Maybe,
+    Identity,
+    Predicate\Instance,
 };
 
 /**
@@ -79,26 +82,35 @@ final class OptionWithValue implements Input, Option
             ->map(fn($parts) => match ($parts->size()) {
                 0 => [$arguments, $options], // this case should not happen
                 1 => $arguments // this case means the value is in the _next_ argument
-                    ->indexOf(Str::of('=')->join($parts)->toString())
+                    ->aggregate(
+                        static fn(string|Identity $a, $b) => match (true) {
+                            $a instanceof Identity => Sequence::of($a, $b),
+                            Str::of('=')->join($parts)->toString() === $a => Sequence::of(Identity::of($b)),
+                            default => Sequence::of($a, $b),
+                        },
+                    )
+                    ->toIdentity()
                     ->map(
-                        fn($index) => $arguments
-                            ->get($index + 1)
+                        fn($arguments) => $arguments
+                            ->find(static fn($value) => $value instanceof Identity)
+                            ->keep(Instance::of(Identity::class))
+                            ->map(static fn($value): mixed => $value->unwrap())
+                            ->keep(Is::string()->asPredicate())
                             ->map(fn($value) => [
-                                $arguments->take($index)->append($arguments->drop($index + 2)),
+                                $arguments->keep(Is::string()->asPredicate()),
                                 ($options)($this->name, $value),
                             ])
                             ->match(
                                 static fn($found) => $found,
                                 fn() => [ // if there is no _next_ argument
-                                    $arguments->take($index),
+                                    $arguments
+                                        ->keep(Is::string()->asPredicate())
+                                        ->dropEnd(1),
                                     ($options)($this->name, ''), // if there is no next argument then empty string to be coherent with the annotation -{option}={value}
                                 ],
                             ),
                     )
-                    ->match(
-                        static fn($found) => $found,
-                        static fn() => [$arguments, $options], // this case should not happen
-                    ),
+                    ->unwrap(),
                 default => [ // means it's of the form -{option}={value}
                     $arguments->filter(
                         fn($argument) => !Str::of($argument)->matches($this->pattern),
