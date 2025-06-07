@@ -26,6 +26,7 @@ final class OptionalArgument implements Input, Argument
     /**
      * @psalm-pure
      */
+    #[\Override]
     public static function of(Str $pattern): Maybe
     {
         /** @var Maybe<Input> */
@@ -35,6 +36,7 @@ final class OptionalArgument implements Input, Argument
             ->map(static fn($pattern) => new self($pattern->toString()));
     }
 
+    #[\Override]
     public function parse(
         Sequence $arguments,
         Map $parsedArguments,
@@ -54,6 +56,7 @@ final class OptionalArgument implements Input, Argument
         return [$arguments, $parsedArguments, $pack, $options];
     }
 
+    #[\Override]
     public function toString(): string
     {
         return '['.$this->name.']';

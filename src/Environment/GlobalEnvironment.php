@@ -90,21 +90,23 @@ final class GlobalEnvironment implements Environment
             Readable\NonBlocking::of(
                 Readable\Stream::of(\STDIN),
             ),
-            Output::stdout(Writable\Stream::of(\fopen('php://output', 'w'))),
-            Output::stderr(Writable\Stream::of(\fopen('php://stderr', 'w'))),
+            Output::stdout(Writable\Stream::of(\fopen('php://output', 'w') ?: throw new \RuntimeException('Unable to open stream'))),
+            Output::stderr(Writable\Stream::of(\fopen('php://stderr', 'w') ?: throw new \RuntimeException('Unable to open stream'))),
             \stream_isatty(\STDIN),
             Sequence::strings(...$argv),
             $variables,
             $exitCode,
-            Path::of(\getcwd().'/'),
+            Path::of((string) \getcwd().'/'),
         );
     }
 
+    #[\Override]
     public function interactive(): bool
     {
         return $this->interactive;
     }
 
+    #[\Override]
     public function read(?int $length = null): array
     {
         /** @psalm-suppress ImpureMethodCall */
@@ -129,6 +131,7 @@ final class GlobalEnvironment implements Environment
         return [$data, $this];
     }
 
+    #[\Override]
     public function output(Str $data): self
     {
         return new self(
@@ -144,6 +147,7 @@ final class GlobalEnvironment implements Environment
         );
     }
 
+    #[\Override]
     public function error(Str $data): self
     {
         return new self(
@@ -159,16 +163,19 @@ final class GlobalEnvironment implements Environment
         );
     }
 
+    #[\Override]
     public function arguments(): Sequence
     {
         return $this->arguments;
     }
 
+    #[\Override]
     public function variables(): Map
     {
         return $this->variables;
     }
 
+    #[\Override]
     public function exit(int $code): self
     {
         return new self(
@@ -184,11 +191,13 @@ final class GlobalEnvironment implements Environment
         );
     }
 
+    #[\Override]
     public function exitCode(): Maybe
     {
         return $this->exitCode;
     }
 
+    #[\Override]
     public function workingDirectory(): Path
     {
         return $this->workingDirectory;
