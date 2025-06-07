@@ -8,7 +8,7 @@ use Innmind\CLI\{
     Environment,
 };
 use Innmind\Immutable\Map;
-use PHPUnit\Framework\TestCase;
+use Innmind\BlackBox\PHPUnit\Framework\TestCase;
 
 class ChoiceQuestionTest extends TestCase
 {

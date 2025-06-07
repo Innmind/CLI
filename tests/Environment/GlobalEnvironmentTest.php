@@ -14,7 +14,7 @@ use Innmind\Immutable\{
     Map,
     Maybe,
 };
-use PHPUnit\Framework\TestCase;
+use Innmind\BlackBox\PHPUnit\Framework\TestCase;
 
 class GlobalEnvironmentTest extends TestCase
 {

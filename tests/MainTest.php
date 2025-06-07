@@ -13,7 +13,7 @@ use Innmind\Immutable\{
     Sequence,
     Monoid\Concat,
 };
-use PHPUnit\Framework\TestCase;
+use Innmind\BlackBox\PHPUnit\Framework\TestCase;
 
 class MainTest extends TestCase
 {

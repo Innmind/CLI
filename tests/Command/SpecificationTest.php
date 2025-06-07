@@ -10,9 +10,9 @@ use Innmind\CLI\{
     Console,
     Exception\EmptyDeclaration,
 };
-use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
+    PHPUnit\Framework\TestCase,
     Set,
 };
 
@@ -69,15 +69,15 @@ DESCRIPTION;
         );
     }
 
-    public function testMatchesItsOwnName()
+    public function testMatchesItsOwnName(): BlackBox\Proof
     {
-        $this
+        return $this
             ->forAll(
                 $this->names(),
                 $this->names(),
             )
             ->filter(static fn($a, $b) => $a !== $b)
-            ->then(function($a, $b) {
+            ->prove(function($a, $b) {
                 $command = new class($a) implements Command {
                     private $usage;
 
@@ -131,14 +131,14 @@ DESCRIPTION;
         $this->assertFalse($spec->matches($b));
     }
 
-    public function testMatchesStartOfItsOwnName()
+    public function testMatchesStartOfItsOwnName(): BlackBox\Proof
     {
-        $this
+        return $this
             ->forAll(
                 $this->names(),
                 Set::integers()->between(1, 10),
             )
-            ->then(function($name, $shrink) {
+            ->prove(function($name, $shrink) {
                 $command = new class($name) implements Command {
                     private $usage;
 
@@ -164,11 +164,11 @@ DESCRIPTION;
             });
     }
 
-    public function testMatchesStartOfSectionsOfItsOwnName()
+    public function testMatchesStartOfSectionsOfItsOwnName(): BlackBox\Proof
     {
-        $this
+        return $this
             ->forAll($this->chunks())
-            ->then(function($chunks) {
+            ->prove(function($chunks) {
                 $name = \implode(':', \array_column($chunks, 'name'));
                 $shrunk = \implode(':', \array_column($chunks, 'shrunk'));
 
@@ -224,11 +224,11 @@ DESCRIPTION;
         $this->assertTrue($spec->matches($shrunk));
     }
 
-    public function testDoesnMatchLessSectionProvidedThanExpected()
+    public function testDoesnMatchLessSectionProvidedThanExpected(): BlackBox\Proof
     {
-        $this
+        return $this
             ->forAll($this->chunks(2))
-            ->then(function($chunks) {
+            ->prove(function($chunks) {
                 $name = \implode(':', \array_column($chunks, 'name'));
                 $shrunk = $chunks[0]['shrunk'];
 
@@ -256,15 +256,15 @@ DESCRIPTION;
             });
     }
 
-    public function testDoesntMatchWhenOwnNameDoesntExplicitlyStartWithSubset()
+    public function testDoesntMatchWhenOwnNameDoesntExplicitlyStartWithSubset(): BlackBox\Proof
     {
-        $this
+        return $this
             ->forAll(
                 $this->names(),
                 Set::integers()->between(1, 10),
                 Set::integers()->between(1, 10),
             )
-            ->then(function($name, $start, $shrink) {
+            ->prove(function($name, $start, $shrink) {
                 $command = new class($name) implements Command {
                     private $usage;
 

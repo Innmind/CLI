@@ -13,9 +13,9 @@ use Innmind\Immutable\{
     Sequence,
     Map,
 };
-use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
+    PHPUnit\Framework\TestCase,
     Set,
 };
 
@@ -41,13 +41,13 @@ class OptionFlagTest extends TestCase
         );
     }
 
-    public function testReturnNothingWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern(): BlackBox\Proof
     {
-        $this
+        return $this
             ->forAll(Set::strings()->filter(
                 static fn(string $s) => !\preg_match('~^[a-zA-Z0-9\-]+$~', $s),
             ))
-            ->then(function(string $string): void {
+            ->prove(function(string $string): void {
                 $string = '--'.$string;
 
                 $this->assertNull(OptionFlag::of(Str::of($string))->match(
@@ -57,11 +57,11 @@ class OptionFlagTest extends TestCase
             });
     }
 
-    public function testStringCast()
+    public function testStringCast(): BlackBox\Proof
     {
-        $this
+        return $this
             ->forAll(Set::of('--foo', '-b|--bar', '--baz'))
-            ->then(function(string $string): void {
+            ->prove(function(string $string): void {
                 $this->assertSame(
                     $string,
                     OptionFlag::of(Str::of($string))->match(

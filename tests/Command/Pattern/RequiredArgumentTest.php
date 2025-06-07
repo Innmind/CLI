@@ -14,9 +14,9 @@ use Innmind\Immutable\{
     Sequence,
     Map,
 };
-use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
+    PHPUnit\Framework\TestCase,
     Set,
 };
 
@@ -42,13 +42,13 @@ class RequiredArgumentTest extends TestCase
         );
     }
 
-    public function testReturnNothingWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern(): BlackBox\Proof
     {
-        $this
+        return $this
             ->forAll(Set::strings()->filter(
                 static fn(string $s) => !\preg_match('~^[a-zA-Z0-9]+$~', $s),
             ))
-            ->then(function(string $string): void {
+            ->prove(function(string $string): void {
                 $this->assertNull(RequiredArgument::of(Str::of($string))->match(
                     static fn($input) => $input,
                     static fn() => null,
@@ -56,11 +56,11 @@ class RequiredArgumentTest extends TestCase
             });
     }
 
-    public function testStringCast()
+    public function testStringCast(): BlackBox\Proof
     {
-        $this
+        return $this
             ->forAll(Set::of('foo', 'bar', 'baz'))
-            ->then(function(string $string): void {
+            ->prove(function(string $string): void {
                 $this->assertSame(
                     $string,
                     RequiredArgument::of(Str::of($string))->match(
@@ -71,13 +71,13 @@ class RequiredArgumentTest extends TestCase
             });
     }
 
-    public function testParse()
+    public function testParse(): BlackBox\Proof
     {
-        $this
+        return $this
             ->forAll(Set::sequence(
                 Set::strings()->atLeast(1),
             )->between(1, 10))
-            ->then(function($strings) {
+            ->prove(function($strings) {
                 $input = RequiredArgument::of(Str::of('foo'))->match(
                     static fn($input) => $input,
                     static fn() => null,
