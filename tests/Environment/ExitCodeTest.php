@@ -4,9 +4,9 @@ declare(strict_types = 1);
 namespace Tests\Innmind\CLI\Environment;
 
 use Innmind\CLI\Environment\ExitCode;
-use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
+    PHPUnit\Framework\TestCase,
     Set,
 };
 
@@ -14,11 +14,11 @@ class ExitCodeTest extends TestCase
 {
     use BlackBox;
 
-    public function testToInt()
+    public function testToInt(): BlackBox\Proof
     {
-        $this
-            ->forAll(Set\Integers::between(0, 254))
-            ->then(function(int $code): void {
+        return $this
+            ->forAll(Set::integers()->between(0, 254))
+            ->prove(function(int $code): void {
                 $this->assertSame($code, (new ExitCode($code))->toInt());
             });
     }
@@ -26,9 +26,13 @@ class ExitCodeTest extends TestCase
     public function testSuccessful()
     {
         $this->assertTrue((new ExitCode(0))->successful());
-        $this
+    }
+
+    public function testNotSuccessful(): BlackBox\Proof
+    {
+        return $this
             ->forAll(Set\Integers::between(1, 254))
-            ->then(function(int $code): void {
+            ->prove(function(int $code): void {
                 $this->assertFalse((new ExitCode($code))->successful());
             });
     }

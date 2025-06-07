@@ -13,7 +13,7 @@ use Innmind\Immutable\{
     Str,
     Sequence,
 };
-use PHPUnit\Framework\TestCase;
+use Innmind\BlackBox\PHPUnit\Framework\TestCase;
 
 class PatternTest extends TestCase
 {
