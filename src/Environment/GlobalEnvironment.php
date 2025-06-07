@@ -105,7 +105,7 @@ final class GlobalEnvironment implements Environment
         return $this->interactive;
     }
 
-    public function read(int $length = null): array
+    public function read(?int $length = null): array
     {
         /** @psalm-suppress ImpureMethodCall */
         $watch = $this
