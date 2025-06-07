@@ -27,7 +27,7 @@ interface Environment
      *
      * @return array{Maybe<Str>, self}
      */
-    public function read(int $length = null): array;
+    public function read(?int $length = null): array;
     public function output(Str $data): self;
     public function error(Str $data): self;
 

@@ -63,7 +63,7 @@ final class Console
      *
      * @return array{Maybe<Str>, self}
      */
-    public function read(int $length = null): array
+    public function read(?int $length = null): array
     {
         [$data, $env] = $this->env->read($length);
 

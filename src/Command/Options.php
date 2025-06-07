@@ -19,7 +19,7 @@ final class Options
     /**
      * @param Map<string, string> $options
      */
-    public function __construct(Map $options = null)
+    public function __construct(?Map $options = null)
     {
         $this->options = $options ?? Map::of();
     }

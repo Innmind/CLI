@@ -93,7 +93,7 @@ final class InMemory implements Environment
         return $this->interactive;
     }
 
-    public function read(int $length = null): array
+    public function read(?int $length = null): array
     {
         $data = $this->input->first();
         $input = $this->input->drop(1);

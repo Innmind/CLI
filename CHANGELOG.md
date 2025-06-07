@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Requires `innmind/immutable:~5.16`
+
+### Fixed
+
+- PHP `8.4` deprecations
+- Using a deprecated method to parse options
+
 ## 3.6.0 - 2024-03-10
 
 ### Added

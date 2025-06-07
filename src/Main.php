@@ -20,7 +20,7 @@ use Innmind\Immutable\{
 
 abstract class Main
 {
-    final public function __construct(Config $config = null)
+    final public function __construct(?Config $config = null)
     {
         $os = Factory::build($config);
         $env = Environment\GlobalEnvironment::of($os->sockets());
