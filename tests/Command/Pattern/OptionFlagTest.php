@@ -44,7 +44,7 @@ class OptionFlagTest extends TestCase
     public function testReturnNothingWhenInvalidPattern()
     {
         $this
-            ->forAll(Set\Strings::any()->filter(
+            ->forAll(Set::strings()->filter(
                 static fn(string $s) => !\preg_match('~^[a-zA-Z0-9\-]+$~', $s),
             ))
             ->then(function(string $string): void {
@@ -60,7 +60,7 @@ class OptionFlagTest extends TestCase
     public function testStringCast()
     {
         $this
-            ->forAll(Set\Elements::of('--foo', '-b|--bar', '--baz'))
+            ->forAll(Set::of('--foo', '-b|--bar', '--baz'))
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,

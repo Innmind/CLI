@@ -45,7 +45,7 @@ class RequiredArgumentTest extends TestCase
     public function testReturnNothingWhenInvalidPattern()
     {
         $this
-            ->forAll(Set\Strings::any()->filter(
+            ->forAll(Set::strings()->filter(
                 static fn(string $s) => !\preg_match('~^[a-zA-Z0-9]+$~', $s),
             ))
             ->then(function(string $string): void {
@@ -59,7 +59,7 @@ class RequiredArgumentTest extends TestCase
     public function testStringCast()
     {
         $this
-            ->forAll(Set\Elements::of('foo', 'bar', 'baz'))
+            ->forAll(Set::of('foo', 'bar', 'baz'))
             ->then(function(string $string): void {
                 $this->assertSame(
                     $string,
@@ -74,8 +74,8 @@ class RequiredArgumentTest extends TestCase
     public function testParse()
     {
         $this
-            ->forAll(Set\Sequence::of(
-                Set\Strings::atLeast(1),
+            ->forAll(Set::sequence(
+                Set::strings()->atLeast(1),
             )->between(1, 10))
             ->then(function($strings) {
                 $input = RequiredArgument::of(Str::of('foo'))->match(

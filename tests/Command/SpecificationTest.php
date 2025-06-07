@@ -136,7 +136,7 @@ DESCRIPTION;
         $this
             ->forAll(
                 $this->names(),
-                Set\Integers::between(1, 10),
+                Set::integers()->between(1, 10),
             )
             ->then(function($name, $shrink) {
                 $command = new class($name) implements Command {
@@ -261,8 +261,8 @@ DESCRIPTION;
         $this
             ->forAll(
                 $this->names(),
-                Set\Integers::between(1, 10),
-                Set\Integers::between(1, 10),
+                Set::integers()->between(1, 10),
+                Set::integers()->between(1, 10),
             )
             ->then(function($name, $start, $shrink) {
                 $command = new class($name) implements Command {
@@ -310,35 +310,43 @@ DESCRIPTION;
 
     private function names(): Set
     {
-        return Set\Strings::madeOf(Set\Unicode::any()->filter(
-            static fn($char) => !\in_array(
-                $char,
-                [
-                    ':',
-                    ' ',
-                    "\n",
-                    "\r",
-                    \chr(11),
-                    \chr(0),
-                    "\t",
-                ],
-                true,
-            ),
-        ))
+        return Set::strings()
+            ->madeOf(
+                Set::strings()
+                    ->unicode()
+                    ->char()
+                    ->filter(
+                        static fn($char) => !\in_array(
+                            $char,
+                            [
+                                ':',
+                                ' ',
+                                "\n",
+                                "\r",
+                                \chr(11),
+                                \chr(0),
+                                "\t",
+                            ],
+                            true,
+                        ),
+                    ),
+            )
             ->between(1, 10);
     }
 
     private function chunks(int $min = 1): Set
     {
-        return Set\Sequence::of(
-            Set\Composite::immutable(
+        return Set::sequence(
+            Set::compose(
                 static fn($name, $shrink) => [
                     'name' => $name,
                     'shrunk' => \mb_substr($name, 0, $shrink),
                 ],
                 $this->names(),
-                Set\Integers::between(1, 9),
+                Set::integers()->between(1, 9),
             ),
-        )->between($min, 5);
+        )
+            ->between($min, 5)
+            ->toSet();
     }
 }
