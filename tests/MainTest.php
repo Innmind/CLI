@@ -8,7 +8,11 @@ use Innmind\Server\Control\Server\Command;
 use Innmind\Filesystem\File\Content;
 use Innmind\Server\Control\Server\Process\Output\Type;
 use Innmind\Url\Path;
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Sequence,
+    Monoid\Concat,
+};
 use PHPUnit\Framework\TestCase;
 
 class MainTest extends TestCase
@@ -30,7 +34,8 @@ class MainTest extends TestCase
                     ->withArgument('10')
                     ->withWorkingDirectory(Path::of(\getcwd()))
                     ->withEnvironment('PATH', $_SERVER['PATH']),
-            );
+            )
+            ->unwrap();
         $exitCode = $process->wait()->match(
             static fn() => null,
             static fn($e) => $e->exitCode()->toInt(),
@@ -47,12 +52,29 @@ class MainTest extends TestCase
                 Command::foreground('php')
                     ->withArgument('fixtures/echo.php')
                     ->withArgument('10')
-                    ->withInput(Content::ofString('foobar'."\n".'baz'))
+                    ->withInput(Content::ofChunks(Sequence::of(
+                        Str::of('foobar'."\n".'baz'),
+                    )))
                     ->withWorkingDirectory(Path::of(\getcwd()))
                     ->withEnvironment('PATH', $_SERVER['PATH']),
-            );
+            )
+            ->unwrap();
 
-        $this->assertSame('foobar'."\n".'baz', $process->output()->toString());
+        $this->assertTrue(
+            $process->wait()->match(
+                static fn() => true,
+                static fn($e) => $e,
+            ),
+        );
+
+        $this->assertSame(
+            'foobar'."\n".'baz',
+            $process
+                ->output()
+                ->map(static fn($chunk) => $chunk->data())
+                ->fold(new Concat)
+                ->toString(),
+        );
     }
 
     public function testThrow()
@@ -64,13 +86,22 @@ class MainTest extends TestCase
                     ->withArgument('fixtures/thrower.php')
                     ->withWorkingDirectory(Path::of(\getcwd()))
                     ->withEnvironment('PATH', $_SERVER['PATH']),
-            );
-        $process->output()->foreach(function(Str $line, Type $type): void {
-            $this->assertSame(Type::error, $type);
+            )
+            ->unwrap();
+        $process->output()->foreach(function($chunk): void {
+            $this->assertSame(Type::error, $chunk->type());
         });
 
         $cwd = \getcwd();
-        $output = Str::of($process->output()->toString())->split("\n")->toList();
+        $output = Str::of(
+            $process
+                ->output()
+                ->map(static fn($chunk) => $chunk->data())
+                ->fold(new Concat)
+                ->toString(),
+        )
+            ->split("\n")
+            ->toList();
 
         $this->assertCount(6, $output);
         $this->assertSame(
@@ -98,7 +129,7 @@ class MainTest extends TestCase
             $output[3]->substring(27 + \strlen($cwd), 21)->toString(),
         );
         $this->assertMatchesRegularExpression(
-            "~^->main\(\) at $cwd/src/Main.php:(38|29)$~",
+            "~^->main\(\) at $cwd/src/Main.php:(30|21)$~",
             $output[3]->substring(-28 - \strlen($cwd))->toString(),
         );
         $this->assertSame(

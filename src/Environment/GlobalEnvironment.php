@@ -4,11 +4,11 @@ declare(strict_types = 1);
 namespace Innmind\CLI\Environment;
 
 use Innmind\CLI\Environment;
-use Innmind\OperatingSystem\Sockets;
-use Innmind\TimeContinuum\Earth\ElapsedPeriod;
-use Innmind\Stream\{
-    Readable,
-    Writable,
+use Innmind\TimeContinuum\Period;
+use Innmind\IO\{
+    IO,
+    Streams\Stream\Read,
+    Frame,
 };
 use Innmind\Url\Path;
 use Innmind\Immutable\{
@@ -24,12 +24,11 @@ use Innmind\Immutable\{
 final class GlobalEnvironment implements Environment
 {
     private bool $interactive;
-    private Readable\NonBlocking $input;
+    private Read $input;
     /** @var Output<'stdout'> */
     private Output $output;
     /** @var Output<'stderr'> */
     private Output $error;
-    private Sockets $sockets;
     /** @var Sequence<string> */
     private Sequence $arguments;
     /** @var Map<string, string> */
@@ -46,8 +45,7 @@ final class GlobalEnvironment implements Environment
      * @param Maybe<ExitCode> $exitCode
      */
     private function __construct(
-        Sockets $sockets,
-        Readable\NonBlocking $input,
+        Read $input,
         Output $output,
         Output $error,
         bool $interactive,
@@ -60,14 +58,13 @@ final class GlobalEnvironment implements Environment
         $this->input = $input;
         $this->output = $output;
         $this->error = $error;
-        $this->sockets = $sockets;
         $this->arguments = $arguments;
         $this->variables = $variables;
         $this->exitCode = $exitCode;
         $this->workingDirectory = $workingDirectory;
     }
 
-    public static function of(Sockets $sockets): self
+    public static function of(IO $io): self
     {
         /**
          * @psalm-suppress PossiblyUndefinedArrayOffset
@@ -86,12 +83,25 @@ final class GlobalEnvironment implements Environment
         $exitCode = Maybe::nothing();
 
         return new self(
-            $sockets,
-            Readable\NonBlocking::of(
-                Readable\Stream::of(\STDIN),
+            $io
+                ->streams()
+                ->acquire(\STDIN)
+                ->read()
+                ->nonBlocking()
+                ->toEncoding(Str\Encoding::ascii)
+                ->timeoutAfter(Period::minute(1)),
+            Output::stdout(
+                $io
+                    ->streams()
+                    ->acquire(\fopen('php://output', 'w') ?: throw new \RuntimeException('Unable to open stream'))
+                    ->write(),
             ),
-            Output::stdout(Writable\Stream::of(\fopen('php://output', 'w') ?: throw new \RuntimeException('Unable to open stream'))),
-            Output::stderr(Writable\Stream::of(\fopen('php://stderr', 'w') ?: throw new \RuntimeException('Unable to open stream'))),
+            Output::stderr(
+                $io
+                    ->streams()
+                    ->acquire(\fopen('php://stderr', 'w') ?: throw new \RuntimeException('Unable to open stream'))
+                    ->write(),
+            ),
             \stream_isatty(\STDIN),
             Sequence::strings(...$argv),
             $variables,
@@ -110,32 +120,20 @@ final class GlobalEnvironment implements Environment
     public function read(?int $length = null): array
     {
         /** @psalm-suppress ImpureMethodCall */
-        $watch = $this
-            ->sockets
-            ->watch(new ElapsedPeriod(60_000)) // one minute
-            ->forRead($this->input);
-
-        /**
-         * @psalm-suppress ImpureMethodCall
-         * @psalm-suppress InvalidArgument
-         */
-        $data = $watch()
-            ->flatMap(fn($ready) => $ready->toRead()->find(
-                fn($stream) => $stream === $this->input,
-            ))
-            ->filter(static fn(Readable $input) => !$input->end())
-            ->flatMap(static fn(Readable $input) => $input->read($length))
-            ->map(static fn($data) => $data->toEncoding(Str\Encoding::ascii));
-
-        /** @var array{Maybe<Str>, Environment} */
-        return [$data, $this];
+        return [
+            $this
+                ->input
+                ->frames(Frame::chunk($length ?? 8192)->loose())
+                ->one()
+                ->maybe(),
+            $this,
+        ];
     }
 
     #[\Override]
     public function output(Str $data): self
     {
         return new self(
-            $this->sockets,
             $this->input,
             ($this->output)($data),
             $this->error,
@@ -151,7 +149,6 @@ final class GlobalEnvironment implements Environment
     public function error(Str $data): self
     {
         return new self(
-            $this->sockets,
             $this->input,
             $this->output,
             ($this->error)($data),
@@ -179,7 +176,6 @@ final class GlobalEnvironment implements Environment
     public function exit(int $code): self
     {
         return new self(
-            $this->sockets,
             $this->input,
             $this->output,
             $this->error,

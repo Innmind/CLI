@@ -5,6 +5,7 @@
 ### Changed
 
 - Requires `innmind/immutable:~5.16`
+- Requires `innmind/operating-system:~6.0`
 
 ### Fixed
 
