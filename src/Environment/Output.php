@@ -3,10 +3,10 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Environment;
 
-use Innmind\Stream\Writable;
+use Innmind\IO\Streams\Stream\Write;
 use Innmind\Immutable\{
     Str,
-    Maybe,
+    Sequence,
 };
 
 /**
@@ -18,76 +18,53 @@ final class Output
 {
     /** @var T */
     private string $kind;
-    private Writable $stream;
-    /** @var pure-callable(Writable, Str): Maybe<Writable> */
-    private $write;
+    private Write $stream;
 
     /**
      * @param T $kind
-     * @param pure-callable(Writable, Str): Maybe<Writable> $write
      */
     private function __construct(
         string $kind,
-        Writable $stream,
-        callable $write,
+        Write $stream,
     ) {
         $this->kind = $kind;
         $this->stream = $stream;
-        $this->write = $write;
     }
 
     /**
-     * @throws \RuntimeException When the stream is no longer writable
+     * @throws \Throwable When the stream is no longer writable
      *
      * @return self<T>
      */
     public function __invoke(Str $data): self
     {
-        $stream = ($this->write)($this->stream, $data)->match(
-            static fn($stream) => $stream,
-            fn() => throw new \RuntimeException("Output '{$this->kind}' no longer writable"),
-        );
-
-        return new self($this->kind, $stream, $this->write);
+        /** @psalm-suppress ImpureMethodCall */
+        return $this
+            ->stream
+            ->sink(Sequence::of($data))
+            ->map(fn() => $this)
+            ->unwrap();
     }
 
     /**
      * @return self<'stdout'>
      */
-    public static function stdout(Writable $stream): self
+    public static function stdout(Write $stream): self
     {
-        /** @psalm-suppress InvalidArgument We cheat on the purity here */
         return new self(
             'stdout',
             $stream,
-            self::write(...),
         );
     }
 
     /**
      * @return self<'stderr'>
      */
-    public static function stderr(Writable $stream): self
+    public static function stderr(Write $stream): self
     {
-        /** @psalm-suppress InvalidArgument We cheat on the purity here */
         return new self(
             'stderr',
             $stream,
-            self::write(...),
         );
-    }
-
-    /**
-     * @return Maybe<Writable>
-     */
-    private static function write(Writable $stream, Str $data): Maybe
-    {
-        /** @var Maybe<Writable> */
-        return $stream
-            ->write($data->toEncoding(Str\Encoding::ascii))
-            ->match(
-                static fn($stream) => Maybe::just($stream),
-                static fn() => Maybe::nothing(),
-            );
     }
 }

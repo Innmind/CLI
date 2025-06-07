@@ -7,7 +7,7 @@ use Innmind\CLI\{
     Environment\GlobalEnvironment,
     Environment,
 };
-use Innmind\OperatingSystem\Sockets;
+use Innmind\IO\IO;
 use Innmind\Url\Path;
 use Innmind\Immutable\{
     Sequence,
@@ -22,7 +22,7 @@ class GlobalEnvironmentTest extends TestCase
 
     public function setUp(): void
     {
-        $this->env = GlobalEnvironment::of($this->createMock(Sockets::class));
+        $this->env = GlobalEnvironment::of(IO::fromAmbientAuthority());
     }
 
     public function testInterface()

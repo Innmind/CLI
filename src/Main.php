@@ -22,8 +22,9 @@ abstract class Main
 {
     final public function __construct(?Config $config = null)
     {
+        $config ??= Config::new();
         $os = Factory::build($config);
-        $env = Environment\GlobalEnvironment::of($os->sockets());
+        $env = Environment\GlobalEnvironment::of($config->io());
 
         try {
             $env = $this->main($env, $os);
