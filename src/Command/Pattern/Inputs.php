@@ -7,6 +7,8 @@ use Innmind\CLI\Exception\PatternNotRecognized;
 use Innmind\Immutable\{
     Str,
     Maybe,
+    Sequence,
+    Predicate\Instance,
 };
 
 /**
@@ -15,33 +17,39 @@ use Innmind\Immutable\{
  */
 final class Inputs
 {
-    /** list<class-string<Input>> */
-    private array $inputs;
+    /** @var Sequence<class-string<Input>> */
+    private Sequence $inputs;
 
     public function __construct()
     {
-        $this->inputs = [
+        $this->inputs = Sequence::of(
             RequiredArgument::class,
             OptionalArgument::class,
             PackArgument::class,
             OptionFlag::class,
             OptionWithValue::class,
-        ];
+        );
     }
 
     public function __invoke(Str $pattern): Input
     {
-        /** @var Maybe<Input> */
-        $parsed = Maybe::nothing();
+        /** @var ?Input */
+        $parsed = null;
 
-        /** @var class-string<Input> $input */
-        foreach ($this->inputs as $input) {
-            $parsed = $parsed->otherwise(static fn() => $input::of($pattern));
-        }
+        $input = $this
+            ->inputs
+            ->sink($parsed)
+            ->until(static fn($parsed, $input, $continuation) => match ($parsed) {
+                null => $input::of($pattern)->match(
+                    static fn($input) => $continuation->stop($input),
+                    static fn() => $continuation->continue($parsed),
+                ),
+                default => $continuation->stop($parsed),
+            });
 
-        return $parsed->match(
-            static fn($input) => $input,
-            static fn() => throw new PatternNotRecognized($pattern->toString()),
-        );
+        return Maybe::of($input)
+            ->keep(Instance::of(Input::class))
+            ->attempt(static fn() => new PatternNotRecognized($pattern->toString()))
+            ->unwrap();
     }
 }
