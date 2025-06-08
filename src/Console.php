@@ -67,6 +67,9 @@ final class Console
         )];
     }
 
+    /**
+     * @return Attempt<self>
+     */
     public function output(Str $data): Attempt
     {
         return $this->env->output($data)->map(
@@ -78,6 +81,9 @@ final class Console
         );
     }
 
+    /**
+     * @return Attempt<self>
+     */
     public function error(Str $data): Attempt
     {
         return $this->env->error($data)->map(
