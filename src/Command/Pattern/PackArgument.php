@@ -41,7 +41,6 @@ final class PackArgument implements Input, Argument
     /**
      * @psalm-pure
      */
-    #[\Override]
     public static function of(Str $pattern): Maybe
     {
         /** @var Maybe<Input> */

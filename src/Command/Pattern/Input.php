@@ -23,11 +23,6 @@ interface Input
     public static function walk(Usage $usage, Str $pattern): Maybe;
 
     /**
-     * @return Maybe<self>
-     */
-    public static function of(Str $pattern): Maybe;
-
-    /**
      * @param Sequence<string> $arguments
      * @param Map<string, string> $parsedArguments
      * @param Sequence<string> $pack

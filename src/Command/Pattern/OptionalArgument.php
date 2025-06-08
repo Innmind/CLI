@@ -51,7 +51,6 @@ final class OptionalArgument implements Input, Argument
      *
      * @return Maybe<self>
      */
-    #[\Override]
     public static function of(Str $pattern): Maybe
     {
         return Maybe::just($pattern)

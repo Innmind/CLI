@@ -59,7 +59,6 @@ final class OptionWithValue implements Input, Option
      *
      * @return Maybe<self>
      */
-    #[\Override]
     public static function of(Str $pattern): Maybe
     {
         $parts = $pattern->capture(self::PATTERN);
