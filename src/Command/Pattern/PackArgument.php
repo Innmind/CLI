@@ -15,7 +15,7 @@ use Innmind\Immutable\{
  * @psalm-immutable
  * @internal
  */
-final class PackArgument implements Input, Argument
+final class PackArgument implements Input
 {
     private function __construct(private string $name)
     {

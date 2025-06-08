@@ -16,7 +16,7 @@ use Innmind\Immutable\{
  * @psalm-immutable
  * @internal
  */
-final class OptionalArgument implements Input, Argument
+final class OptionalArgument implements Input
 {
     /**
      * @param non-empty-string $name

@@ -6,7 +6,6 @@ namespace Tests\Innmind\CLI\Command\Pattern;
 use Innmind\CLI\{
     Command\Pattern\OptionFlag,
     Command\Pattern\Input,
-    Command\Pattern\Option,
 };
 use Innmind\Immutable\{
     Str,
@@ -27,13 +26,6 @@ class OptionFlagTest extends TestCase
     {
         $this->assertInstanceOf(
             Input::class,
-            OptionFlag::of(Str::of('--foo'))->match(
-                static fn($input) => $input,
-                static fn() => null,
-            ),
-        );
-        $this->assertInstanceOf(
-            Option::class,
             OptionFlag::of(Str::of('--foo'))->match(
                 static fn($input) => $input,
                 static fn() => null,

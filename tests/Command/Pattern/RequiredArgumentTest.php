@@ -6,7 +6,6 @@ namespace Tests\Innmind\CLI\Command\Pattern;
 use Innmind\CLI\{
     Command\Pattern\RequiredArgument,
     Command\Pattern\Input,
-    Command\Pattern\Argument,
     Exception\MissingArgument,
 };
 use Innmind\Immutable\{
@@ -28,13 +27,6 @@ class RequiredArgumentTest extends TestCase
     {
         $this->assertInstanceOf(
             Input::class,
-            RequiredArgument::of(Str::of('foo'))->match(
-                static fn($input) => $input,
-                static fn() => null,
-            ),
-        );
-        $this->assertInstanceOf(
-            Argument::class,
             RequiredArgument::of(Str::of('foo'))->match(
                 static fn($input) => $input,
                 static fn() => null,

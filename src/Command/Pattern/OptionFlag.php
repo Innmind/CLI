@@ -16,7 +16,7 @@ use Innmind\Immutable\{
  * @psalm-immutable
  * @internal
  */
-final class OptionFlag implements Input, Option
+final class OptionFlag implements Input
 {
     private const PATTERN = '~^(?<short>-[a-zA-Z0-9]\|)?(?<name>--[a-zA-Z0-9\-]+)$~';
 

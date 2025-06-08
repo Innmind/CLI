@@ -18,7 +18,7 @@ use Innmind\Immutable\{
  * @psalm-immutable
  * @internal
  */
-final class OptionWithValue implements Input, Option
+final class OptionWithValue implements Input
 {
     private const PATTERN = '~^(?<short>-[a-zA-Z0-9]\|)?(?<name>--[a-zA-Z0-9\-]+)=$~';
 

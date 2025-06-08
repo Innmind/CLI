@@ -6,7 +6,6 @@ namespace Tests\Innmind\CLI\Command\Pattern;
 use Innmind\CLI\{
     Command\Pattern\OptionalArgument,
     Command\Pattern\Input,
-    Command\Pattern\Argument,
 };
 use Innmind\Immutable\{
     Str,
@@ -27,13 +26,6 @@ class OptionalArgumentTest extends TestCase
     {
         $this->assertInstanceOf(
             Input::class,
-            OptionalArgument::of(Str::of('[foo]'))->match(
-                static fn($input) => $input,
-                static fn() => null,
-            ),
-        );
-        $this->assertInstanceOf(
-            Argument::class,
             OptionalArgument::of(Str::of('[foo]'))->match(
                 static fn($input) => $input,
                 static fn() => null,

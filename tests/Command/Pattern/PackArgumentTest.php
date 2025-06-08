@@ -6,7 +6,6 @@ namespace Tests\Innmind\CLI\Command\Pattern;
 use Innmind\CLI\{
     Command\Pattern\PackArgument,
     Command\Pattern\Input,
-    Command\Pattern\Argument,
 };
 use Innmind\Immutable\{
     Str,
@@ -27,13 +26,6 @@ class PackArgumentTest extends TestCase
     {
         $this->assertInstanceOf(
             Input::class,
-            PackArgument::of(Str::of('...foo'))->match(
-                static fn($input) => $input,
-                static fn() => null,
-            ),
-        );
-        $this->assertInstanceOf(
-            Argument::class,
             PackArgument::of(Str::of('...foo'))->match(
                 static fn($input) => $input,
                 static fn() => null,
