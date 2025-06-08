@@ -20,6 +20,12 @@
 - `Innmind\Cli\Command` now return an `Innmind\Immutable\Attempt`
 - `Innmind\Cli\Main::main()` now return an `Innmind\Immutable\Attempt`
 
+### Removed
+
+- `Innmind\CLI\Exception\NoRequiredArgumentAllowedAfterAnOptionalOne`
+- `Innmind\CLI\Exception\OnlyOnePackArgumentAllowed`
+- `Innmind\CLI\Exception\PackArgumentMustBeTheLastOne`
+
 ### Fixed
 
 - PHP `8.4` deprecations
