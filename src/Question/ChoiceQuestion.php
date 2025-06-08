@@ -36,9 +36,9 @@ final class ChoiceQuestion
      *
      * @param T $env
      *
-     * @return array{Attempt<Map<scalar, scalar>>, T} Returns nothing when no interactions available
+     * @return Attempt<array{Attempt<Map<scalar, scalar>>, T}> Returns nothing when no interactions available
      */
-    public function __invoke(Environment|Console $env): array
+    public function __invoke(Environment|Console $env): Attempt
     {
         $noInteraction = match ($env::class) {
             Console::class => $env->options()->contains('no-interaction'),
@@ -46,27 +46,41 @@ final class ChoiceQuestion
         };
 
         if (!$env->interactive() || $noInteraction) {
-            /** @var array{Attempt<Map<scalar, scalar>>, T} */
-            return [
+            /** @var Attempt<array{Attempt<Map<scalar, scalar>>, T}> */
+            return Attempt::result([
                 Attempt::error(new \RuntimeException('Not in an interactive mode')),
                 $env,
-            ];
+            ]);
         }
 
-        $env = $env->output($this->question->append("\n"))->unwrap();
-        $env = $this
-            ->values
-            ->toSequence()
-            ->sink($env)
-            ->attempt(static fn($env, $pair) => $env->output(
-                Str::of("[%s] %s\n")->sprintf(
-                    (string) $pair->key(),
-                    (string) $pair->value(),
-                ),
-            ))
-            ->unwrap();
-        $env = $env->output(Str::of('> '))->unwrap();
+        /** @var Attempt<array{Attempt<Map<scalar, scalar>>, T}> */
+        return $env
+            ->output($this->question->append("\n"))
+            ->flatMap(
+                fn($env) => $this
+                    ->values
+                    ->toSequence()
+                    ->sink($env)
+                    ->attempt(static fn($env, $pair) => $env->output(
+                        Str::of("[%s] %s\n")->sprintf(
+                            (string) $pair->key(),
+                            (string) $pair->value(),
+                        ),
+                    )),
+            )
+            ->flatMap(static fn($env) => $env->output(Str::of('> ')))
+            ->map($this->read(...));
+    }
 
+    /**
+     * @template I of Environment|Console
+     *
+     * @param I $env
+     *
+     * @return array{Attempt<Map<scalar, scalar>>, I}
+     */
+    private function read(Environment|Console $env): array
+    {
         $response = Str::of('');
 
         do {
@@ -83,7 +97,7 @@ final class ChoiceQuestion
             ->split(',')
             ->map(static fn($choice) => $choice->trim()->toString());
 
-        /** @var array{Attempt<Map<scalar, scalar>>, T} */
+        /** @var array{Attempt<Map<scalar, scalar>>, I} */
         return [
             Attempt::result($this->values->filter(static function($key) use ($choices): bool {
                 return $choices->contains((string) $key);

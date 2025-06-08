@@ -23,7 +23,7 @@ class QuestionTest extends TestCase
             '/',
         );
 
-        [$response, $env] = $question($env);
+        [$response, $env] = $question($env)->unwrap();
         $response = $response->match(
             static fn($response) => $response,
             static fn() => null,
@@ -49,7 +49,7 @@ class QuestionTest extends TestCase
             '/',
         );
 
-        [$response, $env] = $question($env);
+        [$response, $env] = $question($env)->unwrap();
 
         $this->assertNull($response->match(
             static fn($response) => $response,
@@ -69,7 +69,7 @@ class QuestionTest extends TestCase
             '/',
         );
 
-        [$response, $env] = $question($env);
+        [$response, $env] = $question($env)->unwrap();
 
         $this->assertNull($response->match(
             static fn($response) => $response,

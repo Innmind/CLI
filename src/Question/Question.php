@@ -29,9 +29,9 @@ final class Question
      *
      * @param T $env
      *
-     * @return array{Attempt<Str>, T} Returns nothing when no interactions available
+     * @return Attempt<array{Attempt<Str>, T}> Returns nothing when no interactions available
      */
-    public function __invoke(Environment|Console $env): array
+    public function __invoke(Environment|Console $env): Attempt
     {
         $noInteraction = match ($env::class) {
             Console::class => $env->options()->contains('no-interaction'),
@@ -39,15 +39,28 @@ final class Question
         };
 
         if (!$env->interactive() || $noInteraction) {
-            /** @var array{Attempt<Str>, T} */
-            return [
+            /** @var Attempt<array{Attempt<Str>, T}> */
+            return Attempt::result([
                 Attempt::error(new \RuntimeException('Not in an interactive mode')),
                 $env,
-            ];
+            ]);
         }
 
-        $env = $env->output($this->question)->unwrap();
+        /** @var Attempt<array{Attempt<Str>, T}> */
+        return $env
+            ->output($this->question)
+            ->map($this->read(...));
+    }
 
+    /**
+     * @template I of Environment|Console
+     *
+     * @param I $env
+     *
+     * @return array{Attempt<Str>, I}
+     */
+    private function read(Environment|Console $env): array
+    {
         $response = Str::of('');
 
         do {
@@ -59,7 +72,7 @@ final class Question
             );
         } while (!$response->contains("\n"));
 
-        /** @var array{Attempt<Str>, T} */
+        /** @var array{Attempt<Str>, I} */
         return [Attempt::result($response->dropEnd(1)), $env]; // remove the new line character
     }
 }

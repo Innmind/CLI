@@ -14,6 +14,8 @@
 - `Innmind\Cli\Environment::error()` now return an `Innmind\Immutable\Attempt`
 - `Innmind\Cli\Question\Question` now return the read data in an `Innmind\Immutable\Attempt`
 - `Innmind\Cli\Question\ChoiceQuestion` now return the read data in an `Innmind\Immutable\Attempt`
+- `Innmind\Cli\Question\Question` now return an `Innmind\Immutable\Attempt`
+- `Innmind\Cli\Question\ChoiceQuestion` now return an `Innmind\Immutable\Attempt`
 
 ### Fixed
 
