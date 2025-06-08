@@ -3,6 +3,7 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Command\Pattern;
 
+use Innmind\CLI\Command\Usage;
 use Innmind\Immutable\{
     Str,
     Sequence,
@@ -26,6 +27,17 @@ final class PackArgument implements Input, Argument
     public static function named(string $name): self
     {
         return new self($name);
+    }
+
+    /**
+     * @psalm-pure
+     */
+    #[\Override]
+    public static function walk(Usage $usage, Str $pattern): Maybe
+    {
+        return Maybe::just($pattern)
+            ->filter(static fn($pattern) => $pattern->matches('~^\.\.\.[a-zA-Z0-9]+$~'))
+            ->map(static fn() => $usage->packArguments());
     }
 
     /**

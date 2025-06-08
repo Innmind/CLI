@@ -3,6 +3,7 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Command\Pattern;
 
+use Innmind\CLI\Command\Usage;
 use Innmind\Immutable\{
     Str,
     Sequence,
@@ -16,6 +17,11 @@ use Innmind\Immutable\{
  */
 interface Input
 {
+    /**
+     * @return Maybe<Usage>
+     */
+    public static function walk(Usage $usage, Str $pattern): Maybe;
+
     /**
      * @return Maybe<self>
      */

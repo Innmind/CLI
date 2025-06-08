@@ -3,6 +3,7 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Command\Pattern;
 
+use Innmind\CLI\Command\Usage;
 use Innmind\Validation\Is;
 use Innmind\Immutable\{
     Str,
@@ -22,8 +23,8 @@ final class OptionWithValue implements Input, Option
     private const PATTERN = '~^(?<short>-[a-zA-Z0-9]\|)?(?<name>--[a-zA-Z0-9\-]+)=$~';
 
     private function __construct(
-        public string $name,
-        public ?string $short,
+        private string $name,
+        private ?string $short,
     ) {
     }
 
@@ -33,6 +34,30 @@ final class OptionWithValue implements Input, Option
     public static function named(string $name, ?string $short = null): self
     {
         return new self($name, $short);
+    }
+
+    /**
+     * @psalm-immutable
+     */
+    #[\Override]
+    public static function walk(Usage $usage, Str $pattern): Maybe
+    {
+        $parts = $pattern->capture(self::PATTERN);
+        $short = $parts
+            ->get('short')
+            ->filter(static fn($short) => !$short->empty())
+            ->map(static fn($short) => $short->drop(1)->dropEnd(1)->toString())
+            ->keep(Is::string()->nonEmpty()->asPredicate())
+            ->match(
+                static fn($short) => $short,
+                static fn() => null,
+            );
+
+        return $parts
+            ->get('name')
+            ->map(static fn($name) => $name->drop(2)->toString())
+            ->keep(Is::string()->nonEmpty()->asPredicate())
+            ->map($usage->option(...));
     }
 
     /**

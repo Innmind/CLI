@@ -3,8 +3,12 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Command\Pattern;
 
-use Innmind\CLI\Exception\PatternNotRecognized;
+use Innmind\CLI\{
+    Command\Usage,
+    Exception\PatternNotRecognized,
+};
 use Innmind\Immutable\{
+    Attempt,
     Str,
     Maybe,
     Sequence,
@@ -51,5 +55,24 @@ final class Inputs
             ->keep(Instance::of(Input::class))
             ->attempt(static fn() => new PatternNotRecognized($pattern->toString()))
             ->unwrap();
+    }
+
+    /**
+     * @return Attempt<Usage>
+     */
+    public function walk(Usage $usage, Str $pattern): Attempt
+    {
+        $parsed = $this
+            ->inputs
+            ->sink($usage)
+            ->until(static fn($usage, $input, $continuation) => $input::walk($usage, $pattern)->match(
+                static fn($usage) => $continuation->stop($usage),
+                static fn() => $continuation->continue($usage),
+            ));
+
+        return match ($parsed) {
+            $usage => Attempt::error(new PatternNotRecognized($pattern->toString())),
+            default => Attempt::result($parsed),
+        };
     }
 }

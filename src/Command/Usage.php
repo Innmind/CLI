@@ -102,17 +102,9 @@ final class Usage
             ->first()
             ->toSequence()
             ->flatMap(static fn($line) => $line->split(' ')->drop(1))
-            ->map(new Inputs)
-            ->reduce(
-                $usage,
-                static fn(self $usage, $input) => match (true) {
-                    $input instanceof RequiredArgument => $usage->argument($input->name),
-                    $input instanceof OptionalArgument => $usage->optionalArgument($input->name),
-                    $input instanceof PackArgument => $usage->packArguments(),
-                    $input instanceof OptionFlag => $usage->flag($input->name, $input->short),
-                    $input instanceof OptionWithValue => $usage->option($input->name, $input->short),
-                },
-            );
+            ->sink($usage)
+            ->attempt((new Inputs)->walk(...))
+            ->unwrap();
     }
 
     /**
