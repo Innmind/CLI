@@ -67,11 +67,10 @@ final class OptionWithValue implements Input, Option
             );
         }
 
-        $value = $arguments->find(
-            static fn($argument) => Str::of($argument)->matches($pattern),
-        );
-        /** @psalm-suppress ArgumentTypeCoercion */
-        [$arguments, $options] = $value
+        [$arguments, $options] = $arguments
+            ->find(
+                static fn($argument) => Str::of($argument)->matches($pattern),
+            )
             ->map(
                 static fn($flag) => Str::of($flag)
                     ->split('=')
