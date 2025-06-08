@@ -63,7 +63,19 @@ final class RequiredArgument implements Input
             ->map(static fn($pattern) => new self($pattern));
     }
 
-    #[\Override]
+    /**
+     * @param Sequence<string> $arguments
+     * @param Map<string, string> $parsedArguments
+     * @param Sequence<string> $pack
+     * @param Map<string, string> $options
+     *
+     * @return array{
+     *     Sequence<string>,
+     *     Map<string, string>,
+     *     Sequence<string>,
+     *     Map<string, string>,
+     * }
+     */
     public function parse(
         Sequence $arguments,
         Map $parsedArguments,
