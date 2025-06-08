@@ -5,6 +5,7 @@ namespace Innmind\CLI\Environment;
 
 use Innmind\IO\Streams\Stream\Write;
 use Innmind\Immutable\{
+    Attempt,
     Str,
     Sequence,
 };
@@ -26,18 +27,15 @@ final class Output
     }
 
     /**
-     * @throws \Throwable When the stream is no longer writable
-     *
-     * @return self<T>
+     * @return Attempt<self<T>>
      */
-    public function __invoke(Str $data): self
+    public function __invoke(Str $data): Attempt
     {
         /** @psalm-suppress ImpureMethodCall */
         return $this
             ->stream
             ->sink(Sequence::of($data))
-            ->map(fn() => $this)
-            ->unwrap();
+            ->map(fn() => $this);
     }
 
     /**

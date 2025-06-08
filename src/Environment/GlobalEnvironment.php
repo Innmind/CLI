@@ -16,6 +16,7 @@ use Innmind\Immutable\{
     Map,
     Str,
     Maybe,
+    Attempt,
 };
 
 /**
@@ -102,39 +103,42 @@ final class GlobalEnvironment implements Environment
             $this
                 ->input
                 ->frames(Frame::chunk($length ?? 8192)->loose())
-                ->one()
-                ->maybe(),
+                ->one(),
             $this,
         ];
     }
 
     #[\Override]
-    public function output(Str $data): self
+    public function output(Str $data): Attempt
     {
-        return new self(
-            $this->input,
-            ($this->output)($data),
-            $this->error,
-            $this->interactive,
-            $this->arguments,
-            $this->variables,
-            $this->exitCode,
-            $this->workingDirectory,
+        return ($this->output)($data)->map(
+            fn($output) => new self(
+                $this->input,
+                $output,
+                $this->error,
+                $this->interactive,
+                $this->arguments,
+                $this->variables,
+                $this->exitCode,
+                $this->workingDirectory,
+            ),
         );
     }
 
     #[\Override]
-    public function error(Str $data): self
+    public function error(Str $data): Attempt
     {
-        return new self(
-            $this->input,
-            $this->output,
-            ($this->error)($data),
-            $this->interactive,
-            $this->arguments,
-            $this->variables,
-            $this->exitCode,
-            $this->workingDirectory,
+        return ($this->error)($data)->map(
+            fn($error) => new self(
+                $this->input,
+                $this->output,
+                $error,
+                $this->interactive,
+                $this->arguments,
+                $this->variables,
+                $this->exitCode,
+                $this->workingDirectory,
+            ),
         );
     }
 

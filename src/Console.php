@@ -9,7 +9,7 @@ use Innmind\CLI\{
 };
 use Innmind\Url\Path;
 use Innmind\Immutable\{
-    Maybe,
+    Attempt,
     Map,
     Str,
 };
@@ -54,7 +54,7 @@ final class Console
     /**
      * @param positive-int|null $length
      *
-     * @return array{Maybe<Str>, self}
+     * @return array{Attempt<Str>, self}
      */
     public function read(?int $length = null): array
     {
@@ -67,21 +67,31 @@ final class Console
         )];
     }
 
-    public function output(Str $data): self
+    /**
+     * @return Attempt<self>
+     */
+    public function output(Str $data): Attempt
     {
-        return new self(
-            $this->arguments,
-            $this->options,
-            $this->env->output($data),
+        return $this->env->output($data)->map(
+            fn($output) => new self(
+                $this->arguments,
+                $this->options,
+                $output,
+            ),
         );
     }
 
-    public function error(Str $data): self
+    /**
+     * @return Attempt<self>
+     */
+    public function error(Str $data): Attempt
     {
-        return new self(
-            $this->arguments,
-            $this->options,
-            $this->env->error($data),
+        return $this->env->error($data)->map(
+            fn($output) => new self(
+                $this->arguments,
+                $this->options,
+                $output,
+            ),
         );
     }
 

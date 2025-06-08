@@ -8,13 +8,14 @@ use Innmind\CLI\{
     Environment
 };
 use Innmind\OperatingSystem\OperatingSystem;
+use Innmind\Immutable\Attempt;
 
 new class extends Main {
-    protected function main(Environment $env, OperatingSystem $os): Environment
+    protected function main(Environment $env, OperatingSystem $os): Attempt
     {
-        return $env->exit((int) $env->arguments()->last()->match(
+        return Attempt::result($env->exit((int) $env->arguments()->last()->match(
             static fn($last) => $last,
             static fn() => null,
-        ));
+        )));
     }
 };

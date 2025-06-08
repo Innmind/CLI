@@ -11,6 +11,7 @@ use Innmind\Immutable\{
     Map,
     Str,
     Sequence,
+    Attempt,
 };
 
 final class Commands
@@ -29,7 +30,10 @@ final class Commands
         $this->specifications = $commands->map(static fn($command) => $command[0]);
     }
 
-    public function __invoke(Environment $env): Environment
+    /**
+     * @return Attempt<Environment>
+     */
+    public function __invoke(Environment $env): Attempt
     {
         if ($this->commands->size() === 1) {
             return $this
@@ -37,7 +41,7 @@ final class Commands
                 ->first()
                 ->match(
                     fn($specification) => $this->run($env, $specification),
-                    static fn() => $env,
+                    static fn() => Attempt::result($env),
                 );
         }
 
@@ -56,7 +60,7 @@ final class Commands
                     true,
                     $this->specifications,
                 )
-                ->exit(64); // EX_USAGE The command was used incorrectly
+                ->map(static fn($env) => $env->exit(64)); // EX_USAGE The command was used incorrectly
         }
 
         if ($command === 'help') {
@@ -87,7 +91,7 @@ final class Commands
                         true,
                         Sequence::of($spec)->append($rest),
                     )
-                    ->exit(64), // EX_USAGE The command was used incorrectly
+                    ->map(static fn($env) => $env->exit(64)), // EX_USAGE The command was used incorrectly
             },
             fn() => $this
                 ->displayHelp(
@@ -95,7 +99,7 @@ final class Commands
                     true,
                     $this->specifications,
                 )
-                ->exit(64), // EX_USAGE The command was used incorrectly
+                ->map(static fn($env) => $env->exit(64)), // EX_USAGE The command was used incorrectly
         );
     }
 
@@ -104,7 +108,10 @@ final class Commands
         return new self($command, ...$commands);
     }
 
-    private function run(Environment $env, Specification $spec): Environment
+    /**
+     * @return Attempt<Environment>
+     */
+    private function run(Environment $env, Specification $spec): Attempt
     {
         $run = $this->commands->get($spec)->match(
             static fn($command) => $command,
@@ -144,20 +151,24 @@ final class Commands
                     $bin,
                     $spec,
                 )
-                ->exit(64); // EX_USAGE The command was used incorrectly
+                ->map(static fn($env) => $env->exit(64)); // EX_USAGE The command was used incorrectly
         }
 
-        return $run(Console::of($env, $arguments, $options))->environment();
+        return $run(Console::of($env, $arguments, $options))->map(
+            static fn($console) => $console->environment(),
+        );
     }
 
     /**
-     * @param callable(Str): Environment $write
+     * @param callable(Str): Attempt<Environment> $write
+     *
+     * @return Attempt<Environment>
      */
     private function displayUsage(
         callable $write,
         string $bin,
         Specification $spec,
-    ): Environment {
+    ): Attempt {
         $description = Str::of($spec->shortDescription())
             ->append("\n\n")
             ->append($spec->description())
@@ -179,12 +190,14 @@ final class Commands
 
     /**
      * @param Sequence<Specification> $specifications
+     *
+     * @return Attempt<Environment>
      */
     private function displayHelp(
         Environment $env,
         bool $error,
         Sequence $specifications,
-    ): Environment {
+    ): Attempt {
         $names = $specifications->map(
             static fn($spec) => Str::of($spec->name()),
         );
@@ -203,15 +216,13 @@ final class Commands
         );
 
         if ($error) {
-            return $rows->reduce(
-                $env,
-                static fn(Environment $env, $row) => $env->error($row),
-            );
+            return $rows
+                ->sink($env)
+                ->attempt(static fn($env, $row) => $env->error($row));
         }
 
-        return $rows->reduce(
-            $env,
-            static fn(Environment $env, $row) => $env->output($row),
-        );
+        return $rows
+            ->sink($env)
+            ->attempt(static fn($env, $row) => $env->output($row));
     }
 }

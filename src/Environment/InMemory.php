@@ -10,6 +10,7 @@ use Innmind\Immutable\{
     Map,
     Str,
     Maybe,
+    Attempt,
 };
 
 /**
@@ -90,22 +91,25 @@ final class InMemory implements Environment
             $data = $data->map(static fn($data) => $data->take($length));
         }
 
-        return [$data, new self(
-            $input,
-            $this->output,
-            $this->error,
-            $this->interactive,
-            $this->arguments,
-            $this->variables,
-            $this->exitCode,
-            $this->workingDirectory,
-        )];
+        return [
+            $data->attempt(static fn() => new \LogicException('No input data specified')),
+            new self(
+                $input,
+                $this->output,
+                $this->error,
+                $this->interactive,
+                $this->arguments,
+                $this->variables,
+                $this->exitCode,
+                $this->workingDirectory,
+            ),
+        ];
     }
 
     #[\Override]
-    public function output(Str $data): self
+    public function output(Str $data): Attempt
     {
-        return new self(
+        return Attempt::result(new self(
             $this->input,
             ($this->output)($data->toEncoding(Str\Encoding::ascii)),
             $this->error,
@@ -114,13 +118,13 @@ final class InMemory implements Environment
             $this->variables,
             $this->exitCode,
             $this->workingDirectory,
-        );
+        ));
     }
 
     #[\Override]
-    public function error(Str $data): self
+    public function error(Str $data): Attempt
     {
-        return new self(
+        return Attempt::result(new self(
             $this->input,
             $this->output,
             ($this->error)($data->toEncoding(Str\Encoding::ascii)),
@@ -129,7 +133,7 @@ final class InMemory implements Environment
             $this->variables,
             $this->exitCode,
             $this->workingDirectory,
-        );
+        ));
     }
 
     #[\Override]

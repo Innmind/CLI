@@ -16,6 +16,7 @@ use Innmind\StackTrace\{
 use Innmind\Immutable\{
     Sequence,
     Str,
+    Attempt,
 };
 
 abstract class Main
@@ -27,7 +28,7 @@ abstract class Main
         $env = Environment\GlobalEnvironment::of($config->io());
 
         try {
-            $env = $this->main($env, $os);
+            $env = $this->main($env, $os)->unwrap();
         } catch (\Throwable $e) {
             $env = $this
                 ->print($e, $env)
@@ -45,7 +46,10 @@ abstract class Main
         //main() is the only place to run code
     }
 
-    abstract protected function main(Environment $env, OperatingSystem $os): Environment;
+    /**
+     * @return Attempt<Environment>
+     */
+    abstract protected function main(Environment $env, OperatingSystem $os): Attempt;
 
     private function print(\Throwable $e, Environment $env): Environment
     {
@@ -68,7 +72,7 @@ abstract class Main
 
         return $chunks->reduce(
             $env,
-            static fn(Environment $env, Str $line) => $env->error($line->append("\n")),
+            static fn(Environment $env, Str $line) => $env->error($line->append("\n"))->unwrap(),
         );
     }
 
