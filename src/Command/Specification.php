@@ -102,17 +102,6 @@ final class Specification
         return $declaration->split("\n");
     }
 
-    /**
-     * @return Maybe<Str>
-     */
-    private function firstLine(): Maybe
-    {
-        return $this
-            ->lines()
-            ->first()
-            ->map(static fn($line) => $line->append(' --help --no-interaction'));
-    }
-
     private function parse(): Usage
     {
         if ($this->parsed) {
