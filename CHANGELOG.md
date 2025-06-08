@@ -5,6 +5,7 @@
 ### Added
 
 - `Innmind\CLI\Command\Usage`
+- `Innmind\CLI\Command\Name`
 
 ### Changed
 

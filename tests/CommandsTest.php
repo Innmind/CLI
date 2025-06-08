@@ -13,6 +13,20 @@ use Innmind\CLI\{
 use Innmind\Immutable\Attempt;
 use Innmind\BlackBox\PHPUnit\Framework\TestCase;
 
+#[Command\Name('foo')]
+final class Foo implements Command
+{
+    public function __invoke(Console $console): Attempt
+    {
+        return Attempt::result($console->exit(42));
+    }
+
+    public function usage(): Usage
+    {
+        return Usage::for(self::class);
+    }
+}
+
 class CommandsTest extends TestCase
 {
     public function testRunSingleCommand()
@@ -66,6 +80,46 @@ class CommandsTest extends TestCase
                     return Usage::parse('foo');
                 }
             },
+            new class implements Command {
+                public function __invoke(Console $console): Attempt
+                {
+                    if (
+                        !$console->arguments()->contains('container') ||
+                        $console->arguments()->get('container') !== 'foo' ||
+                        !$console->arguments()->contains('output') ||
+                        $console->arguments()->get('output') !== 'bar' ||
+                        !$console->options()->contains('foo')
+                    ) {
+                        return Attempt::error(new \Exception);
+                    }
+
+                    return Attempt::result($console->exit(24));
+                }
+
+                public function usage(): Usage
+                {
+                    return Usage::parse('watch container [output] --foo');
+                }
+            },
+        );
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'watch', 'foo', '--foo', 'bar'],
+            [],
+            '/',
+        );
+
+        $this->assertSame(24, $run($env)->unwrap()->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+    }
+
+    public function testRunCommandByNameSpecifiedAsAttribute()
+    {
+        $run = Commands::of(
+            new Foo,
             new class implements Command {
                 public function __invoke(Console $console): Attempt
                 {

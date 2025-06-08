@@ -3,12 +3,13 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Command;
 
-use Innmind\CLI\Command\Pattern\{
-    RequiredArgument,
-    OptionalArgument,
-    OptionFlag,
-    OptionWithValue,
-    Inputs,
+use Innmind\CLI\{
+    Command,
+    Command\Pattern\RequiredArgument,
+    Command\Pattern\OptionalArgument,
+    Command\Pattern\OptionFlag,
+    Command\Pattern\OptionWithValue,
+    Command\Pattern\Inputs,
 };
 use Innmind\Validation\Is;
 use Innmind\Immutable\{
@@ -53,6 +54,35 @@ final class Usage
             null,
             null,
         );
+    }
+
+    /**
+     * @psalm-pure
+     *
+     * @param class-string<Command> $class
+     */
+    public static function for(string $class): self
+    {
+        $refl = new \ReflectionClass($class);
+        $attributes = $refl->getAttributes(Name::class);
+
+        foreach ($attributes as $attribute) {
+            /** @psalm-suppress ImpureMethodCall */
+            $name = $attribute->newInstance();
+            $usage = self::of($name->name());
+
+            if (\is_string($name->shortDescription())) {
+                $usage = $usage->withShortDescription($name->shortDescription());
+            }
+
+            return $usage;
+        }
+
+        throw new \LogicException(\sprintf(
+            'Missing %s attribute on %s',
+            Name::class,
+            $class,
+        ));
     }
 
     /**
