@@ -18,24 +18,10 @@ final class OptionFlag implements Input, Option
 {
     private const PATTERN = '~^(?<short>-[a-zA-Z0-9]\|)?(?<name>--[a-zA-Z0-9\-]+)$~';
 
-    private string $name;
-    private ?string $short;
-    private string $pattern;
-
-    private function __construct(string $name, ?string $short)
-    {
-        $this->name = $name;
-        $this->short = $short;
-
-        if (!\is_string($short)) {
-            $this->pattern = '~^--'.$name.'$~';
-        } else {
-            $this->pattern = \sprintf(
-                '~^-%s|--%s$~',
-                $short,
-                $this->name,
-            );
-        }
+    private function __construct(
+        private string $name,
+        private ?string $short,
+    ) {
     }
 
     /**
@@ -68,16 +54,19 @@ final class OptionFlag implements Input, Option
         Sequence $pack,
         Map $options,
     ): array {
-        $value = $arguments->find(
-            fn($argument) => Str::of($argument)->matches($this->pattern),
+        $pattern = \sprintf(
+            '~^%s$~',
+            $this->toString(),
         );
-        [$arguments, $options] = $value->match(
-            fn() => [
-                $arguments->filter(fn($argument) => !Str::of($argument)->matches($this->pattern)),
-                ($options)($this->name, ''),
-            ],
-            static fn() => [$arguments, $options],
+
+        $filtered = $arguments->exclude(
+            static fn($argument) => Str::of($argument)->matches($pattern),
         );
+
+        if ($filtered->size() !== $arguments->size()) {
+            $arguments = $filtered;
+            $options = ($options)($this->name, '');
+        }
 
         return [$arguments, $parsedArguments, $pack, $options];
     }

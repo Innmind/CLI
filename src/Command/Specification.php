@@ -19,11 +19,8 @@ use Innmind\Immutable\{
  */
 final class Specification
 {
-    private Command $command;
-
-    public function __construct(Command $command)
+    public function __construct(private Command $command)
     {
-        $this->command = $command;
     }
 
     public function name(): string
@@ -58,33 +55,21 @@ final class Specification
         }
 
         $commandChunks = $command->trim(':')->split(':');
-        /**
-         * @psalm-suppress ArgumentTypeCoercion
-         * @var Sequence<Str>
-         */
-        $nameChunks = $name
-            ->trim(':')
-            ->split(':')
-            ->reduce(
-                Sequence::of(),
-                static fn(Sequence $names, $chunk) => $commandChunks
-                    ->get($names->size())
-                    ->map(static fn($chunk) => $chunk->length())
-                    ->map(static fn($length) => $chunk->take($length))
-                    ->match(
-                        static fn($chunk) => ($names)($chunk),
-                        static fn() => ($names)($chunk),
-                    ),
-            );
+        $nameChunks = $name->trim(':')->split(':');
+        $diff = $nameChunks
+            ->zip($commandChunks)
+            ->map(static fn($pair) => [
+                $pair[0]->take($pair[1]->length()),
+                $pair[1],
+            ]);
 
-        if ($nameChunks->size() !== $commandChunks->size()) {
+        if ($nameChunks->size() !== $diff->size()) {
             return false;
         }
 
-        return $nameChunks
-            ->map(static fn($chunk) => $chunk->toString())
-            ->diff($commandChunks->map(static fn($chunk) => $chunk->toString()))
-            ->empty();
+        return $diff->matches(
+            static fn($pair) => $pair[0]->equals($pair[1]),
+        );
     }
 
     public function shortDescription(): string

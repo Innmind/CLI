@@ -52,16 +52,19 @@ abstract class Main
         $stack = StackTrace::of($e);
 
         /** @var Sequence<Str> */
-        $chunks = $stack->previous()->reduce(
-            $this->renderError($stack->throwable()),
-            function(Sequence $lines, Throwable $e): Sequence {
-                return $lines
-                    ->add(Str::of(''))
-                    ->add(Str::of('Caused by'))
-                    ->add(Str::of(''))
-                    ->append($this->renderError($e));
-            },
-        );
+        $chunks = $this
+            ->renderError($stack->throwable())
+            ->append(
+                $stack
+                    ->previous()
+                    ->flatMap(
+                        fn($e) => $this
+                            ->renderError($e)
+                            ->prepend(
+                                Sequence::of('', 'Caused by', '')->map(Str::of(...)),
+                            ),
+                    ),
+            );
 
         return $chunks->reduce(
             $env,
@@ -90,12 +93,8 @@ abstract class Main
         /** @var Sequence<Str> */
         return $e
             ->callFrames()
-            ->reduce(
-                $lines,
-                function(Sequence $lines, CallFrame $frame): Sequence {
-                    return $lines->add($this->renderCallFrame($frame));
-                },
-            );
+            ->map($this->renderCallFrame(...))
+            ->prepend($lines);
     }
 
     private function renderCallFrame(CallFrame $frame): Str

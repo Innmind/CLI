@@ -23,20 +23,6 @@ use Innmind\Immutable\{
  */
 final class GlobalEnvironment implements Environment
 {
-    private bool $interactive;
-    private Read $input;
-    /** @var Output<'stdout'> */
-    private Output $output;
-    /** @var Output<'stderr'> */
-    private Output $error;
-    /** @var Sequence<string> */
-    private Sequence $arguments;
-    /** @var Map<string, string> */
-    private Map $variables;
-    /** @var Maybe<ExitCode> */
-    private Maybe $exitCode;
-    private Path $workingDirectory;
-
     /**
      * @param Output<'stdout'> $output
      * @param Output<'stderr'> $error
@@ -45,23 +31,15 @@ final class GlobalEnvironment implements Environment
      * @param Maybe<ExitCode> $exitCode
      */
     private function __construct(
-        Read $input,
-        Output $output,
-        Output $error,
-        bool $interactive,
-        Sequence $arguments,
-        Map $variables,
-        Maybe $exitCode,
-        Path $workingDirectory,
+        private Read $input,
+        private Output $output,
+        private Output $error,
+        private bool $interactive,
+        private Sequence $arguments,
+        private Map $variables,
+        private Maybe $exitCode,
+        private Path $workingDirectory,
     ) {
-        $this->interactive = $interactive;
-        $this->input = $input;
-        $this->output = $output;
-        $this->error = $error;
-        $this->arguments = $arguments;
-        $this->variables = $variables;
-        $this->exitCode = $exitCode;
-        $this->workingDirectory = $workingDirectory;
     }
 
     public static function of(IO $io): self

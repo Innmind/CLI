@@ -21,24 +21,10 @@ final class OptionWithValue implements Input, Option
 {
     private const PATTERN = '~^(?<short>-[a-zA-Z0-9]\|)?(?<name>--[a-zA-Z0-9\-]+)=$~';
 
-    private string $name;
-    private ?string $short;
-    private string $pattern;
-
-    private function __construct(string $name, ?string $short)
-    {
-        $this->name = $name;
-        $this->short = $short;
-
-        if (!\is_string($short)) {
-            $this->pattern = '~^--'.$name.'=~';
-        } else {
-            $this->pattern = \sprintf(
-                '~^-%s=?|--%s=~',
-                $short,
-                $this->name,
-            );
-        }
+    private function __construct(
+        private string $name,
+        private ?string $short,
+    ) {
     }
 
     /**
@@ -71,11 +57,20 @@ final class OptionWithValue implements Input, Option
         Sequence $pack,
         Map $options,
     ): array {
-        $value = $arguments->find(
-            fn($argument) => Str::of($argument)->matches($this->pattern),
-        );
-        /** @psalm-suppress ArgumentTypeCoercion */
-        [$arguments, $options] = $value
+        if (!\is_string($this->short)) {
+            $pattern = '~^--'.$this->name.'=~';
+        } else {
+            $pattern = \sprintf(
+                '~^-%s=?|--%s=~',
+                $this->short,
+                $this->name,
+            );
+        }
+
+        [$arguments, $options] = $arguments
+            ->find(
+                static fn($argument) => Str::of($argument)->matches($pattern),
+            )
             ->map(
                 static fn($flag) => Str::of($flag)
                     ->split('=')
@@ -115,7 +110,7 @@ final class OptionWithValue implements Input, Option
                     ->unwrap(),
                 default => [ // means it's of the form -{option}={value}
                     $arguments->filter(
-                        fn($argument) => !Str::of($argument)->matches($this->pattern),
+                        static fn($argument) => !Str::of($argument)->matches($pattern),
                     ),
                     ($options)(
                         $this->name,
