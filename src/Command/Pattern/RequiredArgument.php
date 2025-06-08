@@ -66,20 +66,17 @@ final class RequiredArgument implements Input
     /**
      * @param Sequence<string> $arguments
      * @param Map<string, string> $parsedArguments
-     * @param Sequence<string> $pack
      * @param Map<string, string> $options
      *
      * @return array{
      *     Sequence<string>,
      *     Map<string, string>,
-     *     Sequence<string>,
      *     Map<string, string>,
      * }
      */
     public function parse(
         Sequence $arguments,
         Map $parsedArguments,
-        Sequence $pack,
         Map $options,
     ): array {
         $value = $arguments->first()->match(
@@ -90,7 +87,6 @@ final class RequiredArgument implements Input
         return [
             $arguments->drop(1),
             ($parsedArguments)($this->name, $value),
-            $pack,
             $options,
         ];
     }

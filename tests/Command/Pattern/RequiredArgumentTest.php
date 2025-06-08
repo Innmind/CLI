@@ -75,10 +75,9 @@ class RequiredArgumentTest extends TestCase
                     static fn() => null,
                 );
 
-                [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+                [$arguments, $parsedArguments, $options] = $input->parse(
                     Sequence::of(...$strings),
                     Map::of(),
-                    Sequence::of(),
                     Map::of(),
                 );
 
@@ -92,7 +91,6 @@ class RequiredArgumentTest extends TestCase
                         Sequence::of(...$strings)->drop(1),
                     ),
                 );
-                $this->assertTrue($pack->empty());
                 $this->assertTrue($options->empty());
             });
     }
@@ -110,7 +108,6 @@ class RequiredArgumentTest extends TestCase
         $input->parse(
             Sequence::of(),
             Map::of(),
-            Sequence::of(),
             Map::of(),
         );
     }

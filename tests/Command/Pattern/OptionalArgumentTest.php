@@ -74,10 +74,9 @@ class OptionalArgumentTest extends TestCase
                     static fn() => null,
                 );
 
-                [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+                [$arguments, $parsedArguments, $options] = $input->parse(
                     Sequence::of(...$strings),
                     Map::of(),
-                    Sequence::of(),
                     Map::of(),
                 );
 
@@ -91,7 +90,6 @@ class OptionalArgumentTest extends TestCase
                         Sequence::of(...$strings)->drop(1),
                     ),
                 );
-                $this->assertTrue($pack->empty());
                 $this->assertTrue($options->empty());
             });
     }
@@ -103,10 +101,9 @@ class OptionalArgumentTest extends TestCase
             static fn() => null,
         );
 
-        [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+        [$arguments, $parsedArguments, $options] = $input->parse(
             Sequence::of(),
             Map::of(),
-            Sequence::of(),
             Map::of(),
         );
 
@@ -116,7 +113,6 @@ class OptionalArgumentTest extends TestCase
             static fn() => null,
         ));
         $this->assertTrue($arguments->empty());
-        $this->assertTrue($pack->empty());
         $this->assertTrue($options->empty());
     }
 }

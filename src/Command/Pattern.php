@@ -45,13 +45,13 @@ final class Pattern
         $options = Map::of();
 
         /** @psalm-suppress MixedArgument */
-        [$arguments, $parsedArguments, $pack, $options] = $this->options->reduce(
-            [$arguments, $parsedArguments, $pack, $options],
+        [$arguments, $parsedArguments, $options] = $this->options->reduce(
+            [$arguments, $parsedArguments, $options],
             static fn($carry, $input) => $input->parse(...$carry),
         );
         /** @psalm-suppress MixedArgument */
-        [$arguments, $parsedArguments, $pack, $options] = $this->arguments->reduce(
-            [$arguments, $parsedArguments, $pack, $options],
+        [$arguments, $parsedArguments, $options] = $this->arguments->reduce(
+            [$arguments, $parsedArguments, $options],
             static fn($carry, $input) => $input->parse(...$carry),
         );
 
