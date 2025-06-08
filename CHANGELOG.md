@@ -17,6 +17,7 @@
 - `Innmind\Cli\Question\Question` now return an `Innmind\Immutable\Attempt`
 - `Innmind\Cli\Question\ChoiceQuestion` now return an `Innmind\Immutable\Attempt`
 - `Innmind\Cli\Commands` now return an `Innmind\Immutable\Attempt`
+- `Innmind\Cli\Command` now return an `Innmind\Immutable\Attempt`
 
 ### Fixed
 

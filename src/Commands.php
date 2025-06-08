@@ -154,8 +154,8 @@ final class Commands
                 ->map(static fn($env) => $env->exit(64)); // EX_USAGE The command was used incorrectly
         }
 
-        return Attempt::result(
-            $run(Console::of($env, $arguments, $options))->environment(),
+        return $run(Console::of($env, $arguments, $options))->map(
+            static fn($console) => $console->environment(),
         );
     }
 

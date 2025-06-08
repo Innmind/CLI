@@ -9,6 +9,7 @@ use Innmind\CLI\{
     Environment,
     Console,
 };
+use Innmind\Immutable\Attempt;
 use Innmind\BlackBox\PHPUnit\Framework\TestCase;
 
 class CommandsTest extends TestCase
@@ -16,7 +17,7 @@ class CommandsTest extends TestCase
     public function testRunSingleCommand()
     {
         $run = Commands::of(new class implements Command {
-            public function __invoke(Console $console): Console
+            public function __invoke(Console $console): Attempt
             {
                 if (
                     !$console->arguments()->contains('container') ||
@@ -25,10 +26,10 @@ class CommandsTest extends TestCase
                     $console->arguments()->get('output') !== 'bar' ||
                     !$console->options()->contains('foo')
                 ) {
-                    throw new \Exception;
+                    return Attempt::error(new \Exception);
                 }
 
-                return $console->exit(42);
+                return Attempt::result($console->exit(42));
             }
 
             public function usage(): string
@@ -54,9 +55,9 @@ class CommandsTest extends TestCase
     {
         $run = Commands::of(
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(42);
+                    return Attempt::result($console->exit(42));
                 }
 
                 public function usage(): string
@@ -65,7 +66,7 @@ class CommandsTest extends TestCase
                 }
             },
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
                     if (
                         !$console->arguments()->contains('container') ||
@@ -74,10 +75,10 @@ class CommandsTest extends TestCase
                         $console->arguments()->get('output') !== 'bar' ||
                         !$console->options()->contains('foo')
                     ) {
-                        throw new \Exception;
+                        return Attempt::error(new \Exception);
                     }
 
-                    return $console->exit(24);
+                    return Attempt::result($console->exit(24));
                 }
 
                 public function usage(): string
@@ -104,9 +105,9 @@ class CommandsTest extends TestCase
     {
         $run = Commands::of(
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(42);
+                    return Attempt::result($console->exit(42));
                 }
 
                 public function usage(): string
@@ -115,9 +116,9 @@ class CommandsTest extends TestCase
                 }
             },
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(24);
+                    return Attempt::result($console->exit(24));
                 }
 
                 public function usage(): string
@@ -144,9 +145,9 @@ class CommandsTest extends TestCase
     {
         $run = Commands::of(
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(42);
+                    return Attempt::result($console->exit(42));
                 }
 
                 public function usage(): string
@@ -155,9 +156,9 @@ class CommandsTest extends TestCase
                 }
             },
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(24);
+                    return Attempt::result($console->exit(24));
                 }
 
                 public function usage(): string
@@ -184,9 +185,9 @@ class CommandsTest extends TestCase
     {
         $run = Commands::of(
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(42);
+                    return Attempt::result($console->exit(42));
                 }
 
                 public function usage(): string
@@ -195,9 +196,9 @@ class CommandsTest extends TestCase
                 }
             },
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(24);
+                    return Attempt::result($console->exit(24));
                 }
 
                 public function usage(): string
@@ -224,9 +225,9 @@ class CommandsTest extends TestCase
     {
         $run = Commands::of(
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(42);
+                    return Attempt::result($console->exit(42));
                 }
 
                 public function usage(): string
@@ -235,9 +236,9 @@ class CommandsTest extends TestCase
                 }
             },
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(24);
+                    return Attempt::result($console->exit(24));
                 }
 
                 public function usage(): string
@@ -273,9 +274,9 @@ class CommandsTest extends TestCase
     {
         $run = Commands::of(
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(42);
+                    return Attempt::result($console->exit(42));
                 }
 
                 public function usage(): string
@@ -284,9 +285,9 @@ class CommandsTest extends TestCase
                 }
             },
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(24);
+                    return Attempt::result($console->exit(24));
                 }
 
                 public function usage(): string
@@ -321,9 +322,9 @@ class CommandsTest extends TestCase
     public function testExitWhenCommandMisused()
     {
         $run = Commands::of(new class implements Command {
-            public function __invoke(Console $console): Console
+            public function __invoke(Console $console): Attempt
             {
-                return $console->exit(42);
+                return Attempt::result($console->exit(42));
             }
 
             public function usage(): string
@@ -360,9 +361,9 @@ USAGE;
     public function testEnvNotTemperedWhenCommandThrows()
     {
         $run = Commands::of(new class implements Command {
-            public function __invoke(Console $console): Console
+            public function __invoke(Console $console): Attempt
             {
-                throw new \Exception;
+                return Attempt::error(new \Exception);
             }
 
             public function usage(): string
@@ -386,9 +387,9 @@ USAGE;
     public function testDisplayUsageWhenHelpOptionFound()
     {
         $run = Commands::of(new class implements Command {
-            public function __invoke(Console $console): Console
+            public function __invoke(Console $console): Attempt
             {
-                return $console->exit(42);
+                return Attempt::result($console->exit(42));
             }
 
             public function usage(): string
@@ -426,9 +427,9 @@ USAGE;
     {
         $run = Commands::of(
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(42);
+                    return Attempt::result($console->exit(42));
                 }
 
                 public function usage(): string
@@ -437,9 +438,9 @@ USAGE;
                 }
             },
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(24);
+                    return Attempt::result($console->exit(24));
                 }
 
                 public function usage(): string
@@ -475,9 +476,9 @@ USAGE;
     {
         $run = Commands::of(
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(42);
+                    return Attempt::result($console->exit(42));
                 }
 
                 public function usage(): string
@@ -486,9 +487,9 @@ USAGE;
                 }
             },
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(24);
+                    return Attempt::result($console->exit(24));
                 }
 
                 public function usage(): string

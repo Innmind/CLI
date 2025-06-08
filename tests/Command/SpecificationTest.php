@@ -10,6 +10,7 @@ use Innmind\CLI\{
     Console,
     Exception\EmptyDeclaration,
 };
+use Innmind\Immutable\Attempt;
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
     PHPUnit\Framework\TestCase,
@@ -23,7 +24,7 @@ class SpecificationTest extends TestCase
     public function testInterface()
     {
         $command = new class implements Command {
-            public function __invoke(Console $console): Console
+            public function __invoke(Console $console): Attempt
             {
             }
 
@@ -86,7 +87,7 @@ DESCRIPTION;
                         $this->usage = $usage;
                     }
 
-                    public function __invoke(Console $console): Console
+                    public function __invoke(Console $console): Attempt
                     {
                     }
 
@@ -115,7 +116,7 @@ DESCRIPTION;
                 $this->usage = $usage;
             }
 
-            public function __invoke(Console $console): Console
+            public function __invoke(Console $console): Attempt
             {
             }
 
@@ -147,7 +148,7 @@ DESCRIPTION;
                         $this->usage = $usage;
                     }
 
-                    public function __invoke(Console $console): Console
+                    public function __invoke(Console $console): Attempt
                     {
                     }
 
@@ -180,7 +181,7 @@ DESCRIPTION;
                         $this->usage = $usage;
                     }
 
-                    public function __invoke(Console $console): Console
+                    public function __invoke(Console $console): Attempt
                     {
                     }
 
@@ -209,7 +210,7 @@ DESCRIPTION;
                 $this->usage = $usage;
             }
 
-            public function __invoke(Console $console): Console
+            public function __invoke(Console $console): Attempt
             {
             }
 
@@ -240,7 +241,7 @@ DESCRIPTION;
                         $this->usage = $usage;
                     }
 
-                    public function __invoke(Console $console): Console
+                    public function __invoke(Console $console): Attempt
                     {
                     }
 
@@ -273,7 +274,7 @@ DESCRIPTION;
                         $this->usage = $usage;
                     }
 
-                    public function __invoke(Console $console): Console
+                    public function __invoke(Console $console): Attempt
                     {
                     }
 
@@ -293,7 +294,7 @@ DESCRIPTION;
     public function testThrowWhenEmptyDeclaration()
     {
         $command = new class implements Command {
-            public function __invoke(Console $console): Console
+            public function __invoke(Console $console): Attempt
             {
             }
 
