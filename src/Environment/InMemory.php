@@ -82,7 +82,7 @@ final class InMemory implements Environment
             // the remaining to the start of the input list
             $input = $data
                 ->map(static fn($data) => $data->drop($length))
-                ->filter(static fn($data) => !$data->empty())
+                ->exclude(static fn($data) => $data->empty())
                 ->match(
                     static fn($data) => Sequence::of($data)->append($input),
                     static fn() => $input,
