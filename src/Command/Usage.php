@@ -6,10 +6,8 @@ namespace Innmind\CLI\Command;
 use Innmind\CLI\Command\Pattern\{
     RequiredArgument,
     OptionalArgument,
-    PackArgument,
     OptionFlag,
     OptionWithValue,
-    Input,
     Inputs,
 };
 use Innmind\Validation\Is;
@@ -233,16 +231,11 @@ final class Usage
 
     public function pattern(): Pattern
     {
-        /** @var Sequence<Input> */
-        $inputs = $this->arguments;
-
-        if ($this->pack) {
-            $inputs = ($inputs)(PackArgument::named('arguments'));
-        }
-
-        $inputs = $inputs->append($this->options);
-
-        return new Pattern($inputs);
+        return new Pattern(
+            $this->arguments,
+            $this->options,
+            $this->pack,
+        );
     }
 
     /**

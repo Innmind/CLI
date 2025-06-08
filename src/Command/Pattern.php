@@ -4,9 +4,10 @@ declare(strict_types = 1);
 namespace Innmind\CLI\Command;
 
 use Innmind\CLI\{
-    Command\Pattern\Input,
-    Command\Pattern\Argument,
-    Command\Pattern\Option,
+    Command\Pattern\RequiredArgument,
+    Command\Pattern\OptionalArgument,
+    Command\Pattern\OptionFlag,
+    Command\Pattern\OptionWithValue,
 };
 use Innmind\Immutable\{
     Sequence,
@@ -20,10 +21,14 @@ use Innmind\Immutable\{
 final class Pattern
 {
     /**
-     * @param Sequence<Input> $inputs
+     * @param Sequence<RequiredArgument|OptionalArgument> $arguments
+     * @param Sequence<OptionFlag|OptionWithValue> $options
      */
-    public function __construct(private Sequence $inputs)
-    {
+    public function __construct(
+        private Sequence $arguments,
+        private Sequence $options,
+        private bool $pack,
+    ) {
     }
 
     /**
@@ -39,20 +44,20 @@ final class Pattern
         /** @var Map<string, string> */
         $options = Map::of();
 
-        // parse the arguments after the options as the options can be anywhere
-        // in the sequence
-        $inputs = $this
-            ->inputs
-            ->filter(static fn($input) => $input instanceof Option)
-            ->append($this->inputs->filter(
-                static fn($input) => $input instanceof Argument,
-            ));
-
         /** @psalm-suppress MixedArgument */
-        [$_, $parsedArguments, $pack, $options] = $inputs->reduce(
+        [$arguments, $parsedArguments, $pack, $options] = $this->options->reduce(
             [$arguments, $parsedArguments, $pack, $options],
             static fn($carry, $input) => $input->parse(...$carry),
         );
+        /** @psalm-suppress MixedArgument */
+        [$arguments, $parsedArguments, $pack, $options] = $this->arguments->reduce(
+            [$arguments, $parsedArguments, $pack, $options],
+            static fn($carry, $input) => $input->parse(...$carry),
+        );
+
+        if ($this->pack) {
+            $pack = $arguments;
+        }
 
         return [new Arguments($parsedArguments, $pack), new Options($options)];
     }
