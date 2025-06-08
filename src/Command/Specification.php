@@ -14,13 +14,12 @@ final class Specification
 {
     public function __construct(
         private Command $command,
-        private ?Usage $parsed = null,
     ) {
     }
 
     public function name(): string
     {
-        return $this->parse()->name();
+        return $this->usage()->name();
     }
 
     public function is(string $command): bool
@@ -61,22 +60,16 @@ final class Specification
 
     public function shortDescription(): string
     {
-        return $this->parse()->shortDescription();
+        return $this->usage()->shortDescription();
     }
 
     public function pattern(): Pattern
     {
-        return $this->parse()->pattern();
+        return $this->usage()->pattern();
     }
 
     public function usage(): Usage
     {
-        return $this->parse();
-    }
-
-    private function parse(): Usage
-    {
-        /** @psalm-suppress InaccessibleProperty */
-        return $this->parsed ??= Usage::parse($this->command->usage());
+        return $this->command->usage();
     }
 }

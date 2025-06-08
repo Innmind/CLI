@@ -5,6 +5,7 @@ namespace Tests\Innmind\CLI\Command;
 
 use Innmind\CLI\{
     Command\Specification,
+    Command\Usage,
     Command,
     Console,
 };
@@ -26,9 +27,9 @@ class SpecificationTest extends TestCase
             {
             }
 
-            public function usage(): string
+            public function usage(): Usage
             {
-                return <<<USAGE
+                return Usage::parse(<<<USAGE
                     watch container [output] ...proxy
 
                     Watch a container definition file for changes and generate corresponding graph
@@ -37,7 +38,7 @@ class SpecificationTest extends TestCase
                     content but if provided it will automatically generate the graph to the given file.
 
                     The proxy pack argument are arguments that will be sent used for the graphviz command.
-                    USAGE;
+                    USAGE);
             }
         };
 
@@ -84,9 +85,9 @@ class SpecificationTest extends TestCase
                     {
                     }
 
-                    public function usage(): string
+                    public function usage(): Usage
                     {
-                        return $this->usage;
+                        return Usage::parse($this->usage);
                     }
                 };
 
@@ -113,9 +114,9 @@ class SpecificationTest extends TestCase
             {
             }
 
-            public function usage(): string
+            public function usage(): Usage
             {
-                return $this->usage;
+                return Usage::parse($this->usage);
             }
         };
 
@@ -145,9 +146,9 @@ class SpecificationTest extends TestCase
                     {
                     }
 
-                    public function usage(): string
+                    public function usage(): Usage
                     {
-                        return $this->usage;
+                        return Usage::parse($this->usage);
                     }
                 };
 
@@ -178,9 +179,9 @@ class SpecificationTest extends TestCase
                     {
                     }
 
-                    public function usage(): string
+                    public function usage(): Usage
                     {
-                        return $this->usage;
+                        return Usage::parse($this->usage);
                     }
                 };
 
@@ -207,9 +208,9 @@ class SpecificationTest extends TestCase
             {
             }
 
-            public function usage(): string
+            public function usage(): Usage
             {
-                return $this->usage;
+                return Usage::parse($this->usage);
             }
         };
 
@@ -238,9 +239,9 @@ class SpecificationTest extends TestCase
                     {
                     }
 
-                    public function usage(): string
+                    public function usage(): Usage
                     {
-                        return $this->usage;
+                        return Usage::parse($this->usage);
                     }
                 };
 
@@ -271,9 +272,9 @@ class SpecificationTest extends TestCase
                     {
                     }
 
-                    public function usage(): string
+                    public function usage(): Usage
                     {
-                        return $this->usage;
+                        return Usage::parse($this->usage);
                     }
                 };
 
@@ -291,9 +292,9 @@ class SpecificationTest extends TestCase
             {
             }
 
-            public function usage(): string
+            public function usage(): Usage
             {
-                return '  ';
+                return Usage::parse('  ');
             }
         };
 

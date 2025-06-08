@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `Innmind\CLI\Command\Usage`
+
 ### Changed
 
 - Requires `innmind/immutable:~5.16`
@@ -19,6 +23,7 @@
 - `Innmind\CLI\Commands` now return an `Innmind\Immutable\Attempt`
 - `Innmind\CLI\Command` now return an `Innmind\Immutable\Attempt`
 - `Innmind\CLI\Main::main()` now return an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Command::usage()` now return a `Usage`
 
 ### Removed
 
