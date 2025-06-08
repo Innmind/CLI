@@ -34,7 +34,7 @@ final class Commands
         if ($this->commands->size() === 1) {
             return $this
                 ->specifications
-                ->find(static fn() => true) // first
+                ->first()
                 ->match(
                     fn($specification) => $this->run($env, $specification),
                     static fn() => $env,
