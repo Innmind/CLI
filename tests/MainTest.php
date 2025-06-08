@@ -129,7 +129,7 @@ class MainTest extends TestCase
             $output[3]->substring(27 + \strlen($cwd), 21)->toString(),
         );
         $this->assertMatchesRegularExpression(
-            "~^->main\(\) at $cwd/src/Main.php:(30|21)$~",
+            "~^->main\(\) at $cwd/src/Main.php:(31|22)$~",
             $output[3]->substring(-28 - \strlen($cwd))->toString(),
         );
         $this->assertSame(

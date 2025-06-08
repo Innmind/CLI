@@ -10,10 +10,10 @@ use Innmind\CLI\{
     Exception\LogicException,
 };
 use Innmind\OperatingSystem\OperatingSystem;
-use Innmind\Immutable\Str;
+use Innmind\Immutable\Attempt;
 
 new class extends Main {
-    protected function main(Environment $env, OperatingSystem $os): Environment
+    protected function main(Environment $env, OperatingSystem $os): Attempt
     {
         throw new LogicException('waaat');
     }

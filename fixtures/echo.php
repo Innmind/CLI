@@ -8,10 +8,13 @@ use Innmind\CLI\{
     Environment
 };
 use Innmind\OperatingSystem\OperatingSystem;
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Attempt,
+};
 
 new class extends Main {
-    protected function main(Environment $env, OperatingSystem $os): Environment
+    protected function main(Environment $env, OperatingSystem $os): Attempt
     {
         [$input, $env] = $env->read();
 
@@ -20,6 +23,6 @@ new class extends Main {
                 static fn($str) => $str,
                 static fn() => Str::of(''),
             ),
-        )->unwrap();
+        );
     }
 };
