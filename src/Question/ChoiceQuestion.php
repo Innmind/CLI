@@ -10,7 +10,7 @@ use Innmind\CLI\{
 use Innmind\Immutable\{
     Str,
     Map,
-    Maybe,
+    Attempt,
 };
 
 /**
@@ -36,7 +36,7 @@ final class ChoiceQuestion
      *
      * @param T $env
      *
-     * @return array{Maybe<Map<scalar, scalar>>, T} Returns nothing when no interactions available
+     * @return array{Attempt<Map<scalar, scalar>>, T} Returns nothing when no interactions available
      */
     public function __invoke(Environment|Console $env): array
     {
@@ -46,8 +46,11 @@ final class ChoiceQuestion
         };
 
         if (!$env->interactive() || $noInteraction) {
-            /** @var array{Maybe<Map<scalar, scalar>>, T} */
-            return [Maybe::nothing(), $env];
+            /** @var array{Attempt<Map<scalar, scalar>>, T} */
+            return [
+                Attempt::error(new \RuntimeException('Not in an interactive mode')),
+                $env,
+            ];
         }
 
         $env = $env->output($this->question->append("\n"))->unwrap();
@@ -80,9 +83,9 @@ final class ChoiceQuestion
             ->split(',')
             ->map(static fn($choice) => $choice->trim()->toString());
 
-        /** @var array{Maybe<Map<scalar, scalar>>, T} */
+        /** @var array{Attempt<Map<scalar, scalar>>, T} */
         return [
-            Maybe::just($this->values->filter(static function($key) use ($choices): bool {
+            Attempt::result($this->values->filter(static function($key) use ($choices): bool {
                 return $choices->contains((string) $key);
             })),
             $env,

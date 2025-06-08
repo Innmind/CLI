@@ -9,7 +9,7 @@ use Innmind\CLI\{
 };
 use Innmind\Immutable\{
     Str,
-    Maybe,
+    Attempt
 };
 
 /**
@@ -29,7 +29,7 @@ final class Question
      *
      * @param T $env
      *
-     * @return array{Maybe<Str>, T} Returns nothing when no interactions available
+     * @return array{Attempt<Str>, T} Returns nothing when no interactions available
      */
     public function __invoke(Environment|Console $env): array
     {
@@ -39,8 +39,11 @@ final class Question
         };
 
         if (!$env->interactive() || $noInteraction) {
-            /** @var array{Maybe<Str>, T} */
-            return [Maybe::nothing(), $env];
+            /** @var array{Attempt<Str>, T} */
+            return [
+                Attempt::error(new \RuntimeException('Not in an interactive mode')),
+                $env,
+            ];
         }
 
         $env = $env->output($this->question)->unwrap();
@@ -56,7 +59,7 @@ final class Question
             );
         } while (!$response->contains("\n"));
 
-        /** @var array{Maybe<Str>, T} */
-        return [Maybe::just($response->dropEnd(1)), $env]; // remove the new line character
+        /** @var array{Attempt<Str>, T} */
+        return [Attempt::result($response->dropEnd(1)), $env]; // remove the new line character
     }
 }
