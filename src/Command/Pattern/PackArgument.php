@@ -17,16 +17,16 @@ use Innmind\Immutable\{
  */
 final class PackArgument implements Input
 {
-    private function __construct(private string $name)
+    private function __construct()
     {
     }
 
     /**
      * @psalm-pure
      */
-    public static function named(string $name): self
+    public static function new(): self
     {
-        return new self($name);
+        return new self();
     }
 
     /**
@@ -47,7 +47,7 @@ final class PackArgument implements Input
         return Maybe::just($pattern)
             ->filter(static fn($pattern) => $pattern->matches('~^\.\.\.[a-zA-Z0-9]+$~'))
             ->map(static fn($pattern) => $pattern->drop(3))
-            ->map(static fn($pattern) => new self($pattern->toString()));
+            ->map(static fn($pattern) => new self);
     }
 
     #[\Override]
@@ -67,6 +67,6 @@ final class PackArgument implements Input
 
     public function toString(): string
     {
-        return '...'.$this->name;
+        return '...arguments';
     }
 }

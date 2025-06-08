@@ -53,7 +53,7 @@ class PackArgumentTest extends TestCase
             ->forAll(Set::of('...foo', '...bar', '...baz'))
             ->prove(function(string $string): void {
                 $this->assertSame(
-                    $string,
+                    '...arguments',
                     PackArgument::of(Str::of($string))->match(
                         static fn($input) => $input->toString(),
                         static fn() => null,
