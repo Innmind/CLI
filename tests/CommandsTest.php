@@ -44,7 +44,7 @@ class CommandsTest extends TestCase
             '/',
         );
 
-        $this->assertSame(42, $run($env)->exitCode()->match(
+        $this->assertSame(42, $run($env)->unwrap()->exitCode()->match(
             static fn($code) => $code->toInt(),
             static fn() => null,
         ));
@@ -94,7 +94,7 @@ class CommandsTest extends TestCase
             '/',
         );
 
-        $this->assertSame(24, $run($env)->exitCode()->match(
+        $this->assertSame(24, $run($env)->unwrap()->exitCode()->match(
             static fn($code) => $code->toInt(),
             static fn() => null,
         ));
@@ -134,7 +134,7 @@ class CommandsTest extends TestCase
             '/',
         );
 
-        $this->assertSame(42, $run($env)->exitCode()->match(
+        $this->assertSame(42, $run($env)->unwrap()->exitCode()->match(
             static fn($code) => $code->toInt(),
             static fn() => null,
         ));
@@ -174,7 +174,7 @@ class CommandsTest extends TestCase
             '/',
         );
 
-        $this->assertSame(24, $run($env)->exitCode()->match(
+        $this->assertSame(24, $run($env)->unwrap()->exitCode()->match(
             static fn($code) => $code->toInt(),
             static fn() => null,
         ));
@@ -214,7 +214,7 @@ class CommandsTest extends TestCase
             '/',
         );
 
-        $this->assertSame(42, $run($env)->exitCode()->match(
+        $this->assertSame(42, $run($env)->unwrap()->exitCode()->match(
             static fn($code) => $code->toInt(),
             static fn() => null,
         ));
@@ -254,7 +254,7 @@ class CommandsTest extends TestCase
             '/',
         );
 
-        $env = $run($env);
+        $env = $run($env)->unwrap();
 
         $this->assertSame(64, $env->exitCode()->match(
             static fn($code) => $code->toInt(),
@@ -303,7 +303,7 @@ class CommandsTest extends TestCase
             '/',
         );
 
-        $env = $run($env);
+        $env = $run($env)->unwrap();
 
         $this->assertSame(64, $env->exitCode()->match(
             static fn($code) => $code->toInt(),
@@ -345,7 +345,7 @@ USAGE;
             '/',
         );
 
-        $env = $run($env);
+        $env = $run($env)->unwrap();
 
         $this->assertSame(64, $env->exitCode()->match(
             static fn($code) => $code->toInt(),
@@ -380,7 +380,7 @@ USAGE;
 
         $this->expectException(\Exception::class);
 
-        $run($env);
+        $run($env)->unwrap();
     }
 
     public function testDisplayUsageWhenHelpOptionFound()
@@ -410,7 +410,7 @@ USAGE;
             '/',
         );
 
-        $env = $run($env);
+        $env = $run($env)->unwrap();
 
         $this->assertNull($env->exitCode()->match(
             static fn($code) => $code->toInt(),
@@ -456,7 +456,7 @@ USAGE;
             '/',
         );
 
-        $env = $run($env);
+        $env = $run($env)->unwrap();
 
         $this->assertNull($env->exitCode()->match(
             static fn($code) => $code->toInt(),
@@ -505,7 +505,7 @@ USAGE;
             '/',
         );
 
-        $env = $run($env);
+        $env = $run($env)->unwrap();
 
         $this->assertSame(64, $env->exitCode()->match(
             static fn($code) => $code->toInt(),
