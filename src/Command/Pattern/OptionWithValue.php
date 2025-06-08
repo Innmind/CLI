@@ -28,6 +28,14 @@ final class OptionWithValue implements Input, Option
     }
 
     /**
+     * @psalm-pure
+     */
+    public static function named(string $name, ?string $short = null): self
+    {
+        return new self($name, $short);
+    }
+
+    /**
      * @psalm-immutable
      */
     #[\Override]

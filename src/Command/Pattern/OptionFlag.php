@@ -27,6 +27,14 @@ final class OptionFlag implements Input, Option
     /**
      * @psalm-pure
      */
+    public static function named(string $name, ?string $short = null): self
+    {
+        return new self($name, $short);
+    }
+
+    /**
+     * @psalm-pure
+     */
     #[\Override]
     public static function of(Str $pattern): Maybe
     {

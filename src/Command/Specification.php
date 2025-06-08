@@ -7,6 +7,7 @@ use Innmind\CLI\{
     Command,
     Exception\EmptyDeclaration,
 };
+use Innmind\Validation\Is;
 use Innmind\Immutable\{
     Sequence,
     Str,
@@ -19,21 +20,15 @@ use Innmind\Immutable\{
  */
 final class Specification
 {
-    public function __construct(private Command $command)
-    {
+    public function __construct(
+        private Command $command,
+        private ?Usage $parsed = null,
+    ) {
     }
 
     public function name(): string
     {
-        return $this
-            ->lines()
-            ->first()
-            ->map(static fn($line) => $line->split(' '))
-            ->flatMap(static fn($parts) => $parts->first())
-            ->match(
-                static fn($name) => $name->toString(),
-                static fn() => throw new \LogicException('Command name not found'),
-            );
+        return $this->parse()->name();
     }
 
     public function is(string $command): bool
@@ -74,14 +69,7 @@ final class Specification
 
     public function shortDescription(): string
     {
-        return $this
-            ->lines()
-            ->get(2)
-            ->map(static fn($line) => $line->trim()->toString())
-            ->match(
-                static fn($description) => $description,
-                static fn() => '',
-            );
+        return $this->parse()->shortDescription();
     }
 
     public function description(): string
@@ -140,5 +128,35 @@ final class Specification
             ->lines()
             ->first()
             ->map(static fn($line) => $line->append(' --help --no-interaction'));
+    }
+
+    private function parse(): Usage
+    {
+        if ($this->parsed) {
+            return $this->parsed;
+        }
+
+        $lines = $this->lines();
+        $name = $lines
+            ->first()
+            ->map(static fn($line) => $line->split(' '))
+            ->flatMap(static fn($parts) => $parts->first())
+            ->map(static fn($name) => $name->toString())
+            ->keep(Is::string()->nonEmpty()->asPredicate())
+            ->match(
+                static fn($name) => $name,
+                static fn() => throw new \LogicException('Command name not found'),
+            );
+        $usage = Usage::of($name);
+        $usage = $lines
+            ->get(2)
+            ->map(static fn($line) => $line->trim()->toString())
+            ->match(
+                $usage->withShortDescription(...),
+                static fn() => $usage,
+            );
+
+        /** @psalm-suppress InaccessibleProperty */
+        return $this->parsed = $usage;
     }
 }
