@@ -90,16 +90,19 @@ final class InMemory implements Environment
             $data = $data->map(static fn($data) => $data->take($length));
         }
 
-        return [$data, new self(
-            $input,
-            $this->output,
-            $this->error,
-            $this->interactive,
-            $this->arguments,
-            $this->variables,
-            $this->exitCode,
-            $this->workingDirectory,
-        )];
+        return [
+            $data->attempt(static fn() => new \LogicException('No input data specified')),
+            new self(
+                $input,
+                $this->output,
+                $this->error,
+                $this->interactive,
+                $this->arguments,
+                $this->variables,
+                $this->exitCode,
+                $this->workingDirectory,
+            ),
+        ];
     }
 
     #[\Override]

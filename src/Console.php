@@ -9,7 +9,7 @@ use Innmind\CLI\{
 };
 use Innmind\Url\Path;
 use Innmind\Immutable\{
-    Maybe,
+    Attempt,
     Map,
     Str,
 };
@@ -54,7 +54,7 @@ final class Console
     /**
      * @param positive-int|null $length
      *
-     * @return array{Maybe<Str>, self}
+     * @return array{Attempt<Str>, self}
      */
     public function read(?int $length = null): array
     {

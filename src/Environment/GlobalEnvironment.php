@@ -102,8 +102,7 @@ final class GlobalEnvironment implements Environment
             $this
                 ->input
                 ->frames(Frame::chunk($length ?? 8192)->loose())
-                ->one()
-                ->maybe(),
+                ->one(),
             $this,
         ];
     }

@@ -6,6 +6,8 @@
 
 - Requires `innmind/immutable:~5.16`
 - Requires `innmind/operating-system:~6.0`
+- `Innmind\Cli\Environment::read()` now return the read data in an `Innmind\Immutable\Attempt`
+- `Innmind\Cli\Console::read()` now return the read data in an `Innmind\Immutable\Attempt`
 
 ### Fixed
 
