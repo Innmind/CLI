@@ -6,11 +6,11 @@ namespace Tests\Innmind\CLI\Command\Pattern;
 use Innmind\CLI\{
     Command\Pattern\PackArgument,
     Command\Pattern\Input,
+    Command\Pattern,
 };
 use Innmind\Immutable\{
     Str,
     Sequence,
-    Map,
 };
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
@@ -69,26 +69,22 @@ class PackArgumentTest extends TestCase
                 Set::strings()->atLeast(1),
             )->between(0, 10))
             ->prove(function($strings) {
-                $input = PackArgument::of(Str::of('...foo'))->match(
-                    static fn($input) => $input,
-                    static fn() => null,
+                $pattern = new Pattern(
+                    Sequence::of(),
+                    Sequence::of(),
+                    true,
                 );
 
-                [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+                [$arguments] = $pattern(
                     Sequence::of(...$strings),
-                    Map::of(),
-                    Sequence::of(),
-                    Map::of(),
                 );
+                $pack = $arguments->pack();
 
                 $this->assertTrue(
                     $pack->equals(
                         Sequence::of(...$strings),
                     ),
                 );
-                $this->assertTrue($arguments->empty());
-                $this->assertTrue($parsedArguments->empty());
-                $this->assertTrue($options->empty());
             });
     }
 }

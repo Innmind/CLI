@@ -6,8 +6,6 @@ namespace Innmind\CLI\Command\Pattern;
 use Innmind\CLI\Command\Usage;
 use Innmind\Immutable\{
     Str,
-    Sequence,
-    Map,
     Maybe,
 };
 
@@ -48,33 +46,6 @@ final class PackArgument implements Input
             ->filter(static fn($pattern) => $pattern->matches('~^\.\.\.[a-zA-Z0-9]+$~'))
             ->map(static fn($pattern) => $pattern->drop(3))
             ->map(static fn($pattern) => new self);
-    }
-
-    /**
-     * @param Sequence<string> $arguments
-     * @param Map<string, string> $parsedArguments
-     * @param Sequence<string> $pack
-     * @param Map<string, string> $options
-     *
-     * @return array{
-     *     Sequence<string>,
-     *     Map<string, string>,
-     *     Sequence<string>,
-     *     Map<string, string>,
-     * }
-     */
-    public function parse(
-        Sequence $arguments,
-        Map $parsedArguments,
-        Sequence $pack,
-        Map $options,
-    ): array {
-        return [
-            $arguments->clear(),
-            $parsedArguments,
-            $pack->append($arguments),
-            $options,
-        ];
     }
 
     public function toString(): string
