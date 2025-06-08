@@ -35,9 +35,7 @@ final class PackArgument implements Input, Argument
     #[\Override]
     public static function walk(Usage $usage, Str $pattern): Maybe
     {
-        return Maybe::just($pattern)
-            ->filter(static fn($pattern) => $pattern->matches('~^\.\.\.[a-zA-Z0-9]+$~'))
-            ->map(static fn() => $usage->packArguments());
+        return self::of($pattern)->map(static fn() => $usage->packArguments());
     }
 
     /**

@@ -18,12 +18,17 @@ use Innmind\Immutable\{
  */
 final class OptionalArgument implements Input, Argument
 {
+    /**
+     * @param non-empty-string $name
+     */
     private function __construct(private string $name)
     {
     }
 
     /**
      * @psalm-pure
+     *
+     * @param non-empty-string $name
      */
     public static function named(string $name): self
     {
@@ -36,24 +41,24 @@ final class OptionalArgument implements Input, Argument
     #[\Override]
     public static function walk(Usage $usage, Str $pattern): Maybe
     {
-        return Maybe::just($pattern)
-            ->filter(static fn($pattern) => $pattern->matches('~^\[[a-zA-Z0-9]+\]$~'))
-            ->map(static fn($pattern) => $pattern->drop(1)->dropEnd(1)->toString())
-            ->keep(Is::string()->nonEmpty()->asPredicate())
+        return self::of($pattern)
+            ->map(static fn($self) => $self->name)
             ->map($usage->optionalArgument(...));
     }
 
     /**
      * @psalm-pure
+     *
+     * @return Maybe<self>
      */
     #[\Override]
     public static function of(Str $pattern): Maybe
     {
-        /** @var Maybe<Input> */
         return Maybe::just($pattern)
             ->filter(static fn($pattern) => $pattern->matches('~^\[[a-zA-Z0-9]+\]$~'))
-            ->map(static fn($pattern) => $pattern->drop(1)->dropEnd(1))
-            ->map(static fn($pattern) => new self($pattern->toString()));
+            ->map(static fn($pattern) => $pattern->drop(1)->dropEnd(1)->toString())
+            ->keep(Is::string()->nonEmpty()->asPredicate())
+            ->map(static fn($pattern) => new self($pattern));
     }
 
     #[\Override]

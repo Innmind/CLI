@@ -20,6 +20,10 @@ final class OptionFlag implements Input, Option
 {
     private const PATTERN = '~^(?<short>-[a-zA-Z0-9]\|)?(?<name>--[a-zA-Z0-9\-]+)$~';
 
+    /**
+     * @param non-empty-string $name
+     * @param ?non-empty-string $short
+     */
     private function __construct(
         private string $name,
         private ?string $short,
@@ -28,6 +32,9 @@ final class OptionFlag implements Input, Option
 
     /**
      * @psalm-pure
+     *
+     * @param non-empty-string $name
+     * @param ?non-empty-string $short
      */
     public static function named(string $name, ?string $short = null): self
     {
@@ -40,26 +47,15 @@ final class OptionFlag implements Input, Option
     #[\Override]
     public static function walk(Usage $usage, Str $pattern): Maybe
     {
-        $parts = $pattern->capture(self::PATTERN);
-        $short = $parts
-            ->get('short')
-            ->filter(static fn($short) => !$short->empty())
-            ->map(static fn($short) => $short->drop(1)->dropEnd(1)->toString())
-            ->keep(Is::string()->nonEmpty()->asPredicate())
-            ->match(
-                static fn($short) => $short,
-                static fn() => null,
-            );
-
-        return $parts
-            ->get('name')
-            ->map(static fn($name) => $name->drop(2)->toString())
-            ->keep(Is::string()->nonEmpty()->asPredicate())
-            ->map($usage->flag(...));
+        return self::of($pattern)->map(
+            static fn($self) => $usage->flag($self->name, $self->short),
+        );
     }
 
     /**
      * @psalm-pure
+     *
+     * @return Maybe<self>
      */
     #[\Override]
     public static function of(Str $pattern): Maybe
@@ -69,15 +65,16 @@ final class OptionFlag implements Input, Option
             ->get('short')
             ->filter(static fn($short) => !$short->empty())
             ->map(static fn($short) => $short->drop(1)->dropEnd(1)->toString())
+            ->keep(Is::string()->nonEmpty()->asPredicate())
             ->match(
                 static fn($short) => $short,
                 static fn() => null,
             );
 
-        /** @var Maybe<Input> */
         return $parts
             ->get('name')
             ->map(static fn($name) => $name->drop(2)->toString())
+            ->keep(Is::string()->nonEmpty()->asPredicate())
             ->map(static fn($name) => new self($name, $short));
     }
 
