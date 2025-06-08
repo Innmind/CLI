@@ -83,7 +83,6 @@ final class RequiredArgument implements Input, Argument
         ];
     }
 
-    #[\Override]
     public function toString(): string
     {
         return $this->name;

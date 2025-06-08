@@ -9,7 +9,6 @@ use Innmind\CLI\{
     Command\Pattern\Option,
 };
 use Innmind\Immutable\{
-    Str,
     Sequence,
     Map,
 };
@@ -56,12 +55,5 @@ final class Pattern
         );
 
         return [new Arguments($parsedArguments, $pack), new Options($options)];
-    }
-
-    public function toString(): string
-    {
-        return Str::of(' ')
-            ->join($this->inputs->map(static fn($input) => $input->toString()))
-            ->toString();
     }
 }

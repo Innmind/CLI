@@ -41,6 +41,4 @@ interface Input
         Sequence $pack,
         Map $options,
     ): array;
-
-    public function toString(): string;
 }

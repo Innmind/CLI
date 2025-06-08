@@ -80,7 +80,6 @@ final class OptionalArgument implements Input, Argument
         return [$arguments, $parsedArguments, $pack, $options];
     }
 
-    #[\Override]
     public function toString(): string
     {
         return '['.$this->name.']';

@@ -101,7 +101,6 @@ final class OptionFlag implements Input, Option
         return [$arguments, $parsedArguments, $pack, $options];
     }
 
-    #[\Override]
     public function toString(): string
     {
         if (!\is_string($this->short)) {

@@ -65,7 +65,6 @@ final class PackArgument implements Input, Argument
         ];
     }
 
-    #[\Override]
     public function toString(): string
     {
         return '...'.$this->name;

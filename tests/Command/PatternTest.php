@@ -28,8 +28,14 @@ class PatternTest extends TestCase
     public function testStringCast()
     {
         $this->assertSame(
-            'foo bar [baz] ...arguments --foo',
-            $this->pattern->toString(),
+            'name foo bar [baz] ...arguments --foo --help --no-interaction',
+            Usage::of('name')
+                ->argument('foo')
+                ->argument('bar')
+                ->optionalArgument('baz')
+                ->packArguments()
+                ->flag('foo')
+                ->toString(),
         );
     }
 
