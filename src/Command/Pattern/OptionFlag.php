@@ -19,8 +19,8 @@ final class OptionFlag implements Input, Option
     private const PATTERN = '~^(?<short>-[a-zA-Z0-9]\|)?(?<name>--[a-zA-Z0-9\-]+)$~';
 
     private function __construct(
-        private string $name,
-        private ?string $short,
+        public string $name,
+        public ?string $short,
     ) {
     }
 

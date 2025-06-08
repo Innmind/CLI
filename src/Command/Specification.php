@@ -5,6 +5,12 @@ namespace Innmind\CLI\Command;
 
 use Innmind\CLI\{
     Command,
+    Command\Pattern\Inputs,
+    Command\Pattern\RequiredArgument,
+    Command\Pattern\OptionalArgument,
+    Command\Pattern\PackArgument,
+    Command\Pattern\OptionFlag,
+    Command\Pattern\OptionWithValue,
     Exception\EmptyDeclaration,
 };
 use Innmind\Validation\Is;
@@ -72,16 +78,6 @@ final class Specification
         return $this->parse()->shortDescription();
     }
 
-    public function description(): string
-    {
-        $lines = $this
-            ->lines()
-            ->drop(4)
-            ->map(static fn($line) => $line->trim()->toString());
-
-        return Str::of("\n")->join($lines)->toString();
-    }
-
     public function pattern(): Pattern
     {
         return new Pattern(
@@ -95,14 +91,9 @@ final class Specification
         );
     }
 
-    public function toString(): string
+    public function usage(): Usage
     {
-        return $this
-            ->firstLine()
-            ->match(
-                static fn($line) => $line->toString(),
-                static fn() => '',
-            );
+        return $this->parse();
     }
 
     /**
@@ -154,6 +145,32 @@ final class Specification
             ->match(
                 $usage->withShortDescription(...),
                 static fn() => $usage,
+            );
+
+        $description = $lines
+            ->drop(4)
+            ->map(static fn($line) => $line->trim()->toString());
+        $description = Str::of("\n")->join($description)->toString();
+
+        if ($description !== '') {
+            $usage = $usage->withDescription($description);
+        }
+
+        /** @psalm-suppress ArgumentTypeCoercion */
+        $usage = $lines
+            ->first()
+            ->toSequence()
+            ->flatMap(static fn($line) => $line->split(' ')->drop(1))
+            ->map(new Inputs)
+            ->reduce(
+                $usage,
+                static fn(Usage $usage, $input) => match (true) {
+                    $input instanceof RequiredArgument => $usage->argument($input->name),
+                    $input instanceof OptionalArgument => $usage->optionalArgument($input->name),
+                    $input instanceof PackArgument => $usage->packArguments(),
+                    $input instanceof OptionFlag => $usage->flag($input->name, $input->short),
+                    $input instanceof OptionWithValue => $usage->option($input->name, $input->short),
+                },
             );
 
         /** @psalm-suppress InaccessibleProperty */

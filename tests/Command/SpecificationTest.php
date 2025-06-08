@@ -5,7 +5,6 @@ namespace Tests\Innmind\CLI\Command;
 
 use Innmind\CLI\{
     Command\Specification,
-    Command\Pattern,
     Command,
     Console,
     Exception\EmptyDeclaration,
@@ -31,15 +30,15 @@ class SpecificationTest extends TestCase
             public function usage(): string
             {
                 return <<<USAGE
-    watch container [output] ...proxy
+                    watch container [output] ...proxy
 
-    Watch a container definition file for changes and generate corresponding graph
+                    Watch a container definition file for changes and generate corresponding graph
 
-    The output argument is optional, when ommitted it will print the graphviz dot
-    content but if provided it will automatically generate the graph to the given file.
+                    The output argument is optional, when ommitted it will print the graphviz dot
+                    content but if provided it will automatically generate the graph to the given file.
 
-    The proxy pack argument are arguments that will be sent used for the graphviz command.
-USAGE;
+                    The proxy pack argument are arguments that will be sent used for the graphviz command.
+                    USAGE;
             }
         };
 
@@ -51,23 +50,18 @@ USAGE;
             $spec->shortDescription(),
         );
 
-        $expected = <<<DESCRIPTION
-The output argument is optional, when ommitted it will print the graphviz dot
-content but if provided it will automatically generate the graph to the given file.
+        $expected = <<<USAGE
+        watch container [output] ...arguments --help --no-interaction
 
-The proxy pack argument are arguments that will be sent used for the graphviz command.
-DESCRIPTION;
+        Watch a container definition file for changes and generate corresponding graph
 
-        $this->assertSame($expected, $spec->description());
-        $this->assertSame(
-            'watch container [output] ...proxy --help --no-interaction',
-            $spec->toString(),
-        );
-        $this->assertInstanceOf(Pattern::class, $spec->pattern());
-        $this->assertSame(
-            'container [output] ...proxy --help --no-interaction',
-            $spec->pattern()->toString(),
-        );
+        The output argument is optional, when ommitted it will print the graphviz dot
+        content but if provided it will automatically generate the graph to the given file.
+
+        The proxy pack argument are arguments that will be sent used for the graphviz command.
+        USAGE;
+
+        $this->assertSame($expected, $spec->usage()->toString());
     }
 
     public function testMatchesItsOwnName(): BlackBox\Proof
@@ -306,7 +300,7 @@ DESCRIPTION;
 
         $this->expectException(EmptyDeclaration::class);
 
-        (new Specification($command))->toString();
+        (new Specification($command))->usage();
     }
 
     private function names(): Set
