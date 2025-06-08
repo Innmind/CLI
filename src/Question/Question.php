@@ -43,7 +43,7 @@ final class Question
             return [Maybe::nothing(), $env];
         }
 
-        $env = $env->output($this->question);
+        $env = $env->output($this->question)->unwrap();
 
         $response = Str::of('');
 

@@ -50,14 +50,19 @@ final class ChoiceQuestion
             return [Maybe::nothing(), $env];
         }
 
-        $env = $env->output($this->question->append("\n"));
-        $env = $this->values->reduce(
-            $env,
-            static fn(Environment|Console $env, $key, $value) => $env->output(
-                Str::of("[%s] %s\n")->sprintf((string) $key, (string) $value),
-            ),
-        );
-        $env = $env->output(Str::of('> '));
+        $env = $env->output($this->question->append("\n"))->unwrap();
+        $env = $this
+            ->values
+            ->toSequence()
+            ->sink($env)
+            ->attempt(static fn($env, $pair) => $env->output(
+                Str::of("[%s] %s\n")->sprintf(
+                    (string) $pair->key(),
+                    (string) $pair->value(),
+                ),
+            ))
+            ->unwrap();
+        $env = $env->output(Str::of('> '))->unwrap();
 
         $response = Str::of('');
 

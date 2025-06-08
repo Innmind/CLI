@@ -68,7 +68,7 @@ abstract class Main
 
         return $chunks->reduce(
             $env,
-            static fn(Environment $env, Str $line) => $env->error($line->append("\n")),
+            static fn(Environment $env, Str $line) => $env->error($line->append("\n"))->unwrap(),
         );
     }
 

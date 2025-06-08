@@ -29,8 +29,16 @@ interface Environment
      * @return array{Attempt<Str>, self}
      */
     public function read(?int $length = null): array;
-    public function output(Str $data): self;
-    public function error(Str $data): self;
+
+    /**
+     * @return Attempt<self>
+     */
+    public function output(Str $data): Attempt;
+
+    /**
+     * @return Attempt<self>
+     */
+    public function error(Str $data): Attempt;
 
     /**
      * @return Sequence<string>

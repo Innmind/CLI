@@ -8,6 +8,10 @@
 - Requires `innmind/operating-system:~6.0`
 - `Innmind\Cli\Environment::read()` now return the read data in an `Innmind\Immutable\Attempt`
 - `Innmind\Cli\Console::read()` now return the read data in an `Innmind\Immutable\Attempt`
+- `Innmind\Cli\Console::output()` now return an `Innmind\Immutable\Attempt`
+- `Innmind\Cli\Console::error()` now return an `Innmind\Immutable\Attempt`
+- `Innmind\Cli\Environment::output()` now return an `Innmind\Immutable\Attempt`
+- `Innmind\Cli\Environment::error()` now return an `Innmind\Immutable\Attempt`
 
 ### Fixed
 

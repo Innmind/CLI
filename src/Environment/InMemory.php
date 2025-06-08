@@ -10,6 +10,7 @@ use Innmind\Immutable\{
     Map,
     Str,
     Maybe,
+    Attempt,
 };
 
 /**
@@ -106,9 +107,9 @@ final class InMemory implements Environment
     }
 
     #[\Override]
-    public function output(Str $data): self
+    public function output(Str $data): Attempt
     {
-        return new self(
+        return Attempt::result(new self(
             $this->input,
             ($this->output)($data->toEncoding(Str\Encoding::ascii)),
             $this->error,
@@ -117,13 +118,13 @@ final class InMemory implements Environment
             $this->variables,
             $this->exitCode,
             $this->workingDirectory,
-        );
+        ));
     }
 
     #[\Override]
-    public function error(Str $data): self
+    public function error(Str $data): Attempt
     {
-        return new self(
+        return Attempt::result(new self(
             $this->input,
             $this->output,
             ($this->error)($data->toEncoding(Str\Encoding::ascii)),
@@ -132,7 +133,7 @@ final class InMemory implements Environment
             $this->variables,
             $this->exitCode,
             $this->workingDirectory,
-        );
+        ));
     }
 
     #[\Override]

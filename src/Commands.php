@@ -11,6 +11,7 @@ use Innmind\Immutable\{
     Map,
     Str,
     Sequence,
+    Attempt,
 };
 
 final class Commands
@@ -151,7 +152,7 @@ final class Commands
     }
 
     /**
-     * @param callable(Str): Environment $write
+     * @param callable(Str): Attempt<Environment> $write
      */
     private function displayUsage(
         callable $write,
@@ -174,7 +175,7 @@ final class Commands
                 ->append($spec->toString())
                 ->append($description->toString())
                 ->append("\n"),
-        );
+        )->unwrap();
     }
 
     /**
@@ -205,13 +206,13 @@ final class Commands
         if ($error) {
             return $rows->reduce(
                 $env,
-                static fn(Environment $env, $row) => $env->error($row),
+                static fn(Environment $env, $row) => $env->error($row)->unwrap(),
             );
         }
 
         return $rows->reduce(
             $env,
-            static fn(Environment $env, $row) => $env->output($row),
+            static fn(Environment $env, $row) => $env->output($row)->unwrap(),
         );
     }
 }

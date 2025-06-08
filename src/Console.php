@@ -67,21 +67,25 @@ final class Console
         )];
     }
 
-    public function output(Str $data): self
+    public function output(Str $data): Attempt
     {
-        return new self(
-            $this->arguments,
-            $this->options,
-            $this->env->output($data),
+        return $this->env->output($data)->map(
+            fn($output) => new self(
+                $this->arguments,
+                $this->options,
+                $output,
+            ),
         );
     }
 
-    public function error(Str $data): self
+    public function error(Str $data): Attempt
     {
-        return new self(
-            $this->arguments,
-            $this->options,
-            $this->env->error($data),
+        return $this->env->error($data)->map(
+            fn($output) => new self(
+                $this->arguments,
+                $this->options,
+                $output,
+            ),
         );
     }
 

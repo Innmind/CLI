@@ -20,6 +20,6 @@ new class extends Main {
                 static fn($str) => $str,
                 static fn() => Str::of(''),
             ),
-        );
+        )->unwrap();
     }
 };
