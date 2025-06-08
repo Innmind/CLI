@@ -81,18 +81,15 @@ final class OptionWithValue implements Input
 
     /**
      * @param Sequence<string> $arguments
-     * @param Map<string, string> $parsedArguments
      * @param Map<string, string> $options
      *
      * @return array{
      *     Sequence<string>,
      *     Map<string, string>,
-     *     Map<string, string>,
      * }
      */
     public function parse(
         Sequence $arguments,
-        Map $parsedArguments,
         Map $options,
     ): array {
         if (!\is_string($this->short)) {
@@ -105,7 +102,7 @@ final class OptionWithValue implements Input
             );
         }
 
-        [$arguments, $options] = $arguments
+        return $arguments
             ->find(
                 static fn($argument) => Str::of($argument)->matches($pattern),
             )
@@ -160,8 +157,6 @@ final class OptionWithValue implements Input
                 static fn($found) => $found,
                 static fn() => [$arguments, $options],
             );
-
-        return [$arguments, $parsedArguments, $options];
     }
 
     public function toString(): string

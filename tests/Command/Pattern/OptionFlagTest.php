@@ -71,14 +71,12 @@ class OptionFlagTest extends TestCase
             static fn() => null,
         );
 
-        [$arguments, $parsedArguments, $options] = $input->parse(
+        [$arguments, $options] = $input->parse(
             Sequence::of('watev', '--foo', 'bar', '--unknown', 'baz', '-f'),
-            Map::of(),
             Map::of(),
         );
 
         $this->assertSame(['watev', 'bar', '--unknown', 'baz'], $arguments->toList());
-        $this->assertTrue($parsedArguments->empty());
         $this->assertCount(1, $options);
         $this->assertSame('', $options->get('foo')->match(
             static fn($value) => $value,
@@ -93,14 +91,12 @@ class OptionFlagTest extends TestCase
             static fn() => null,
         );
 
-        [$arguments, $parsedArguments, $options] = $input->parse(
+        [$arguments, $options] = $input->parse(
             Sequence::of('watev', 'bar', '--unknown', 'baz'),
-            Map::of(),
             Map::of(),
         );
 
         $this->assertSame(['watev', 'bar', '--unknown', 'baz'], $arguments->toList());
-        $this->assertTrue($parsedArguments->empty());
         $this->assertTrue($options->empty());
     }
 }

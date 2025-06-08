@@ -79,18 +79,15 @@ final class OptionFlag implements Input
 
     /**
      * @param Sequence<string> $arguments
-     * @param Map<string, string> $parsedArguments
      * @param Map<string, string> $options
      *
      * @return array{
      *     Sequence<string>,
      *     Map<string, string>,
-     *     Map<string, string>,
      * }
      */
     public function parse(
         Sequence $arguments,
-        Map $parsedArguments,
         Map $options,
     ): array {
         $pattern = \sprintf(
@@ -107,7 +104,7 @@ final class OptionFlag implements Input
             $options = ($options)($this->name, '');
         }
 
-        return [$arguments, $parsedArguments, $options];
+        return [$arguments, $options];
     }
 
     public function toString(): string

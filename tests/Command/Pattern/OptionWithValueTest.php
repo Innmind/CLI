@@ -71,14 +71,12 @@ class OptionWithValueTest extends TestCase
             static fn() => null,
         );
 
-        [$arguments, $parsedArguments, $options] = $input->parse(
+        [$arguments, $options] = $input->parse(
             Sequence::of('watev', '-f=baz', 'bar'),
-            Map::of(),
             Map::of(),
         );
 
         $this->assertSame(['watev', 'bar'], $arguments->toList());
-        $this->assertTrue($parsedArguments->empty());
         $this->assertCount(1, $options);
         $this->assertSame('baz', $options->get('foo')->match(
             static fn($value) => $value,
@@ -93,14 +91,12 @@ class OptionWithValueTest extends TestCase
             static fn() => null,
         );
 
-        [$arguments, $parsedArguments, $options] = $input->parse(
+        [$arguments, $options] = $input->parse(
             Sequence::of('watev', '-f', 'baz', 'bar'),
-            Map::of(),
             Map::of(),
         );
 
         $this->assertSame(['watev', 'bar'], $arguments->toList());
-        $this->assertTrue($parsedArguments->empty());
         $this->assertCount(1, $options);
         $this->assertSame('baz', $options->get('foo')->match(
             static fn($value) => $value,
@@ -115,14 +111,12 @@ class OptionWithValueTest extends TestCase
             static fn() => null,
         );
 
-        [$arguments, $parsedArguments, $options] = $input->parse(
+        [$arguments, $options] = $input->parse(
             Sequence::of('watev', '-f'),
-            Map::of(),
             Map::of(),
         );
 
         $this->assertSame(['watev'], $arguments->toList());
-        $this->assertTrue($parsedArguments->empty());
         $this->assertCount(1, $options);
         $this->assertSame('', $options->get('foo')->match(
             static fn($value) => $value,
@@ -137,14 +131,12 @@ class OptionWithValueTest extends TestCase
             static fn() => null,
         );
 
-        [$arguments, $parsedArguments, $options] = $input->parse(
+        [$arguments, $options] = $input->parse(
             Sequence::of('watev', '--foo=baz', 'bar'),
-            Map::of(),
             Map::of(),
         );
 
         $this->assertSame(['watev', 'bar'], $arguments->toList());
-        $this->assertTrue($parsedArguments->empty());
         $this->assertCount(1, $options);
         $this->assertSame('baz', $options->get('foo')->match(
             static fn($value) => $value,
@@ -159,14 +151,12 @@ class OptionWithValueTest extends TestCase
             static fn() => null,
         );
 
-        [$arguments, $parsedArguments, $options] = $input->parse(
+        [$arguments, $options] = $input->parse(
             Sequence::of('watev', '--unknown', 'foo'),
-            Map::of(),
             Map::of(),
         );
 
         $this->assertSame(['watev', '--unknown', 'foo'], $arguments->toList());
-        $this->assertTrue($parsedArguments->empty());
         $this->assertTrue($options->empty());
     }
 }

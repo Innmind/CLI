@@ -45,8 +45,8 @@ final class Pattern
         $options = Map::of();
 
         /** @psalm-suppress MixedArgument */
-        [$arguments, $parsedArguments, $options] = $this->options->reduce(
-            [$arguments, $parsedArguments, $options],
+        [$arguments, $options] = $this->options->reduce(
+            [$arguments, $options],
             static fn($carry, $input) => $input->parse(...$carry),
         );
         /** @psalm-suppress MixedArgument */
