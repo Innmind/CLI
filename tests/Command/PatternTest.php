@@ -4,15 +4,10 @@ declare(strict_types = 1);
 namespace Tests\Innmind\CLI\Command;
 
 use Innmind\CLI\{
+    Command\Usage,
     Command\Pattern,
-    Exception\OnlyOnePackArgumentAllowed,
-    Exception\PackArgumentMustBeTheLastOne,
-    Exception\NoRequiredArgumentAllowedAfterAnOptionalOne,
 };
-use Innmind\Immutable\{
-    Str,
-    Sequence,
-};
+use Innmind\Immutable\Sequence;
 use Innmind\BlackBox\PHPUnit\Framework\TestCase;
 
 class PatternTest extends TestCase
@@ -21,19 +16,19 @@ class PatternTest extends TestCase
 
     public function setUp(): void
     {
-        $this->pattern = new Pattern(
-            Str::of('foo'),
-            Str::of('bar'),
-            Str::of('[baz]'),
-            Str::of('...foobar'),
-            Str::of('--foo'),
-        );
+        $this->pattern = Usage::of('name')
+            ->argument('foo')
+            ->argument('bar')
+            ->optionalArgument('baz')
+            ->packArguments()
+            ->flag('foo')
+            ->pattern();
     }
 
     public function testStringCast()
     {
         $this->assertSame(
-            'foo bar [baz] ...foobar --foo',
+            'foo bar [baz] ...arguments --foo',
             $this->pattern->toString(),
         );
     }
@@ -42,42 +37,20 @@ class PatternTest extends TestCase
     {
         $this->assertInstanceOf(
             Pattern::class,
-            new Pattern,
-        );
-    }
-
-    public function testThrowWhenMoreThanOnePackArgument()
-    {
-        $this->expectException(OnlyOnePackArgumentAllowed::class);
-
-        new Pattern(
-            Str::of('...foo'),
-            Str::of('...bar'),
-            Str::of('--foo'),
-        );
-    }
-
-    public function testThrowWhenPackArgumentIsNotTheLastOne()
-    {
-        $this->expectException(PackArgumentMustBeTheLastOne::class);
-
-        new Pattern(
-            Str::of('...foo'),
-            Str::of('bar'),
-            Str::of('--foo'),
+            Usage::of('name')->pattern(),
         );
     }
 
     public function testThrowWhenRequirementArgumentFoundAfterAnOptionalOne()
     {
-        $this->expectException(NoRequiredArgumentAllowedAfterAnOptionalOne::class);
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('No required argument after an optional one');
 
-        new Pattern(
-            Str::of('baz'),
-            Str::of('[foo]'),
-            Str::of('--foo'),
-            Str::of('bar'),
-        );
+        Usage::of('name')
+            ->argument('baz')
+            ->optionalArgument('foo')
+            ->flag('foo')
+            ->argument('bar');
     }
 
     public function testParse()

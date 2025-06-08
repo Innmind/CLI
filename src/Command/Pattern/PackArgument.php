@@ -23,6 +23,14 @@ final class PackArgument implements Input, Argument
     /**
      * @psalm-pure
      */
+    public static function named(string $name): self
+    {
+        return new self($name);
+    }
+
+    /**
+     * @psalm-pure
+     */
     #[\Override]
     public static function of(Str $pattern): Maybe
     {

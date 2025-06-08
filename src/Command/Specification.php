@@ -80,15 +80,7 @@ final class Specification
 
     public function pattern(): Pattern
     {
-        return new Pattern(
-            ...$this
-                ->firstLine()
-                ->map(static fn($line) => $line->split(' ')->drop(1))
-                ->match(
-                    static fn($parts) => $parts->toList(),
-                    static fn() => [],
-                ),
-        );
+        return $this->parse()->pattern();
     }
 
     public function usage(): Usage

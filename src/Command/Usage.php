@@ -6,8 +6,10 @@ namespace Innmind\CLI\Command;
 use Innmind\CLI\Command\Pattern\{
     RequiredArgument,
     OptionalArgument,
+    PackArgument,
     OptionFlag,
     OptionWithValue,
+    Input,
 };
 use Innmind\Immutable\{
     Sequence,
@@ -175,6 +177,20 @@ final class Usage
     public function shortDescription(): string
     {
         return $this->shortDescription ?? '';
+    }
+
+    public function pattern(): Pattern
+    {
+        /** @var Sequence<Input> */
+        $inputs = $this->arguments;
+
+        if ($this->pack) {
+            $inputs = ($inputs)(PackArgument::named('arguments'));
+        }
+
+        $inputs = $inputs->append($this->options);
+
+        return new Pattern($inputs);
     }
 
     /**
