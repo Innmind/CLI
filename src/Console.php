@@ -19,18 +19,11 @@ use Innmind\Immutable\{
  */
 final class Console
 {
-    private Arguments $arguments;
-    private Options $options;
-    private Environment $env;
-
     private function __construct(
-        Arguments $arguments,
-        Options $options,
-        Environment $env,
+        private Arguments $arguments,
+        private Options $options,
+        private Environment $env,
     ) {
-        $this->arguments = $arguments;
-        $this->options = $options;
-        $this->env = $env;
     }
 
     /**

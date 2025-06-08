@@ -19,11 +19,8 @@ use Innmind\Immutable\{
  */
 final class Specification
 {
-    private Command $command;
-
-    public function __construct(Command $command)
+    public function __construct(private Command $command)
     {
-        $this->command = $command;
     }
 
     public function name(): string

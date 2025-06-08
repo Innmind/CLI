@@ -16,19 +16,13 @@ use Innmind\Immutable\{
  */
 final class Output
 {
-    /** @var T */
-    private string $kind;
-    private Write $stream;
-
     /**
      * @param T $kind
      */
     private function __construct(
-        string $kind,
-        Write $stream,
+        private string $kind,
+        private Write $stream,
     ) {
-        $this->kind = $kind;
-        $this->stream = $stream;
     }
 
     /**
