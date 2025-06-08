@@ -59,16 +59,14 @@ final class OptionFlag implements Input, Option
             $this->toString(),
         );
 
-        $value = $arguments->find(
+        $filtered = $arguments->exclude(
             static fn($argument) => Str::of($argument)->matches($pattern),
         );
-        [$arguments, $options] = $value->match(
-            fn() => [
-                $arguments->exclude(static fn($argument) => Str::of($argument)->matches($pattern)),
-                ($options)($this->name, ''),
-            ],
-            static fn() => [$arguments, $options],
-        );
+
+        if ($filtered->size() !== $arguments->size()) {
+            $arguments = $filtered;
+            $options = ($options)($this->name, '');
+        }
 
         return [$arguments, $parsedArguments, $pack, $options];
     }
