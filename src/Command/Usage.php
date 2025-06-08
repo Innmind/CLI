@@ -103,7 +103,7 @@ final class Usage
             ->toSequence()
             ->flatMap(static fn($line) => $line->split(' ')->drop(1))
             ->sink($usage)
-            ->attempt((new Inputs)->walk(...))
+            ->attempt(new Inputs)
             ->unwrap();
     }
 

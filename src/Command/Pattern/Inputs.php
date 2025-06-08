@@ -10,9 +10,7 @@ use Innmind\CLI\{
 use Innmind\Immutable\{
     Attempt,
     Str,
-    Maybe,
     Sequence,
-    Predicate\Instance,
 };
 
 /**
@@ -35,32 +33,10 @@ final class Inputs
         );
     }
 
-    public function __invoke(Str $pattern): Input
-    {
-        /** @var ?Input */
-        $parsed = null;
-
-        $input = $this
-            ->inputs
-            ->sink($parsed)
-            ->until(static fn($parsed, $input, $continuation) => match ($parsed) {
-                null => $input::of($pattern)->match(
-                    static fn($input) => $continuation->stop($input),
-                    static fn() => $continuation->continue($parsed),
-                ),
-                default => $continuation->stop($parsed),
-            });
-
-        return Maybe::of($input)
-            ->keep(Instance::of(Input::class))
-            ->attempt(static fn() => new PatternNotRecognized($pattern->toString()))
-            ->unwrap();
-    }
-
     /**
      * @return Attempt<Usage>
      */
-    public function walk(Usage $usage, Str $pattern): Attempt
+    public function __invoke(Usage $usage, Str $pattern): Attempt
     {
         $parsed = $this
             ->inputs
