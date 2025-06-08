@@ -50,8 +50,8 @@ final class Pattern
             static fn($carry, $input) => $input->parse(...$carry),
         );
         /** @psalm-suppress MixedArgument */
-        [$arguments, $parsedArguments, $options] = $this->arguments->reduce(
-            [$arguments, $parsedArguments, $options],
+        [$arguments, $parsedArguments] = $this->arguments->reduce(
+            [$arguments, $parsedArguments],
             static fn($carry, $input) => $input->parse(...$carry),
         );
 

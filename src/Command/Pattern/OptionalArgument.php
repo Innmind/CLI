@@ -62,31 +62,26 @@ final class OptionalArgument implements Input
 
     /**
      * @param Sequence<string> $arguments
-     * @param Map<string, string> $parsedArguments
-     * @param Map<string, string> $options
+     * @param Map<string, string> $parsed
      *
      * @return array{
      *     Sequence<string>,
-     *     Map<string, string>,
      *     Map<string, string>,
      * }
      */
     public function parse(
         Sequence $arguments,
-        Map $parsedArguments,
-        Map $options,
+        Map $parsed,
     ): array {
-        [$arguments, $parsedArguments] = $arguments
+        return $arguments
             ->first()
             ->match(
                 fn($value) => [
                     $arguments->drop(1),
-                    ($parsedArguments)($this->name, $value),
+                    ($parsed)($this->name, $value),
                 ],
-                static fn() => [$arguments, $parsedArguments],
+                static fn() => [$arguments, $parsed],
             );
-
-        return [$arguments, $parsedArguments, $options];
     }
 
     public function toString(): string
