@@ -10,7 +10,9 @@ use Innmind\CLI\Command\Pattern\{
     OptionFlag,
     OptionWithValue,
     Input,
+    Inputs,
 };
+use Innmind\Validation\Is;
 use Innmind\Immutable\{
     Sequence,
     Str,
@@ -53,6 +55,64 @@ final class Usage
             null,
             null,
         );
+    }
+
+    /**
+     * @psalm-pure
+     */
+    public static function parse(string $usage): self
+    {
+        $declaration = Str::of($usage)->trim();
+
+        if ($declaration->empty()) {
+            throw new \LogicException('Empty usage');
+        }
+
+        $lines = $declaration->split("\n");
+        $name = $lines
+            ->first()
+            ->map(static fn($line) => $line->split(' '))
+            ->flatMap(static fn($parts) => $parts->first())
+            ->map(static fn($name) => $name->toString())
+            ->keep(Is::string()->nonEmpty()->asPredicate())
+            ->match(
+                static fn($name) => $name,
+                static fn() => throw new \LogicException('Command name not found'),
+            );
+        $usage = self::of($name);
+        $usage = $lines
+            ->get(2)
+            ->map(static fn($line) => $line->trim()->toString())
+            ->match(
+                $usage->withShortDescription(...),
+                static fn() => $usage,
+            );
+
+        $description = $lines
+            ->drop(4)
+            ->map(static fn($line) => $line->trim()->toString());
+        $description = Str::of("\n")->join($description)->toString();
+
+        if ($description !== '') {
+            $usage = $usage->withDescription($description);
+        }
+
+        /** @psalm-suppress ArgumentTypeCoercion */
+        return $lines
+            ->first()
+            ->toSequence()
+            ->flatMap(static fn($line) => $line->split(' ')->drop(1))
+            ->map(new Inputs)
+            ->reduce(
+                $usage,
+                static fn(self $usage, $input) => match (true) {
+                    $input instanceof RequiredArgument => $usage->argument($input->name),
+                    $input instanceof OptionalArgument => $usage->optionalArgument($input->name),
+                    $input instanceof PackArgument => $usage->packArguments(),
+                    $input instanceof OptionFlag => $usage->flag($input->name, $input->short),
+                    $input instanceof OptionWithValue => $usage->option($input->name, $input->short),
+                },
+            );
     }
 
     /**

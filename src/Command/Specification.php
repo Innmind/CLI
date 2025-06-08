@@ -3,22 +3,8 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Command;
 
-use Innmind\CLI\{
-    Command,
-    Command\Pattern\Inputs,
-    Command\Pattern\RequiredArgument,
-    Command\Pattern\OptionalArgument,
-    Command\Pattern\PackArgument,
-    Command\Pattern\OptionFlag,
-    Command\Pattern\OptionWithValue,
-    Exception\EmptyDeclaration,
-};
-use Innmind\Validation\Is;
-use Innmind\Immutable\{
-    Sequence,
-    Str,
-    Maybe,
-};
+use Innmind\CLI\Command;
+use Innmind\Immutable\Str;
 
 /**
  * @psalm-immutable
@@ -88,73 +74,9 @@ final class Specification
         return $this->parse();
     }
 
-    /**
-     * @return Sequence<Str>
-     */
-    private function lines(): Sequence
-    {
-        $declaration = Str::of($this->command->usage())->trim();
-
-        if ($declaration->empty()) {
-            throw new EmptyDeclaration(\get_class($this->command));
-        }
-
-        return $declaration->split("\n");
-    }
-
     private function parse(): Usage
     {
-        if ($this->parsed) {
-            return $this->parsed;
-        }
-
-        $lines = $this->lines();
-        $name = $lines
-            ->first()
-            ->map(static fn($line) => $line->split(' '))
-            ->flatMap(static fn($parts) => $parts->first())
-            ->map(static fn($name) => $name->toString())
-            ->keep(Is::string()->nonEmpty()->asPredicate())
-            ->match(
-                static fn($name) => $name,
-                static fn() => throw new \LogicException('Command name not found'),
-            );
-        $usage = Usage::of($name);
-        $usage = $lines
-            ->get(2)
-            ->map(static fn($line) => $line->trim()->toString())
-            ->match(
-                $usage->withShortDescription(...),
-                static fn() => $usage,
-            );
-
-        $description = $lines
-            ->drop(4)
-            ->map(static fn($line) => $line->trim()->toString());
-        $description = Str::of("\n")->join($description)->toString();
-
-        if ($description !== '') {
-            $usage = $usage->withDescription($description);
-        }
-
-        /** @psalm-suppress ArgumentTypeCoercion */
-        $usage = $lines
-            ->first()
-            ->toSequence()
-            ->flatMap(static fn($line) => $line->split(' ')->drop(1))
-            ->map(new Inputs)
-            ->reduce(
-                $usage,
-                static fn(Usage $usage, $input) => match (true) {
-                    $input instanceof RequiredArgument => $usage->argument($input->name),
-                    $input instanceof OptionalArgument => $usage->optionalArgument($input->name),
-                    $input instanceof PackArgument => $usage->packArguments(),
-                    $input instanceof OptionFlag => $usage->flag($input->name, $input->short),
-                    $input instanceof OptionWithValue => $usage->option($input->name, $input->short),
-                },
-            );
-
         /** @psalm-suppress InaccessibleProperty */
-        return $this->parsed = $usage;
+        return $this->parsed ??= Usage::parse($this->command->usage());
     }
 }

@@ -7,7 +7,6 @@ use Innmind\CLI\{
     Command\Specification,
     Command,
     Console,
-    Exception\EmptyDeclaration,
 };
 use Innmind\Immutable\Attempt;
 use Innmind\BlackBox\{
@@ -298,7 +297,8 @@ class SpecificationTest extends TestCase
             }
         };
 
-        $this->expectException(EmptyDeclaration::class);
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Empty usage');
 
         (new Specification($command))->usage();
     }

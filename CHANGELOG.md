@@ -25,6 +25,7 @@
 - `Innmind\CLI\Exception\NoRequiredArgumentAllowedAfterAnOptionalOne`
 - `Innmind\CLI\Exception\OnlyOnePackArgumentAllowed`
 - `Innmind\CLI\Exception\PackArgumentMustBeTheLastOne`
+- `Innmind\CLI\Exception\EmptyDeclaration`
 
 ### Fixed
 
