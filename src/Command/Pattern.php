@@ -52,30 +52,37 @@ final class Pattern
             throw new OnlyOnePackArgumentAllowed;
         }
 
+        /** @var ?PackArgument */
+        $pack = null;
+        /** @var ?OptionalArgument */
+        $optional = null;
+
         $_ = $arguments
-            ->last()
-            ->filter(static fn() => !$packs->empty())
-            ->filter(static fn($last) => !$last instanceof PackArgument)
-            ->match(
-                static fn() => throw new PackArgumentMustBeTheLastOne,
-                static fn() => null,
-            );
+            ->safeguard(
+                $pack,
+                static fn(?PackArgument $pack, $argument) => match ($pack) {
+                    null => match (true) {
+                        $argument instanceof PackArgument => $argument,
+                        default => null,
+                    },
+                    default => throw new PackArgumentMustBeTheLastOne,
+                },
+            )
+            ->safeguard(
+                $optional,
+                static function(?OptionalArgument $optional, $argument) {
+                    if ($optional && $argument instanceof RequiredArgument) {
+                        throw new NoRequiredArgumentAllowedAfterAnOptionalOne;
+                    }
 
-        $_ = $arguments->drop(1)->reduce(
-            $arguments->take(1),
-            static function(Sequence $inputs, Input $input): Sequence {
-                $_ = $inputs
-                    ->last()
-                    ->filter(static fn($last) => $last instanceof OptionalArgument)
-                    ->filter(static fn() => $input instanceof RequiredArgument)
-                    ->match(
-                        static fn() => throw new NoRequiredArgumentAllowedAfterAnOptionalOne,
-                        static fn() => null,
-                    );
+                    if ($argument instanceof OptionalArgument) {
+                        return $argument;
+                    }
 
-                return ($inputs)($input);
-            },
-        );
+                    return null;
+                },
+            )
+            ->memoize();
     }
 
     /**
