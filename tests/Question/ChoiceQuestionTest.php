@@ -14,7 +14,7 @@ class ChoiceQuestionTest extends TestCase
 {
     public function testInvoke()
     {
-        $question = new ChoiceQuestion(
+        $question = ChoiceQuestion::of(
             'message',
             Map::of()
                 ('foo', 'bar')
@@ -61,7 +61,7 @@ class ChoiceQuestionTest extends TestCase
 
     public function testReturnNothingWhenEnvNonInteractive()
     {
-        $question = new ChoiceQuestion('watev', Map::of());
+        $question = ChoiceQuestion::of('watev', Map::of());
 
         $env = Environment\InMemory::of(
             [],
@@ -81,7 +81,7 @@ class ChoiceQuestionTest extends TestCase
 
     public function testReturnNothingWhenOptionToSpecifyNoInteractionIsRequired()
     {
-        $question = new ChoiceQuestion('watev', Map::of());
+        $question = ChoiceQuestion::of('watev', Map::of());
 
         $env = Environment\InMemory::of(
             [],

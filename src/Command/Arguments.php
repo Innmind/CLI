@@ -20,6 +20,7 @@ final class Arguments
     private Sequence $pack;
 
     /**
+     * @internal
      * @param Map<string, string> $arguments
      * @param Sequence<string> $pack
      */

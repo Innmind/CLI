@@ -17,6 +17,7 @@ final class Options
     private Map $options;
 
     /**
+     * @internal
      * @param Map<string, string> $options
      */
     public function __construct(?Map $options = null)

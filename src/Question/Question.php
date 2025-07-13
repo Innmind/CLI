@@ -17,11 +17,8 @@ use Innmind\Immutable\{
  */
 final class Question
 {
-    private Str $question;
-
-    public function __construct(string $question)
+    private function __construct(private Str $question)
     {
-        $this->question = Str::of($question)->append(' ');
     }
 
     /**
@@ -50,6 +47,14 @@ final class Question
         return $env
             ->output($this->question)
             ->map($this->read(...));
+    }
+
+    /**
+     * @psalm-pure
+     */
+    public static function of(string $question): self
+    {
+        return new self(Str::of($question)->append(' '));
     }
 
     /**
