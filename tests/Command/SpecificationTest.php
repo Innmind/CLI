@@ -4,7 +4,6 @@ declare(strict_types = 1);
 namespace Tests\Innmind\CLI\Command;
 
 use Innmind\CLI\{
-    Command\Specification,
     Command\Usage,
     Command,
     Console,
@@ -42,12 +41,12 @@ class SpecificationTest extends TestCase
             }
         };
 
-        $spec = new Specification($command);
+        $usage = $command->usage();
 
-        $this->assertSame('watch', $spec->name());
+        $this->assertSame('watch', $usage->name());
         $this->assertSame(
             'Watch a container definition file for changes and generate corresponding graph',
-            $spec->shortDescription(),
+            $usage->shortDescription(),
         );
 
         $expected = <<<USAGE
@@ -61,7 +60,7 @@ class SpecificationTest extends TestCase
         The proxy pack argument are arguments that will be sent used for the graphviz command.
         USAGE;
 
-        $this->assertSame($expected, $spec->usage()->toString());
+        $this->assertSame($expected, $usage->toString());
     }
 
     public function testMatchesItsOwnName(): BlackBox\Proof
@@ -91,10 +90,10 @@ class SpecificationTest extends TestCase
                     }
                 };
 
-                $spec = new Specification($command);
+                $usage = $command->usage();
 
-                $this->assertTrue($spec->matches($a));
-                $this->assertFalse($spec->matches($b));
+                $this->assertTrue($usage->matches($a));
+                $this->assertFalse($usage->matches($b));
             });
     }
 
@@ -120,10 +119,10 @@ class SpecificationTest extends TestCase
             }
         };
 
-        $spec = new Specification($command);
+        $usage = $command->usage();
 
-        $this->assertTrue($spec->matches($a));
-        $this->assertFalse($spec->matches($b));
+        $this->assertTrue($usage->matches($a));
+        $this->assertFalse($usage->matches($b));
     }
 
     public function testMatchesStartOfItsOwnName(): BlackBox\Proof
@@ -152,10 +151,10 @@ class SpecificationTest extends TestCase
                     }
                 };
 
-                $spec = new Specification($command);
+                $usage = $command->usage();
                 $shrunk = \mb_substr($name, 0, $shrink);
 
-                $this->assertTrue($spec->matches($shrunk));
+                $this->assertTrue($usage->matches($shrunk));
             });
     }
 
@@ -185,9 +184,9 @@ class SpecificationTest extends TestCase
                     }
                 };
 
-                $spec = new Specification($command);
+                $usage = $command->usage();
 
-                $this->assertTrue($spec->matches($shrunk));
+                $this->assertTrue($usage->matches($shrunk));
             });
     }
 
@@ -214,9 +213,9 @@ class SpecificationTest extends TestCase
             }
         };
 
-        $spec = new Specification($command);
+        $usage = $command->usage();
 
-        $this->assertTrue($spec->matches($shrunk));
+        $this->assertTrue($usage->matches($shrunk));
     }
 
     public function testDoesnMatchLessSectionProvidedThanExpected(): BlackBox\Proof
@@ -245,9 +244,9 @@ class SpecificationTest extends TestCase
                     }
                 };
 
-                $spec = new Specification($command);
+                $usage = $command->usage();
 
-                $this->assertFalse($spec->matches($shrunk));
+                $this->assertFalse($usage->matches($shrunk));
             });
     }
 
@@ -278,10 +277,10 @@ class SpecificationTest extends TestCase
                     }
                 };
 
-                $spec = new Specification($command);
+                $usage = $command->usage();
                 $shrunk = \mb_substr($name, $start, $shrink);
 
-                $this->assertFalse($spec->matches($shrunk));
+                $this->assertFalse($usage->matches($shrunk));
             });
     }
 
@@ -301,7 +300,7 @@ class SpecificationTest extends TestCase
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('Empty usage');
 
-        (new Specification($command))->usage();
+        $command->usage();
     }
 
     private function names(): Set
