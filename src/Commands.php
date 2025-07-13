@@ -17,13 +17,10 @@ final class Commands
 {
     /** @var Sequence<Command> */
     private Sequence $commands;
-    /** @var Sequence<Usage> */
-    private Sequence $usages;
 
     private function __construct(Command $command, Command ...$commands)
     {
         $this->commands = Sequence::of($command, ...$commands);
-        $this->usages = $this->commands->map(static fn($command) => $command->usage());
     }
 
     /**
@@ -63,7 +60,7 @@ final class Commands
                 ->displayHelp(
                     $env,
                     true,
-                    $this->usages,
+                    $this->commands->map(static fn($command) => $command->usage()),
                 )
                 ->map(static fn($env) => $env->exit(64)); // EX_USAGE The command was used incorrectly
         }
@@ -72,7 +69,7 @@ final class Commands
             return $this->displayHelp(
                 $env,
                 false,
-                $this->usages,
+                $this->commands->map(static fn($command) => $command->usage()),
             );
         }
 
@@ -106,7 +103,7 @@ final class Commands
                 ->displayHelp(
                     $env,
                     true,
-                    $this->usages,
+                    $this->commands->map(static fn($command) => $command->usage()),
                 )
                 ->map(static fn($env) => $env->exit(64)), // EX_USAGE The command was used incorrectly
         );
