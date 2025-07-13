@@ -2,8 +2,7 @@
 
 This is the simplest example to write a cli tool.
 
-```php
-# cli.php
+```php title="cli.php"
 declare(strict_types = 1);
 
 require 'path/to/composer/autoload.php';
@@ -13,10 +12,13 @@ use Innmind\CLI\{
     Environment,
 };
 use Innmind\OperatingSystem\OperatingSystem;
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Attempt,
+};
 
 new class extends Main {
-    protected function main(Environment $env, OperatingSystem $os): Environment
+    protected function main(Environment $env, OperatingSystem $os): Attempt
     {
         return $env->output(Str::of("Hello world\n"));
     }
@@ -25,8 +27,7 @@ new class extends Main {
 
 ## Greeting someone by their name
 
-```php
-# cli.php
+```php title="cli.php"
 declare(strict_types = 1);
 
 require 'path/to/composer/autoload.php';
@@ -36,10 +37,13 @@ use Innmind\CLI\{
     Environment,
 };
 use Innmind\OperatingSystem\OperatingSystem;
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Attempt,
+};
 
 new class extends Main {
-    protected function main(Environment $env, OperatingSystem $os): Environment
+    protected function main(Environment $env, OperatingSystem $os): Attempt
     {
         return $env
             ->arguments()
@@ -56,8 +60,7 @@ You can run it via `php cli.php John` or `php cli.php` to have the error message
 
 ## Ask for the name interactively
 
-```php
-# cli.php
+```php title="cli.php"
 declare(strict_types = 1);
 
 require 'path/to/composer/autoload.php';
@@ -67,18 +70,24 @@ use Innmind\CLI\{
     Environment,
 };
 use Innmind\OperatingSystem\OperatingSystem;
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Attempt,
+};
 
 new class extends Main {
-    protected function main(Environment $env, OperatingSystem $os): Environment
+    protected function main(Environment $env, OperatingSystem $os): Attempt
     {
-        $question = new Question("What's your name?");
-        [$response, $env] = $question($env);
+        $question = Question::of("What's your name?");
 
-        return $response->match(
-            static fn($name) => $env->output(Str::of("Hello $name\n")),
-            static fn() => $env->error(Str::of("Sorry, I didn't catch your name\n")),
-        );
+        return $question($env)->flatMap(static function($response) {
+            [$response, $env] = $response;
+
+            return $response->match(
+                static fn($name) => $env->output(Str::of("Hello $name\n")),
+                static fn() => $env->error(Str::of("Sorry, I didn't catch your name\n")),
+            );
+        });
     }
 };
 ```
