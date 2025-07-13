@@ -637,7 +637,7 @@ USAGE);
                         static fn() => (new Foo)
                             ->usage()
                             ->argument('bar')
-                            ->flag('baz')
+                            ->option('baz')
                             ->packArguments()
                             ->withDescription('whatever'),
                     );
@@ -661,7 +661,7 @@ USAGE);
         $this->assertSame(
             [
                 <<<USAGE
-                usage: bin/console foo bar ...arguments --baz --help --no-interaction
+                usage: bin/console foo bar ...arguments --baz= --help --no-interaction
 
                 whatever
 
