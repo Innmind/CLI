@@ -21,6 +21,8 @@ final class Commands
     private Map $commands;
     /** @var Sequence<Specification> */
     private Sequence $specifications;
+    /** @var Sequence<Usage> */
+    private Sequence $usages;
 
     private function __construct(Command $command, Command ...$commands)
     {
@@ -29,6 +31,7 @@ final class Commands
         );
         $this->commands = Map::of(...$commands->toList());
         $this->specifications = $commands->map(static fn($command) => $command[0]);
+        $this->usages = $commands->map(static fn($command) => $command[0]->usage());
     }
 
     /**
@@ -59,9 +62,7 @@ final class Commands
                 ->displayHelp(
                     $env,
                     true,
-                    $this->specifications->map(
-                        static fn($spec) => $spec->usage(),
-                    ),
+                    $this->usages,
                 )
                 ->map(static fn($env) => $env->exit(64)); // EX_USAGE The command was used incorrectly
         }
@@ -70,9 +71,7 @@ final class Commands
             return $this->displayHelp(
                 $env,
                 false,
-                $this->specifications->map(
-                    static fn($spec) => $spec->usage(),
-                ),
+                $this->usages,
             );
         }
 
@@ -104,9 +103,7 @@ final class Commands
                 ->displayHelp(
                     $env,
                     true,
-                    $this->specifications->map(
-                        static fn($spec) => $spec->usage(),
-                    ),
+                    $this->usages,
                 )
                 ->map(static fn($env) => $env->exit(64)), // EX_USAGE The command was used incorrectly
         );
