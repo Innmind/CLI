@@ -75,16 +75,18 @@ final class Commands
             );
         }
 
+        /** @var Sequence<Specification> */
+        $found = Sequence::of();
         $specifications = $this
             ->specifications
-            ->find(static fn($spec) => $spec->is($command))
-            ->map(static fn($spec) => Sequence::of($spec))
-            ->match(
-                static fn($specifications) => $specifications,
-                fn() => $this->specifications->filter(
-                    static fn($spec) => $spec->matches($command),
-                ),
-            );
+            ->sink($found)
+            ->until(static fn($found, $spec, $continuation) => match ($spec->is($command)) {
+                true => $continuation->stop(Sequence::of($spec)),
+                false => match ($spec->matches($command)) {
+                    true => $continuation->continue(($found)($spec)),
+                    false => $continuation->continue($found),
+                },
+            });
 
         return $specifications->match(
             fn($spec, $rest) => match ($rest->empty()) {
