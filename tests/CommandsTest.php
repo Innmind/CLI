@@ -572,4 +572,102 @@ USAGE);
             $env->errors(),
         );
     }
+
+    public function testUsageForDoesntLoadTheFullUsageWhenCommandIsLoaded()
+    {
+        $run = Commands::of(
+            new class implements Command {
+                public function __invoke(Console $console): Attempt
+                {
+                }
+
+                public function usage(): Usage
+                {
+                    return Usage::for(Foo::class)->load(
+                        static fn() => throw new \Exception,
+                    );
+                }
+            },
+            new class implements Command {
+                public function __invoke(Console $console): Attempt
+                {
+                    return Attempt::result($console->exit(24));
+                }
+
+                public function usage(): Usage
+                {
+                    return Usage::parse('watch container [output] --foo');
+                }
+            },
+        );
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'help'],
+            [],
+            '/',
+        );
+
+        $env = $run($env)->unwrap();
+
+        $this->assertNull($env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+        $this->assertSame(
+            [
+                " foo    \n",
+                " watch  \n",
+            ],
+            $env->outputs(),
+        );
+    }
+
+    public function testLazyLoadCommandUsage()
+    {
+        $run = Commands::of(
+            new class implements Command {
+                public function __invoke(Console $console): Attempt
+                {
+                }
+
+                public function usage(): Usage
+                {
+                    return Usage::for(Foo::class)->load(
+                        static fn() => (new Foo)
+                            ->usage()
+                            ->argument('bar')
+                            ->flag('baz')
+                            ->packArguments()
+                            ->withDescription('whatever'),
+                    );
+                }
+            },
+        );
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', '--help'],
+            [],
+            '/',
+        );
+
+        $env = $run($env)->unwrap();
+
+        $this->assertNull($env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+        $this->assertSame(
+            [
+                <<<USAGE
+                usage: bin/console foo bar ...arguments --baz --help --no-interaction
+
+                whatever
+
+                USAGE,
+            ],
+            $env->outputs(),
+        );
+    }
 }

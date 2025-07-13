@@ -15,6 +15,7 @@ use Innmind\Validation\Is;
 use Innmind\Immutable\{
     Sequence,
     Str,
+    Identity,
     Monoid\Concat,
     Predicate\Instance,
 };
@@ -28,14 +29,16 @@ final class Usage
      * @param non-empty-string $name
      * @param Sequence<RequiredArgument|OptionalArgument> $arguments
      * @param Sequence<OptionFlag|OptionWithValue> $options
+     * @param Identity<bool> $pack
+     * @param Identity<?string> $description
      */
     private function __construct(
         private string $name,
         private Sequence $arguments,
         private Sequence $options,
-        private bool $pack,
+        private Identity $pack,
         private ?string $shortDescription,
-        private ?string $description,
+        private Identity $description,
     ) {
     }
 
@@ -46,13 +49,16 @@ final class Usage
      */
     public static function of(string $name): self
     {
+        /** @var ?string */
+        $description = null;
+
         return new self(
             $name,
             Sequence::of(),
             Sequence::of(),
-            false,
+            Identity::of(false),
             null,
-            null,
+            Identity::of($description),
         );
     }
 
@@ -180,7 +186,7 @@ final class Usage
             $this->name,
             $this->arguments,
             $this->options,
-            true,
+            Identity::of(true),
             $this->shortDescription,
             $this->description,
         );
@@ -236,13 +242,45 @@ final class Usage
 
     public function withDescription(string $description): self
     {
+        /** @var ?string */
+        $description = $description;
+
         return new self(
             $this->name,
             $this->arguments,
             $this->options,
             $this->pack,
             $this->shortDescription,
-            $description,
+            Identity::of($description),
+        );
+    }
+
+    /**
+     * Use this method to lazy load the rest of the usage.
+     *
+     * It should be used when the usage is built with self::for().
+     *
+     * @param callable(): self $load
+     */
+    public function load(callable $load): self
+    {
+        $usage = Identity::defer($load);
+
+        return new self(
+            $this->name,
+            Sequence::lazy(static fn() => yield $usage->unwrap())
+                ->flatMap(static fn($usage) => $usage->arguments)
+                ->snap(),
+            Sequence::lazy(static fn() => yield $usage->unwrap())
+                ->flatMap(static fn($usage) => $usage->options)
+                ->snap(),
+            Identity::defer(static fn() => $usage->unwrap())->flatMap(
+                static fn($usage) => $usage->pack,
+            ),
+            $this->shortDescription,
+            Identity::defer(static fn() => $usage->unwrap())->flatMap(
+                static fn($usage) => $usage->description,
+            ),
         );
     }
 
@@ -264,7 +302,7 @@ final class Usage
         return new Pattern(
             $this->arguments,
             $this->options,
-            $this->pack,
+            $this->pack->unwrap(),
         );
     }
 
@@ -281,7 +319,7 @@ final class Usage
             ->fold(new Concat)
             ->toString();
 
-        if ($this->pack) {
+        if ($this->pack->unwrap()) {
             $string .= ' ...arguments';
         }
 
@@ -298,9 +336,11 @@ final class Usage
             $string .= $this->shortDescription;
         }
 
-        if (\is_string($this->description)) {
+        $description = $this->description->unwrap();
+
+        if (\is_string($description)) {
             $string .= "\n\n";
-            $string .= $this->description;
+            $string .= $description;
         }
 
         return $string;
