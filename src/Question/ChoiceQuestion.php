@@ -10,7 +10,7 @@ use Innmind\CLI\{
 use Innmind\Immutable\{
     Str,
     Map,
-    Maybe,
+    Attempt,
 };
 
 /**
@@ -18,17 +18,13 @@ use Innmind\Immutable\{
  */
 final class ChoiceQuestion
 {
-    private Str $question;
-    /** @var Map<scalar, scalar> */
-    private Map $values;
-
     /**
      * @param Map<scalar, scalar> $values
      */
-    public function __construct(string $question, Map $values)
-    {
-        $this->question = Str::of($question);
-        $this->values = $values;
+    private function __construct(
+        private Str $question,
+        private Map $values,
+    ) {
     }
 
     /**
@@ -36,9 +32,9 @@ final class ChoiceQuestion
      *
      * @param T $env
      *
-     * @return array{Maybe<Map<scalar, scalar>>, T} Returns nothing when no interactions available
+     * @return Attempt<array{Attempt<Map<scalar, scalar>>, T}> Returns nothing when no interactions available
      */
-    public function __invoke(Environment|Console $env): array
+    public function __invoke(Environment|Console $env): Attempt
     {
         $noInteraction = match ($env::class) {
             Console::class => $env->options()->contains('no-interaction'),
@@ -46,19 +42,51 @@ final class ChoiceQuestion
         };
 
         if (!$env->interactive() || $noInteraction) {
-            /** @var array{Maybe<Map<scalar, scalar>>, T} */
-            return [Maybe::nothing(), $env];
+            /** @var Attempt<array{Attempt<Map<scalar, scalar>>, T}> */
+            return Attempt::result([
+                Attempt::error(new \RuntimeException('Not in an interactive mode')),
+                $env,
+            ]);
         }
 
-        $env = $env->output($this->question->append("\n"));
-        $env = $this->values->reduce(
-            $env,
-            static fn(Environment|Console $env, $key, $value) => $env->output(
-                Str::of("[%s] %s\n")->sprintf((string) $key, (string) $value),
-            ),
-        );
-        $env = $env->output(Str::of('> '));
+        /** @var Attempt<array{Attempt<Map<scalar, scalar>>, T}> */
+        return $env
+            ->output($this->question->append("\n"))
+            ->flatMap(
+                fn($env) => $this
+                    ->values
+                    ->toSequence()
+                    ->sink($env)
+                    ->attempt(static fn($env, $pair) => $env->output(
+                        Str::of("[%s] %s\n")->sprintf(
+                            (string) $pair->key(),
+                            (string) $pair->value(),
+                        ),
+                    )),
+            )
+            ->flatMap(static fn($env) => $env->output(Str::of('> ')))
+            ->map($this->read(...));
+    }
 
+    /**
+     * @psalm-pure
+     *
+     * @param Map<scalar, scalar> $values
+     */
+    public static function of(string $question, Map $values): self
+    {
+        return new self(Str::of($question), $values);
+    }
+
+    /**
+     * @template I of Environment|Console
+     *
+     * @param I $env
+     *
+     * @return array{Attempt<Map<scalar, scalar>>, I}
+     */
+    private function read(Environment|Console $env): array
+    {
         $response = Str::of('');
 
         do {
@@ -75,9 +103,9 @@ final class ChoiceQuestion
             ->split(',')
             ->map(static fn($choice) => $choice->trim()->toString());
 
-        /** @var array{Maybe<Map<scalar, scalar>>, T} */
+        /** @var array{Attempt<Map<scalar, scalar>>, I} */
         return [
-            Maybe::just($this->values->filter(static function($key) use ($choices): bool {
+            Attempt::result($this->values->filter(static function($key) use ($choices): bool {
                 return $choices->contains((string) $key);
             })),
             $env,

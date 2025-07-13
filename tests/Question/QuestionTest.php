@@ -8,13 +8,13 @@ use Innmind\CLI\{
     Environment,
 };
 use Innmind\Immutable\Str;
-use PHPUnit\Framework\TestCase;
+use Innmind\BlackBox\PHPUnit\Framework\TestCase;
 
 class QuestionTest extends TestCase
 {
     public function testInvoke()
     {
-        $question = new Question('message');
+        $question = Question::of('message');
         $env = Environment\InMemory::of(
             ['f', "oo\n"],
             true,
@@ -23,7 +23,7 @@ class QuestionTest extends TestCase
             '/',
         );
 
-        [$response, $env] = $question($env);
+        [$response, $env] = $question($env)->unwrap();
         $response = $response->match(
             static fn($response) => $response,
             static fn() => null,
@@ -39,7 +39,7 @@ class QuestionTest extends TestCase
 
     public function testReturnNothingWhenEnvNonInteractive()
     {
-        $question = new Question('watev');
+        $question = Question::of('watev');
 
         $env = Environment\InMemory::of(
             [],
@@ -49,7 +49,7 @@ class QuestionTest extends TestCase
             '/',
         );
 
-        [$response, $env] = $question($env);
+        [$response, $env] = $question($env)->unwrap();
 
         $this->assertNull($response->match(
             static fn($response) => $response,
@@ -59,7 +59,7 @@ class QuestionTest extends TestCase
 
     public function testReturnNothingWhenOptionToSpecifyNoInteractionIsRequired()
     {
-        $question = new Question('watev');
+        $question = Question::of('watev');
 
         $env = Environment\InMemory::of(
             [],
@@ -69,7 +69,7 @@ class QuestionTest extends TestCase
             '/',
         );
 
-        [$response, $env] = $question($env);
+        [$response, $env] = $question($env)->unwrap();
 
         $this->assertNull($response->match(
             static fn($response) => $response,

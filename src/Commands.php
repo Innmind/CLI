@@ -4,43 +4,64 @@ declare(strict_types = 1);
 namespace Innmind\CLI;
 
 use Innmind\CLI\{
-    Command\Specification,
+    Command\Usage,
+    Command\Finder,
     Exception\Exception,
 };
 use Innmind\Immutable\{
-    Map,
     Str,
     Sequence,
+    Attempt,
 };
 
 final class Commands
 {
-    /** @var Map<Specification, Command> */
-    private Map $commands;
-    /** @var Sequence<Specification> */
-    private Sequence $specifications;
-
-    private function __construct(Command $command, Command ...$commands)
-    {
-        $commands = Sequence::of($command, ...$commands)->map(
-            static fn($command) => [new Specification($command), $command],
-        );
-        $this->commands = Map::of(...$commands->toList());
-        $this->specifications = $commands->map(static fn($command) => $command[0]);
+    /**
+     * @param Command|Sequence<Command> $commands
+     */
+    private function __construct(
+        private Command|Sequence $commands,
+    ) {
     }
 
-    public function __invoke(Environment $env): Environment
+    /**
+     * @return Attempt<Environment>
+     */
+    public function __invoke(Environment $env): Attempt
     {
-        if ($this->commands->size() === 1) {
-            return $this
-                ->specifications
-                ->find(static fn() => true) // first
-                ->match(
-                    fn($specification) => $this->run($env, $specification),
-                    static fn() => $env,
-                );
+        if ($this->commands instanceof Command) {
+            return self::run($env, $this->commands);
         }
 
+        return self::find($env, $this->commands);
+    }
+
+    public static function of(Command $command, Command ...$commands): self
+    {
+        return new self(match ($commands) {
+            [] => $command,
+            default => Sequence::of($command, ...$commands),
+        });
+    }
+
+    /**
+     * Use this method to lazy load commands and free the unused one from memory
+     * when they will never be used in the current process.
+     *
+     * @param Sequence<Command> $commands
+     */
+    public static function for(Sequence $commands): self
+    {
+        return new self($commands);
+    }
+
+    /**
+     * @param Sequence<Command> $commands
+     *
+     * @return Attempt<Environment>
+     */
+    private static function find(Environment $env, Sequence $commands): Attempt
+    {
         $command = $env
             ->arguments()
             ->get(1) // 0 being the tool name
@@ -50,66 +71,52 @@ final class Commands
             );
 
         if (!\is_string($command)) {
-            return $this
-                ->displayHelp(
-                    $env,
-                    true,
-                    $this->specifications,
-                )
-                ->exit(64); // EX_USAGE The command was used incorrectly
+            return self::displayHelp(
+                $env,
+                true,
+                $commands->map(static fn($command) => $command->usage()),
+            )
+                ->map(static fn($env) => $env->exit(64)); // EX_USAGE The command was used incorrectly
         }
 
         if ($command === 'help') {
-            return $this->displayHelp(
+            return self::displayHelp(
                 $env,
                 false,
-                $this->specifications,
+                $commands->map(static fn($command) => $command->usage()),
             );
         }
 
-        $specifications = $this
-            ->specifications
-            ->find(static fn($spec) => $spec->is($command))
-            ->map(static fn($spec) => Sequence::of($spec))
-            ->match(
-                static fn($specifications) => $specifications,
-                fn() => $this->specifications->filter(
-                    static fn($spec) => $spec->matches($command),
-                ),
-            );
+        /** @var Sequence<Command> */
+        $found = Sequence::of();
 
-        return $specifications->match(
-            fn($spec, $rest) => match ($rest->empty()) {
-                true => $this->run($env, $spec),
-                false => $this
-                    ->displayHelp(
-                        $env,
-                        true,
-                        Sequence::of($spec)->append($rest),
-                    )
-                    ->exit(64), // EX_USAGE The command was used incorrectly
-            },
-            fn() => $this
-                ->displayHelp(
+        return $commands
+            ->sink(Finder::new())
+            ->until(
+                static fn($finder, $maybe, $continuation) => $finder
+                    ->maybe($maybe, $command)
+                    ->next(
+                        static fn($finder) => $continuation->stop($finder),
+                        static fn($finder) => $continuation->continue($finder),
+                    ),
+            )
+            ->match(
+                static fn($command) => self::run($env, $command),
+                static fn($usages) => self::displayHelp(
                     $env,
                     true,
-                    $this->specifications,
+                    $usages,
                 )
-                ->exit(64), // EX_USAGE The command was used incorrectly
-        );
+                    ->map(static fn($env) => $env->exit(64)), // EX_USAGE The command was used incorrectly
+            );
     }
 
-    public static function of(Command $command, Command ...$commands): self
+    /**
+     * @return Attempt<Environment>
+     */
+    private static function run(Environment $env, Command $command): Attempt
     {
-        return new self($command, ...$commands);
-    }
-
-    private function run(Environment $env, Specification $spec): Environment
-    {
-        $run = $this->commands->get($spec)->match(
-            static fn($command) => $command,
-            static fn() => throw new \LogicException('This case should not be possible'),
-        );
+        $usage = $command->usage();
         [$bin, $arguments] = $env->arguments()->match(
             static fn($bin, $arguments) => [$bin, $arguments],
             static fn() => throw new \LogicException('Arguments list should not be empty'),
@@ -119,99 +126,97 @@ final class Commands
         // command defined
         $arguments = $arguments
             ->first()
-            ->filter(static fn($first) => $spec->matches($first))
+            ->filter(static fn($first) => $usage->matches($first))
             ->match(
                 static fn() => $arguments->drop(1),
                 static fn() => $arguments,
             );
 
         if ($arguments->contains('--help')) {
-            return $this->displayUsage(
+            return self::displayUsage(
                 $env->output(...),
                 $bin,
-                $spec,
+                $usage,
             );
         }
 
         try {
-            $pattern = $spec->pattern();
+            $pattern = $usage->pattern();
 
             [$arguments, $options] = $pattern($arguments);
         } catch (Exception $e) {
-            return $this
-                ->displayUsage(
-                    $env->error(...),
-                    $bin,
-                    $spec,
-                )
-                ->exit(64); // EX_USAGE The command was used incorrectly
+            return self::displayUsage(
+                $env->error(...),
+                $bin,
+                $usage,
+            )
+                ->map(static fn($env) => $env->exit(64)); // EX_USAGE The command was used incorrectly
         }
 
-        return $run(Console::of($env, $arguments, $options))->environment();
+        return $command(Console::of($env, $arguments, $options))->map(
+            static fn($console) => $console->environment(),
+        );
     }
 
     /**
-     * @param callable(Str): Environment $write
+     * @param callable(Str): Attempt<Environment> $write
+     *
+     * @return Attempt<Environment>
      */
-    private function displayUsage(
+    private static function displayUsage(
         callable $write,
         string $bin,
-        Specification $spec,
-    ): Environment {
-        $description = Str::of($spec->shortDescription())
-            ->append("\n\n")
-            ->append($spec->description())
-            ->trim();
-
-        if (!$description->empty()) {
-            $description = $description->prepend("\n\n");
-        }
-
+        Usage $usage,
+    ): Attempt {
         return $write(
             Str::of('usage: ')
                 ->append($bin)
                 ->append(' ')
-                ->append($spec->toString())
-                ->append($description->toString())
+                ->append($usage->toString())
                 ->append("\n"),
         );
     }
 
     /**
-     * @param Sequence<Specification> $specifications
+     * @param Sequence<Usage> $usages
+     *
+     * @return Attempt<Environment>
      */
-    private function displayHelp(
+    private static function displayHelp(
         Environment $env,
         bool $error,
-        Sequence $specifications,
-    ): Environment {
-        $names = $specifications->map(
-            static fn($spec) => Str::of($spec->name()),
+        Sequence $usages,
+    ): Attempt {
+        $names = $usages->map(
+            static fn($usage) => Str::of($usage->name()),
         );
         $lengths = $names
             ->map(static fn($name) => $name->length())
             ->toList();
-        /** @var positive-int */
-        $maxLength = \max(...$lengths);
 
-        $rows = $specifications->map(
-            static fn($spec) => Str::of(' ')
-                ->append(Str::of($spec->name())->rightPad($maxLength)->toString())
+        if (\count($lengths) === 0) {
+            return Attempt::result($env);
+        }
+
+        /** @var positive-int */
+        $maxLength = \max($lengths);
+
+        $rows = $usages->map(
+            static fn($usage) => Str::of(' ')
+                ->append(Str::of($usage->name())->rightPad($maxLength)->toString())
                 ->append('  ')
-                ->append($spec->shortDescription())
+                ->append($usage->shortDescription())
                 ->append("\n"),
         );
 
         if ($error) {
-            return $rows->reduce(
-                $env,
-                static fn(Environment $env, $row) => $env->error($row),
-            );
+            return $rows
+                ->sink($env)
+                ->attempt(static fn($env, $row) => $env->error($row));
         }
 
-        return $rows->reduce(
-            $env,
-            static fn(Environment $env, $row) => $env->output($row),
-        );
+        return $rows
+            ->sink($env)
+            ->attempt(static fn($env, $row) => $env->output($row));
     }
 }

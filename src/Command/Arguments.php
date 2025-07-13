@@ -20,10 +20,11 @@ final class Arguments
     private Sequence $pack;
 
     /**
+     * @internal
      * @param Map<string, string> $arguments
      * @param Sequence<string> $pack
      */
-    public function __construct(Map $arguments = null, Sequence $pack = null)
+    public function __construct(?Map $arguments = null, ?Sequence $pack = null)
     {
         $this->arguments = $arguments ?? Map::of();
         $this->pack = $pack ?? Sequence::strings();

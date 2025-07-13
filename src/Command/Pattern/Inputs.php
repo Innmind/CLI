@@ -3,10 +3,14 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Command\Pattern;
 
-use Innmind\CLI\Exception\PatternNotRecognized;
+use Innmind\CLI\{
+    Command\Usage,
+    Exception\PatternNotRecognized,
+};
 use Innmind\Immutable\{
+    Attempt,
     Str,
-    Maybe,
+    Sequence,
 };
 
 /**
@@ -15,33 +19,36 @@ use Innmind\Immutable\{
  */
 final class Inputs
 {
-    /** list<class-string<Input>> */
-    private array $inputs;
+    /** @var Sequence<class-string<Input>> */
+    private Sequence $inputs;
 
     public function __construct()
     {
-        $this->inputs = [
+        $this->inputs = Sequence::of(
             RequiredArgument::class,
             OptionalArgument::class,
             PackArgument::class,
             OptionFlag::class,
             OptionWithValue::class,
-        ];
+        );
     }
 
-    public function __invoke(Str $pattern): Input
+    /**
+     * @return Attempt<Usage>
+     */
+    public function __invoke(Usage $usage, Str $pattern): Attempt
     {
-        /** @var Maybe<Input> */
-        $parsed = Maybe::nothing();
+        $parsed = $this
+            ->inputs
+            ->sink($usage)
+            ->until(static fn($usage, $input, $continuation) => $input::walk($usage, $pattern)->match(
+                static fn($usage) => $continuation->stop($usage),
+                static fn() => $continuation->continue($usage),
+            ));
 
-        /** @var class-string<Input> $input */
-        foreach ($this->inputs as $input) {
-            $parsed = $parsed->otherwise(static fn() => $input::of($pattern));
-        }
-
-        return $parsed->match(
-            static fn($input) => $input,
-            static fn() => throw new PatternNotRecognized($pattern->toString()),
-        );
+        return match ($parsed) {
+            $usage => Attempt::error(new PatternNotRecognized($pattern->toString())),
+            default => Attempt::result($parsed),
+        };
     }
 }

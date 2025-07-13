@@ -5,7 +5,7 @@ namespace Tests\Innmind\CLI\Command;
 
 use Innmind\CLI\Command\Options;
 use Innmind\Immutable\Map;
-use PHPUnit\Framework\TestCase;
+use Innmind\BlackBox\PHPUnit\Framework\TestCase;
 
 class OptionsTest extends TestCase
 {

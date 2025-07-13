@@ -1,5 +1,49 @@
 # Changelog
 
+## 4.0.0 - 2025-07-13
+
+### Added
+
+- `Innmind\CLI\Command\Usage`
+- `Innmind\CLI\Command\Name`
+- `Innmind\CLI\Commands::for()`
+
+### Changed
+
+- Requires `innmind/immutable:~5.16`
+- Requires `innmind/operating-system:~6.0`
+- `Innmind\CLI\Environment::read()` now return the read data in an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Console::read()` now return the read data in an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Console::output()` now return an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Console::error()` now return an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Environment::output()` now return an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Environment::error()` now return an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Question\Question` now return the read data in an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Question\ChoiceQuestion` now return the read data in an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Question\Question` now return an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Question\ChoiceQuestion` now return an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Commands` now return an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Command` now return an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Main::main()` now return an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Command::usage()` now return a `Usage`
+- `Innmind\CLI\Command\Arguments` constructor is now declared internal
+- `Innmind\CLI\Command\Options` constructor is now declared internal
+- `Innmind\CLI\Environment\ExitCode` constructor is now declared internal
+- `Innmind\CLI\Question\Question` constructor is now private, use `::of()` instead
+- `Innmind\CLI\Question\ChoiceQuestion` constructor is now private, use `::of()` instead
+
+### Removed
+
+- `Innmind\CLI\Exception\NoRequiredArgumentAllowedAfterAnOptionalOne`
+- `Innmind\CLI\Exception\OnlyOnePackArgumentAllowed`
+- `Innmind\CLI\Exception\PackArgumentMustBeTheLastOne`
+- `Innmind\CLI\Exception\EmptyDeclaration`
+
+### Fixed
+
+- PHP `8.4` deprecations
+- Using a deprecated method to parse options
+
 ## 3.6.0 - 2024-03-10
 
 ### Added

@@ -16,17 +16,19 @@ use Innmind\StackTrace\{
 use Innmind\Immutable\{
     Sequence,
     Str,
+    Attempt,
 };
 
 abstract class Main
 {
-    final public function __construct(Config $config = null)
+    final public function __construct(?Config $config = null)
     {
+        $config ??= Config::new();
         $os = Factory::build($config);
-        $env = Environment\GlobalEnvironment::of($os->sockets());
+        $env = Environment\GlobalEnvironment::of($config->io());
 
         try {
-            $env = $this->main($env, $os);
+            $env = $this->main($env, $os)->unwrap();
         } catch (\Throwable $e) {
             $env = $this
                 ->print($e, $env)
@@ -44,27 +46,33 @@ abstract class Main
         //main() is the only place to run code
     }
 
-    abstract protected function main(Environment $env, OperatingSystem $os): Environment;
+    /**
+     * @return Attempt<Environment>
+     */
+    abstract protected function main(Environment $env, OperatingSystem $os): Attempt;
 
     private function print(\Throwable $e, Environment $env): Environment
     {
         $stack = StackTrace::of($e);
 
         /** @var Sequence<Str> */
-        $chunks = $stack->previous()->reduce(
-            $this->renderError($stack->throwable()),
-            function(Sequence $lines, Throwable $e): Sequence {
-                return $lines
-                    ->add(Str::of(''))
-                    ->add(Str::of('Caused by'))
-                    ->add(Str::of(''))
-                    ->append($this->renderError($e));
-            },
-        );
+        $chunks = $this
+            ->renderError($stack->throwable())
+            ->append(
+                $stack
+                    ->previous()
+                    ->flatMap(
+                        fn($e) => $this
+                            ->renderError($e)
+                            ->prepend(
+                                Sequence::of('', 'Caused by', '')->map(Str::of(...)),
+                            ),
+                    ),
+            );
 
         return $chunks->reduce(
             $env,
-            static fn(Environment $env, Str $line) => $env->error($line->append("\n")),
+            static fn(Environment $env, Str $line) => $env->error($line->append("\n"))->unwrap(),
         );
     }
 
@@ -89,12 +97,8 @@ abstract class Main
         /** @var Sequence<Str> */
         return $e
             ->callFrames()
-            ->reduce(
-                $lines,
-                function(Sequence $lines, CallFrame $frame): Sequence {
-                    return $lines->add($this->renderCallFrame($frame));
-                },
-            );
+            ->map($this->renderCallFrame(...))
+            ->prepend($lines);
     }
 
     private function renderCallFrame(CallFrame $frame): Str

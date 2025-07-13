@@ -4,11 +4,11 @@ declare(strict_types = 1);
 namespace Innmind\CLI\Environment;
 
 use Innmind\CLI\Environment;
-use Innmind\OperatingSystem\Sockets;
-use Innmind\TimeContinuum\Earth\ElapsedPeriod;
-use Innmind\Stream\{
-    Readable,
-    Writable,
+use Innmind\TimeContinuum\Period;
+use Innmind\IO\{
+    IO,
+    Streams\Stream\Read,
+    Frame,
 };
 use Innmind\Url\Path;
 use Innmind\Immutable\{
@@ -16,6 +16,7 @@ use Innmind\Immutable\{
     Map,
     Str,
     Maybe,
+    Attempt,
 };
 
 /**
@@ -23,21 +24,6 @@ use Innmind\Immutable\{
  */
 final class GlobalEnvironment implements Environment
 {
-    private bool $interactive;
-    private Readable\NonBlocking $input;
-    /** @var Output<'stdout'> */
-    private Output $output;
-    /** @var Output<'stderr'> */
-    private Output $error;
-    private Sockets $sockets;
-    /** @var Sequence<string> */
-    private Sequence $arguments;
-    /** @var Map<string, string> */
-    private Map $variables;
-    /** @var Maybe<ExitCode> */
-    private Maybe $exitCode;
-    private Path $workingDirectory;
-
     /**
      * @param Output<'stdout'> $output
      * @param Output<'stderr'> $error
@@ -46,28 +32,18 @@ final class GlobalEnvironment implements Environment
      * @param Maybe<ExitCode> $exitCode
      */
     private function __construct(
-        Sockets $sockets,
-        Readable\NonBlocking $input,
-        Output $output,
-        Output $error,
-        bool $interactive,
-        Sequence $arguments,
-        Map $variables,
-        Maybe $exitCode,
-        Path $workingDirectory,
+        private Read $input,
+        private Output $output,
+        private Output $error,
+        private bool $interactive,
+        private Sequence $arguments,
+        private Map $variables,
+        private Maybe $exitCode,
+        private Path $workingDirectory,
     ) {
-        $this->interactive = $interactive;
-        $this->input = $input;
-        $this->output = $output;
-        $this->error = $error;
-        $this->sockets = $sockets;
-        $this->arguments = $arguments;
-        $this->variables = $variables;
-        $this->exitCode = $exitCode;
-        $this->workingDirectory = $workingDirectory;
     }
 
-    public static function of(Sockets $sockets): self
+    public static function of(IO $io): self
     {
         /**
          * @psalm-suppress PossiblyUndefinedArrayOffset
@@ -86,93 +62,102 @@ final class GlobalEnvironment implements Environment
         $exitCode = Maybe::nothing();
 
         return new self(
-            $sockets,
-            Readable\NonBlocking::of(
-                Readable\Stream::of(\STDIN),
+            $io
+                ->streams()
+                ->acquire(\STDIN)
+                ->read()
+                ->nonBlocking()
+                ->toEncoding(Str\Encoding::ascii)
+                ->timeoutAfter(Period::minute(1)),
+            Output::stdout(
+                $io
+                    ->streams()
+                    ->acquire(\fopen('php://output', 'w') ?: throw new \RuntimeException('Unable to open stream'))
+                    ->write(),
             ),
-            Output::stdout(Writable\Stream::of(\fopen('php://output', 'w'))),
-            Output::stderr(Writable\Stream::of(\fopen('php://stderr', 'w'))),
+            Output::stderr(
+                $io
+                    ->streams()
+                    ->acquire(\fopen('php://stderr', 'w') ?: throw new \RuntimeException('Unable to open stream'))
+                    ->write(),
+            ),
             \stream_isatty(\STDIN),
             Sequence::strings(...$argv),
             $variables,
             $exitCode,
-            Path::of(\getcwd().'/'),
+            Path::of((string) \getcwd().'/'),
         );
     }
 
+    #[\Override]
     public function interactive(): bool
     {
         return $this->interactive;
     }
 
-    public function read(int $length = null): array
+    #[\Override]
+    public function read(?int $length = null): array
     {
         /** @psalm-suppress ImpureMethodCall */
-        $watch = $this
-            ->sockets
-            ->watch(new ElapsedPeriod(60_000)) // one minute
-            ->forRead($this->input);
-
-        /**
-         * @psalm-suppress ImpureMethodCall
-         * @psalm-suppress InvalidArgument
-         */
-        $data = $watch()
-            ->flatMap(fn($ready) => $ready->toRead()->find(
-                fn($stream) => $stream === $this->input,
-            ))
-            ->filter(static fn(Readable $input) => !$input->end())
-            ->flatMap(static fn(Readable $input) => $input->read($length))
-            ->map(static fn($data) => $data->toEncoding(Str\Encoding::ascii));
-
-        /** @var array{Maybe<Str>, Environment} */
-        return [$data, $this];
+        return [
+            $this
+                ->input
+                ->frames(Frame::chunk($length ?? 8192)->loose())
+                ->one(),
+            $this,
+        ];
     }
 
-    public function output(Str $data): self
+    #[\Override]
+    public function output(Str $data): Attempt
     {
-        return new self(
-            $this->sockets,
-            $this->input,
-            ($this->output)($data),
-            $this->error,
-            $this->interactive,
-            $this->arguments,
-            $this->variables,
-            $this->exitCode,
-            $this->workingDirectory,
+        return ($this->output)($data)->map(
+            fn($output) => new self(
+                $this->input,
+                $output,
+                $this->error,
+                $this->interactive,
+                $this->arguments,
+                $this->variables,
+                $this->exitCode,
+                $this->workingDirectory,
+            ),
         );
     }
 
-    public function error(Str $data): self
+    #[\Override]
+    public function error(Str $data): Attempt
     {
-        return new self(
-            $this->sockets,
-            $this->input,
-            $this->output,
-            ($this->error)($data),
-            $this->interactive,
-            $this->arguments,
-            $this->variables,
-            $this->exitCode,
-            $this->workingDirectory,
+        return ($this->error)($data)->map(
+            fn($error) => new self(
+                $this->input,
+                $this->output,
+                $error,
+                $this->interactive,
+                $this->arguments,
+                $this->variables,
+                $this->exitCode,
+                $this->workingDirectory,
+            ),
         );
     }
 
+    #[\Override]
     public function arguments(): Sequence
     {
         return $this->arguments;
     }
 
+    #[\Override]
     public function variables(): Map
     {
         return $this->variables;
     }
 
+    #[\Override]
     public function exit(int $code): self
     {
         return new self(
-            $this->sockets,
             $this->input,
             $this->output,
             $this->error,
@@ -184,11 +169,13 @@ final class GlobalEnvironment implements Environment
         );
     }
 
+    #[\Override]
     public function exitCode(): Maybe
     {
         return $this->exitCode;
     }
 
+    #[\Override]
     public function workingDirectory(): Path
     {
         return $this->workingDirectory;

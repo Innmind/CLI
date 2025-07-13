@@ -6,17 +6,36 @@ namespace Tests\Innmind\CLI;
 use Innmind\CLI\{
     Commands,
     Command,
+    Command\Usage,
     Environment,
     Console,
 };
-use PHPUnit\Framework\TestCase;
+use Innmind\Immutable\{
+    Attempt,
+    Sequence,
+};
+use Innmind\BlackBox\PHPUnit\Framework\TestCase;
+
+#[Command\Name('foo')]
+final class Foo implements Command
+{
+    public function __invoke(Console $console): Attempt
+    {
+        return Attempt::result($console->exit(42));
+    }
+
+    public function usage(): Usage
+    {
+        return Usage::for(self::class);
+    }
+}
 
 class CommandsTest extends TestCase
 {
     public function testRunSingleCommand()
     {
         $run = Commands::of(new class implements Command {
-            public function __invoke(Console $console): Console
+            public function __invoke(Console $console): Attempt
             {
                 if (
                     !$console->arguments()->contains('container') ||
@@ -25,15 +44,15 @@ class CommandsTest extends TestCase
                     $console->arguments()->get('output') !== 'bar' ||
                     !$console->options()->contains('foo')
                 ) {
-                    throw new \Exception;
+                    return Attempt::error(new \Exception);
                 }
 
-                return $console->exit(42);
+                return Attempt::result($console->exit(42));
             }
 
-            public function usage(): string
+            public function usage(): Usage
             {
-                return 'watch container [output] --foo';
+                return Usage::parse('watch container [output] --foo');
             }
         });
         $env = Environment\InMemory::of(
@@ -44,7 +63,7 @@ class CommandsTest extends TestCase
             '/',
         );
 
-        $this->assertSame(42, $run($env)->exitCode()->match(
+        $this->assertSame(42, $run($env)->unwrap()->exitCode()->match(
             static fn($code) => $code->toInt(),
             static fn() => null,
         ));
@@ -54,18 +73,18 @@ class CommandsTest extends TestCase
     {
         $run = Commands::of(
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(42);
+                    return Attempt::result($console->exit(42));
                 }
 
-                public function usage(): string
+                public function usage(): Usage
                 {
-                    return 'foo';
+                    return Usage::parse('foo');
                 }
             },
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
                     if (
                         !$console->arguments()->contains('container') ||
@@ -74,15 +93,15 @@ class CommandsTest extends TestCase
                         $console->arguments()->get('output') !== 'bar' ||
                         !$console->options()->contains('foo')
                     ) {
-                        throw new \Exception;
+                        return Attempt::error(new \Exception);
                     }
 
-                    return $console->exit(24);
+                    return Attempt::result($console->exit(24));
                 }
 
-                public function usage(): string
+                public function usage(): Usage
                 {
-                    return 'watch container [output] --foo';
+                    return Usage::parse('watch container [output] --foo');
                 }
             },
         );
@@ -94,7 +113,47 @@ class CommandsTest extends TestCase
             '/',
         );
 
-        $this->assertSame(24, $run($env)->exitCode()->match(
+        $this->assertSame(24, $run($env)->unwrap()->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+    }
+
+    public function testRunCommandByNameSpecifiedAsAttribute()
+    {
+        $run = Commands::of(
+            new Foo,
+            new class implements Command {
+                public function __invoke(Console $console): Attempt
+                {
+                    if (
+                        !$console->arguments()->contains('container') ||
+                        $console->arguments()->get('container') !== 'foo' ||
+                        !$console->arguments()->contains('output') ||
+                        $console->arguments()->get('output') !== 'bar' ||
+                        !$console->options()->contains('foo')
+                    ) {
+                        return Attempt::error(new \Exception);
+                    }
+
+                    return Attempt::result($console->exit(24));
+                }
+
+                public function usage(): Usage
+                {
+                    return Usage::parse('watch container [output] --foo');
+                }
+            },
+        );
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'watch', 'foo', '--foo', 'bar'],
+            [],
+            '/',
+        );
+
+        $this->assertSame(24, $run($env)->unwrap()->exitCode()->match(
             static fn($code) => $code->toInt(),
             static fn() => null,
         ));
@@ -104,25 +163,25 @@ class CommandsTest extends TestCase
     {
         $run = Commands::of(
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(42);
+                    return Attempt::result($console->exit(42));
                 }
 
-                public function usage(): string
+                public function usage(): Usage
                 {
-                    return 'foo';
+                    return Usage::parse('foo');
                 }
             },
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(24);
+                    return Attempt::result($console->exit(24));
                 }
 
-                public function usage(): string
+                public function usage(): Usage
                 {
-                    return 'foobar';
+                    return Usage::parse('foobar');
                 }
             },
         );
@@ -134,7 +193,7 @@ class CommandsTest extends TestCase
             '/',
         );
 
-        $this->assertSame(42, $run($env)->exitCode()->match(
+        $this->assertSame(42, $run($env)->unwrap()->exitCode()->match(
             static fn($code) => $code->toInt(),
             static fn() => null,
         ));
@@ -144,25 +203,25 @@ class CommandsTest extends TestCase
     {
         $run = Commands::of(
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(42);
+                    return Attempt::result($console->exit(42));
                 }
 
-                public function usage(): string
+                public function usage(): Usage
                 {
-                    return 'foo';
+                    return Usage::parse('foo');
                 }
             },
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(24);
+                    return Attempt::result($console->exit(24));
                 }
 
-                public function usage(): string
+                public function usage(): Usage
                 {
-                    return 'watch';
+                    return Usage::parse('watch');
                 }
             },
         );
@@ -174,7 +233,7 @@ class CommandsTest extends TestCase
             '/',
         );
 
-        $this->assertSame(24, $run($env)->exitCode()->match(
+        $this->assertSame(24, $run($env)->unwrap()->exitCode()->match(
             static fn($code) => $code->toInt(),
             static fn() => null,
         ));
@@ -184,25 +243,25 @@ class CommandsTest extends TestCase
     {
         $run = Commands::of(
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(42);
+                    return Attempt::result($console->exit(42));
                 }
 
-                public function usage(): string
+                public function usage(): Usage
                 {
-                    return 'foo:bar:baz';
+                    return Usage::parse('foo:bar:baz');
                 }
             },
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(24);
+                    return Attempt::result($console->exit(24));
                 }
 
-                public function usage(): string
+                public function usage(): Usage
                 {
-                    return 'watch';
+                    return Usage::parse('watch');
                 }
             },
         );
@@ -214,7 +273,7 @@ class CommandsTest extends TestCase
             '/',
         );
 
-        $this->assertSame(42, $run($env)->exitCode()->match(
+        $this->assertSame(42, $run($env)->unwrap()->exitCode()->match(
             static fn($code) => $code->toInt(),
             static fn() => null,
         ));
@@ -224,25 +283,25 @@ class CommandsTest extends TestCase
     {
         $run = Commands::of(
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(42);
+                    return Attempt::result($console->exit(42));
                 }
 
-                public function usage(): string
+                public function usage(): Usage
                 {
-                    return 'foo';
+                    return Usage::parse('foo');
                 }
             },
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(24);
+                    return Attempt::result($console->exit(24));
                 }
 
-                public function usage(): string
+                public function usage(): Usage
                 {
-                    return 'watch container [output] --foo';
+                    return Usage::parse('watch container [output] --foo');
                 }
             },
         );
@@ -254,7 +313,7 @@ class CommandsTest extends TestCase
             '/',
         );
 
-        $env = $run($env);
+        $env = $run($env)->unwrap();
 
         $this->assertSame(64, $env->exitCode()->match(
             static fn($code) => $code->toInt(),
@@ -273,25 +332,25 @@ class CommandsTest extends TestCase
     {
         $run = Commands::of(
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(42);
+                    return Attempt::result($console->exit(42));
                 }
 
-                public function usage(): string
+                public function usage(): Usage
                 {
-                    return 'bar';
+                    return Usage::parse('bar');
                 }
             },
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(24);
+                    return Attempt::result($console->exit(24));
                 }
 
-                public function usage(): string
+                public function usage(): Usage
                 {
-                    return 'baz';
+                    return Usage::parse('baz');
                 }
             },
         );
@@ -303,7 +362,7 @@ class CommandsTest extends TestCase
             '/',
         );
 
-        $env = $run($env);
+        $env = $run($env)->unwrap();
 
         $this->assertSame(64, $env->exitCode()->match(
             static fn($code) => $code->toInt(),
@@ -321,20 +380,20 @@ class CommandsTest extends TestCase
     public function testExitWhenCommandMisused()
     {
         $run = Commands::of(new class implements Command {
-            public function __invoke(Console $console): Console
+            public function __invoke(Console $console): Attempt
             {
-                return $console->exit(42);
+                return Attempt::result($console->exit(42));
             }
 
-            public function usage(): string
+            public function usage(): Usage
             {
-                return <<<USAGE
+                return Usage::parse(<<<USAGE
 watch container [output] --foo
 
 Foo
 
 Bar
-USAGE;
+USAGE);
             }
         });
         $env = Environment\InMemory::of(
@@ -345,7 +404,7 @@ USAGE;
             '/',
         );
 
-        $env = $run($env);
+        $env = $run($env)->unwrap();
 
         $this->assertSame(64, $env->exitCode()->match(
             static fn($code) => $code->toInt(),
@@ -360,14 +419,14 @@ USAGE;
     public function testEnvNotTemperedWhenCommandThrows()
     {
         $run = Commands::of(new class implements Command {
-            public function __invoke(Console $console): Console
+            public function __invoke(Console $console): Attempt
             {
-                throw new \Exception;
+                return Attempt::error(new \Exception);
             }
 
-            public function usage(): string
+            public function usage(): Usage
             {
-                return 'watch container [output] --foo';
+                return Usage::parse('watch container [output] --foo');
             }
         });
         $env = Environment\InMemory::of(
@@ -380,26 +439,26 @@ USAGE;
 
         $this->expectException(\Exception::class);
 
-        $run($env);
+        $run($env)->unwrap();
     }
 
     public function testDisplayUsageWhenHelpOptionFound()
     {
         $run = Commands::of(new class implements Command {
-            public function __invoke(Console $console): Console
+            public function __invoke(Console $console): Attempt
             {
-                return $console->exit(42);
+                return Attempt::result($console->exit(42));
             }
 
-            public function usage(): string
+            public function usage(): Usage
             {
-                return <<<USAGE
+                return Usage::parse(<<<USAGE
 watch container [output] --foo
 
 Foo
 
 Bar
-USAGE;
+USAGE);
             }
         });
         $env = Environment\InMemory::of(
@@ -410,7 +469,7 @@ USAGE;
             '/',
         );
 
-        $env = $run($env);
+        $env = $run($env)->unwrap();
 
         $this->assertNull($env->exitCode()->match(
             static fn($code) => $code->toInt(),
@@ -426,25 +485,25 @@ USAGE;
     {
         $run = Commands::of(
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(42);
+                    return Attempt::result($console->exit(42));
                 }
 
-                public function usage(): string
+                public function usage(): Usage
                 {
-                    return 'foo'."\n\n".'Description';
+                    return Usage::parse('foo'."\n\n".'Description');
                 }
             },
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(24);
+                    return Attempt::result($console->exit(24));
                 }
 
-                public function usage(): string
+                public function usage(): Usage
                 {
-                    return 'watch container [output] --foo'."\n\n".'Watch dependency injection';
+                    return Usage::parse('watch container [output] --foo'."\n\n".'Watch dependency injection');
                 }
             },
         );
@@ -456,7 +515,7 @@ USAGE;
             '/',
         );
 
-        $env = $run($env);
+        $env = $run($env)->unwrap();
 
         $this->assertNull($env->exitCode()->match(
             static fn($code) => $code->toInt(),
@@ -475,25 +534,25 @@ USAGE;
     {
         $run = Commands::of(
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(42);
+                    return Attempt::result($console->exit(42));
                 }
 
-                public function usage(): string
+                public function usage(): Usage
                 {
-                    return 'foo';
+                    return Usage::parse('foo');
                 }
             },
             new class implements Command {
-                public function __invoke(Console $console): Console
+                public function __invoke(Console $console): Attempt
                 {
-                    return $console->exit(24);
+                    return Attempt::result($console->exit(24));
                 }
 
-                public function usage(): string
+                public function usage(): Usage
                 {
-                    return 'watch container [output] --foo';
+                    return Usage::parse('watch container [output] --foo');
                 }
             },
         );
@@ -505,7 +564,7 @@ USAGE;
             '/',
         );
 
-        $env = $run($env);
+        $env = $run($env)->unwrap();
 
         $this->assertSame(64, $env->exitCode()->match(
             static fn($code) => $code->toInt(),
@@ -515,5 +574,301 @@ USAGE;
             [" foo    \n", " watch  \n"],
             $env->errors(),
         );
+    }
+
+    public function testUsageForDoesntLoadTheFullUsageWhenCommandIsLoaded()
+    {
+        $run = Commands::of(
+            new class implements Command {
+                public function __invoke(Console $console): Attempt
+                {
+                }
+
+                public function usage(): Usage
+                {
+                    return Usage::for(Foo::class)->load(
+                        static fn() => throw new \Exception,
+                    );
+                }
+            },
+            new class implements Command {
+                public function __invoke(Console $console): Attempt
+                {
+                    return Attempt::result($console->exit(24));
+                }
+
+                public function usage(): Usage
+                {
+                    return Usage::parse('watch container [output] --foo');
+                }
+            },
+        );
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'help'],
+            [],
+            '/',
+        );
+
+        $env = $run($env)->unwrap();
+
+        $this->assertNull($env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+        $this->assertSame(
+            [
+                " foo    \n",
+                " watch  \n",
+            ],
+            $env->outputs(),
+        );
+    }
+
+    public function testLazyLoadCommandUsage()
+    {
+        $run = Commands::of(
+            new class implements Command {
+                public function __invoke(Console $console): Attempt
+                {
+                }
+
+                public function usage(): Usage
+                {
+                    return Usage::for(Foo::class)->load(
+                        static fn() => (new Foo)
+                            ->usage()
+                            ->argument('bar')
+                            ->option('baz')
+                            ->packArguments()
+                            ->withDescription('whatever'),
+                    );
+                }
+            },
+        );
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', '--help'],
+            [],
+            '/',
+        );
+
+        $env = $run($env)->unwrap();
+
+        $this->assertNull($env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+        $this->assertSame(
+            [
+                <<<USAGE
+                usage: bin/console foo bar ...arguments --baz= --help --no-interaction
+
+                whatever
+
+                USAGE,
+            ],
+            $env->outputs(),
+        );
+    }
+
+    public function testDoesntLazyLoadCommandWhenAnExactMatchHasBeenFound()
+    {
+        $loaded = false;
+        $run = Commands::for(Sequence::lazy(static function() use (&$loaded) {
+            yield new class implements Command {
+                public function __invoke(Console $console): Attempt
+                {
+                    return Attempt::result($console->exit(42));
+                }
+
+                public function usage(): Usage
+                {
+                    return Usage::of('first');
+                }
+            };
+            yield new class implements Command {
+                public function __invoke(Console $console): Attempt
+                {
+                    return Attempt::result($console->exit(24));
+                }
+
+                public function usage(): Usage
+                {
+                    return Usage::of('watch');
+                }
+            };
+            $loaded = true;
+            yield new class implements Command {
+                public function __invoke(Console $console): Attempt
+                {
+                    return Attempt::result($console->exit(42));
+                }
+
+                public function usage(): Usage
+                {
+                    return Usage::of('last');
+                }
+            };
+        }));
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'watch', 'foo', '--foo', 'bar'],
+            [],
+            '/',
+        );
+
+        $this->assertFalse($loaded);
+        $this->assertSame(24, $run($env)->unwrap()->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+    }
+
+    public function testLazyLoadedCommandsAreLoadedOnceWhenSomeMatchesCommandName()
+    {
+        $loaded = 0;
+        $run = Commands::for(Sequence::lazy(static function() use (&$loaded) {
+            yield new class($loaded) implements Command {
+                public function __construct(private &$loaded)
+                {
+                }
+
+                public function __invoke(Console $console): Attempt
+                {
+                    return Attempt::result($console->exit(42));
+                }
+
+                public function usage(): Usage
+                {
+                    ++$this->loaded;
+
+                    return Usage::of('bar');
+                }
+            };
+            yield new class($loaded) implements Command {
+                public function __construct(private &$loaded)
+                {
+                }
+
+                public function __invoke(Console $console): Attempt
+                {
+                    return Attempt::result($console->exit(24));
+                }
+
+                public function usage(): Usage
+                {
+                    ++$this->loaded;
+
+                    return Usage::of('foo');
+                }
+            };
+            yield new class($loaded) implements Command {
+                public function __construct(private &$loaded)
+                {
+                }
+
+                public function __invoke(Console $console): Attempt
+                {
+                    return Attempt::result($console->exit(42));
+                }
+
+                public function usage(): Usage
+                {
+                    ++$this->loaded;
+
+                    return Usage::of('baz');
+                }
+            };
+        }));
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'ba'],
+            [],
+            '/',
+        );
+
+        $env = $run($env)->unwrap();
+        $this->assertSame(3, $loaded);
+        $this->assertSame(64, $env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+    }
+
+    public function testLazyLoadedCommandsAreLoadedOnceWhenNoneMatchesCommandName()
+    {
+        $loaded = 0;
+        $run = Commands::for(Sequence::lazy(static function() use (&$loaded) {
+            yield new class($loaded) implements Command {
+                public function __construct(private &$loaded)
+                {
+                }
+
+                public function __invoke(Console $console): Attempt
+                {
+                    return Attempt::result($console->exit(42));
+                }
+
+                public function usage(): Usage
+                {
+                    ++$this->loaded;
+
+                    return Usage::of('bar');
+                }
+            };
+            yield new class($loaded) implements Command {
+                public function __construct(private &$loaded)
+                {
+                }
+
+                public function __invoke(Console $console): Attempt
+                {
+                    return Attempt::result($console->exit(24));
+                }
+
+                public function usage(): Usage
+                {
+                    ++$this->loaded;
+
+                    return Usage::of('foo');
+                }
+            };
+            yield new class($loaded) implements Command {
+                public function __construct(private &$loaded)
+                {
+                }
+
+                public function __invoke(Console $console): Attempt
+                {
+                    return Attempt::result($console->exit(42));
+                }
+
+                public function usage(): Usage
+                {
+                    ++$this->loaded;
+
+                    return Usage::of('baz');
+                }
+            };
+        }));
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'unknown'],
+            [],
+            '/',
+        );
+
+        $env = $run($env)->unwrap();
+        $this->assertSame(3, $loaded);
+        $this->assertSame(64, $env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
     }
 }

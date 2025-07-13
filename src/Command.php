@@ -3,12 +3,18 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI;
 
+use Innmind\CLI\Command\Usage;
+use Innmind\Immutable\Attempt;
+
 interface Command
 {
-    public function __invoke(Console $console): Console;
+    /**
+     * @return Attempt<Console>
+     */
+    public function __invoke(Console $console): Attempt;
 
     /**
      * @psalm-mutation-free
      */
-    public function usage(): string;
+    public function usage(): Usage;
 }

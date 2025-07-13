@@ -3,43 +3,61 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Command\Pattern;
 
+use Innmind\CLI\Command\Usage;
+use Innmind\Validation\Is;
 use Innmind\Immutable\{
     Str,
     Sequence,
     Map,
     Maybe,
+    Identity,
+    Predicate\Instance,
 };
 
 /**
  * @psalm-immutable
  * @internal
  */
-final class OptionWithValue implements Input, Option
+final class OptionWithValue implements Input
 {
     private const PATTERN = '~^(?<short>-[a-zA-Z0-9]\|)?(?<name>--[a-zA-Z0-9\-]+)=$~';
 
-    private string $name;
-    private ?string $short;
-    private string $pattern;
+    /**
+     * @param non-empty-string $name
+     * @param ?non-empty-string $short
+     */
+    private function __construct(
+        private string $name,
+        private ?string $short,
+    ) {
+    }
 
-    private function __construct(string $name, ?string $short)
+    /**
+     * @psalm-pure
+     *
+     * @param non-empty-string $name
+     * @param ?non-empty-string $short
+     */
+    public static function named(string $name, ?string $short = null): self
     {
-        $this->name = $name;
-        $this->short = $short;
-
-        if (!\is_string($short)) {
-            $this->pattern = '~^--'.$name.'=~';
-        } else {
-            $this->pattern = \sprintf(
-                '~^-%s=?|--%s=~',
-                $short,
-                $this->name,
-            );
-        }
+        return new self($name, $short);
     }
 
     /**
      * @psalm-immutable
+     */
+    #[\Override]
+    public static function walk(Usage $usage, Str $pattern): Maybe
+    {
+        return self::of($pattern)->map(
+            static fn($self) => $usage->option($self->name, $self->short),
+        );
+    }
+
+    /**
+     * @psalm-immutable
+     *
+     * @return Maybe<self>
      */
     public static function of(Str $pattern): Maybe
     {
@@ -48,29 +66,46 @@ final class OptionWithValue implements Input, Option
             ->get('short')
             ->filter(static fn($short) => !$short->empty())
             ->map(static fn($short) => $short->drop(1)->dropEnd(1)->toString())
+            ->keep(Is::string()->nonEmpty()->asPredicate())
             ->match(
                 static fn($short) => $short,
                 static fn() => null,
             );
 
-        /** @var Maybe<Input> */
         return $parts
             ->get('name')
             ->map(static fn($name) => $name->drop(2)->toString())
+            ->keep(Is::string()->nonEmpty()->asPredicate())
             ->map(static fn($name) => new self($name, $short));
     }
 
+    /**
+     * @param Sequence<string> $arguments
+     * @param Map<string, string> $options
+     *
+     * @return array{
+     *     Sequence<string>,
+     *     Map<string, string>,
+     * }
+     */
     public function parse(
         Sequence $arguments,
-        Map $parsedArguments,
-        Sequence $pack,
         Map $options,
     ): array {
-        $value = $arguments->find(
-            fn($argument) => Str::of($argument)->matches($this->pattern),
-        );
-        /** @psalm-suppress ArgumentTypeCoercion */
-        [$arguments, $options] = $value
+        if (!\is_string($this->short)) {
+            $pattern = '~^--'.$this->name.'=~';
+        } else {
+            $pattern = \sprintf(
+                '~^-%s=?|--%s=~',
+                $this->short,
+                $this->name,
+            );
+        }
+
+        return $arguments
+            ->find(
+                static fn($argument) => Str::of($argument)->matches($pattern),
+            )
             ->map(
                 static fn($flag) => Str::of($flag)
                     ->split('=')
@@ -79,29 +114,38 @@ final class OptionWithValue implements Input, Option
             ->map(fn($parts) => match ($parts->size()) {
                 0 => [$arguments, $options], // this case should not happen
                 1 => $arguments // this case means the value is in the _next_ argument
-                    ->indexOf(Str::of('=')->join($parts)->toString())
+                    ->aggregate(
+                        static fn(string|Identity $a, $b) => match (true) {
+                            $a instanceof Identity => Sequence::of($a, $b),
+                            Str::of('=')->join($parts)->toString() === $a => Sequence::of(Identity::of($b)),
+                            default => Sequence::of($a, $b),
+                        },
+                    )
+                    ->toIdentity()
                     ->map(
-                        fn($index) => $arguments
-                            ->get($index + 1)
+                        fn($arguments) => $arguments
+                            ->find(static fn($value) => $value instanceof Identity)
+                            ->keep(Instance::of(Identity::class))
+                            ->map(static fn($value): mixed => $value->unwrap())
+                            ->keep(Is::string()->asPredicate())
                             ->map(fn($value) => [
-                                $arguments->take($index)->append($arguments->drop($index + 2)),
+                                $arguments->keep(Is::string()->asPredicate()),
                                 ($options)($this->name, $value),
                             ])
                             ->match(
                                 static fn($found) => $found,
                                 fn() => [ // if there is no _next_ argument
-                                    $arguments->take($index),
+                                    $arguments
+                                        ->keep(Is::string()->asPredicate())
+                                        ->dropEnd(1),
                                     ($options)($this->name, ''), // if there is no next argument then empty string to be coherent with the annotation -{option}={value}
                                 ],
                             ),
                     )
-                    ->match(
-                        static fn($found) => $found,
-                        static fn() => [$arguments, $options], // this case should not happen
-                    ),
+                    ->unwrap(),
                 default => [ // means it's of the form -{option}={value}
                     $arguments->filter(
-                        fn($argument) => !Str::of($argument)->matches($this->pattern),
+                        static fn($argument) => !Str::of($argument)->matches($pattern),
                     ),
                     ($options)(
                         $this->name,
@@ -113,8 +157,6 @@ final class OptionWithValue implements Input, Option
                 static fn($found) => $found,
                 static fn() => [$arguments, $options],
             );
-
-        return [$arguments, $parsedArguments, $pack, $options];
     }
 
     public function toString(): string

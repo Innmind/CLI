@@ -6,19 +6,25 @@ Commands are a way to define the arguments and options the user can provide to i
 
 Some tools are so simple that it provides a single command. You can build one like this:
 
-```php
-# Greet.php
+```php title="Greet.php"
 declare(strict_types = 1);
 
 use Innmind\CLI\{
     Command,
+    Command\Usage,
     Console,
 };
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Attempt,
+};
 
 final class Greet implements Command
 {
-    public function __invoke(Console $console): Console
+    /**
+     * @return Attempt<Console>
+     */
+    public function __invoke(Console $console): Attempt
     {
         return $console->output(
             Str::of('Hi ')
@@ -27,15 +33,14 @@ final class Greet implements Command
         );
     }
 
-    public function usage(): string
+    public function usage(): Usage
     {
-        return 'greet name';
+        return Usage::of('greet')->argument('name');
     }
 }
 ```
 
-```php
-# cli.php
+```php title="cli.php"
 declare(strict_types = 1);
 
 require 'path/to/composer/autoload.php';
@@ -46,9 +51,13 @@ use Innmind\CLI\{
     Commands,
 };
 use Innmind\OperatingSystem\OperatingSystem;
+use Innmind\Immutable\Attempt;
 
 new class extends Main {
-    protected function main(Environment $env, OperatingSystem $os): Environment
+    /**
+     * @return Attempt<Environment>
+     */
+    protected function main(Environment $env, OperatingSystem $os): Attempt
     {
         $run = Commands::of(new Greet);
 
@@ -63,8 +72,7 @@ You can run this with `php cli.php greet Bob` and it will print `Hi Bob`. And si
 
 For more complex tools you'll want to provide mutiple commands to the user. The process is the same as the example above but you only need to provide multiple commands to the `Commands` object like so:
 
-```php
-# cli.php
+```php title="cli.php"
 declare(strict_types = 1);
 
 require 'path/to/composer/autoload.php';
@@ -75,9 +83,13 @@ use Innmind\CLI\{
     Commands,
 };
 use Innmind\OperatingSystem\OperatingSystem;
+use Innmind\Immutable\Attempt;
 
 new class extends Main {
-    protected function main(Environment $env, OperatingSystem $os): Environment
+    /**
+     * @return Attempt<Environment>
+     */
+    protected function main(Environment $env, OperatingSystem $os): Attempt
     {
         $run = Commands::of(new Command1, new Command2, new Etc);
 
@@ -90,7 +102,7 @@ In this case however you always need to provide the name of the command you want
 
 ## Declaring a command usage
 
-The `usage` method of a command is the way to declare the name, the arguments/options and the descriptions of the command. It's always formatted like this:
+The `usage` method of a command is the way to declare the name, the arguments/options and the descriptions of the command. When declared via a `string` passed to `Usage::parse()` it's always formatted like this:
 
 ```
 {command-name} {list of arguments and options}
@@ -105,6 +117,7 @@ The short description is displayed when listing all the commands (via `php cli.p
 The long description is displayed when asking for help on a specific command (via `php cli.php command-name --help`).
 
 Here are all the syntax to declare arguments and options:
+
 - `argument-name` in plain text means it's a required argument, access it via `$console->arguments()->get('argument-name')`
 - `[argument-name]` means it's an optional argument, access it via `$console->arguments()->maybe('argument-name')`
 - `...arguments` means it's a variadic argument, you can only declare one as a last argument and access it via `$console->arguments()->pack()`

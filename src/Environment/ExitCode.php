@@ -9,17 +9,13 @@ namespace Innmind\CLI\Environment;
 final class ExitCode
 {
     /**
+     * @internal
+     *
      * 255 is reserved by PHP
-     * @var int<0, 254>
-     */
-    private int $code;
-
-    /**
      * @param int<0, 254> $code
      */
-    public function __construct(int $code)
+    public function __construct(private int $code)
     {
-        $this->code = $code;
     }
 
     /**

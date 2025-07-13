@@ -10,6 +10,7 @@ use Innmind\Immutable\{
     Map,
     Str,
     Maybe,
+    Attempt,
 };
 
 /**
@@ -18,21 +19,6 @@ use Innmind\Immutable\{
  */
 final class InMemory implements Environment
 {
-    /** @var Sequence<Str> */
-    private Sequence $input;
-    /** @var Sequence<Str> */
-    private Sequence $output;
-    /** @var Sequence<Str> */
-    private Sequence $error;
-    private bool $interactive;
-    /** @var Sequence<string> */
-    private Sequence $arguments;
-    /** @var Map<string, string> */
-    private Map $variables;
-    /** @var Maybe<ExitCode> */
-    private Maybe $exitCode;
-    private Path $workingDirectory;
-
     /**
      * @param Sequence<Str> $input
      * @param Sequence<Str> $output
@@ -42,23 +28,15 @@ final class InMemory implements Environment
      * @param Maybe<ExitCode> $exitCode
      */
     private function __construct(
-        Sequence $input,
-        Sequence $output,
-        Sequence $error,
-        bool $interactive,
-        Sequence $arguments,
-        Map $variables,
-        Maybe $exitCode,
-        Path $workingDirectory,
+        private Sequence $input,
+        private Sequence $output,
+        private Sequence $error,
+        private bool $interactive,
+        private Sequence $arguments,
+        private Map $variables,
+        private Maybe $exitCode,
+        private Path $workingDirectory,
     ) {
-        $this->input = $input;
-        $this->output = $output;
-        $this->error = $error;
-        $this->interactive = $interactive;
-        $this->arguments = $arguments;
-        $this->variables = $variables;
-        $this->exitCode = $exitCode;
-        $this->workingDirectory = $workingDirectory;
     }
 
     /**
@@ -88,12 +66,14 @@ final class InMemory implements Environment
         );
     }
 
+    #[\Override]
     public function interactive(): bool
     {
         return $this->interactive;
     }
 
-    public function read(int $length = null): array
+    #[\Override]
+    public function read(?int $length = null): array
     {
         $data = $this->input->first();
         $input = $this->input->drop(1);
@@ -103,7 +83,7 @@ final class InMemory implements Environment
             // the remaining to the start of the input list
             $input = $data
                 ->map(static fn($data) => $data->drop($length))
-                ->filter(static fn($data) => !$data->empty())
+                ->exclude(static fn($data) => $data->empty())
                 ->match(
                     static fn($data) => Sequence::of($data)->append($input),
                     static fn() => $input,
@@ -111,21 +91,25 @@ final class InMemory implements Environment
             $data = $data->map(static fn($data) => $data->take($length));
         }
 
-        return [$data, new self(
-            $input,
-            $this->output,
-            $this->error,
-            $this->interactive,
-            $this->arguments,
-            $this->variables,
-            $this->exitCode,
-            $this->workingDirectory,
-        )];
+        return [
+            $data->attempt(static fn() => new \LogicException('No input data specified')),
+            new self(
+                $input,
+                $this->output,
+                $this->error,
+                $this->interactive,
+                $this->arguments,
+                $this->variables,
+                $this->exitCode,
+                $this->workingDirectory,
+            ),
+        ];
     }
 
-    public function output(Str $data): self
+    #[\Override]
+    public function output(Str $data): Attempt
     {
-        return new self(
+        return Attempt::result(new self(
             $this->input,
             ($this->output)($data->toEncoding(Str\Encoding::ascii)),
             $this->error,
@@ -134,12 +118,13 @@ final class InMemory implements Environment
             $this->variables,
             $this->exitCode,
             $this->workingDirectory,
-        );
+        ));
     }
 
-    public function error(Str $data): self
+    #[\Override]
+    public function error(Str $data): Attempt
     {
-        return new self(
+        return Attempt::result(new self(
             $this->input,
             $this->output,
             ($this->error)($data->toEncoding(Str\Encoding::ascii)),
@@ -148,19 +133,22 @@ final class InMemory implements Environment
             $this->variables,
             $this->exitCode,
             $this->workingDirectory,
-        );
+        ));
     }
 
+    #[\Override]
     public function arguments(): Sequence
     {
         return $this->arguments;
     }
 
+    #[\Override]
     public function variables(): Map
     {
         return $this->variables;
     }
 
+    #[\Override]
     public function exit(int $code): self
     {
         return new self(
@@ -175,11 +163,13 @@ final class InMemory implements Environment
         );
     }
 
+    #[\Override]
     public function exitCode(): Maybe
     {
         return $this->exitCode;
     }
 
+    #[\Override]
     public function workingDirectory(): Path
     {
         return $this->workingDirectory;

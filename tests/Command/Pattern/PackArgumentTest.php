@@ -6,16 +6,15 @@ namespace Tests\Innmind\CLI\Command\Pattern;
 use Innmind\CLI\{
     Command\Pattern\PackArgument,
     Command\Pattern\Input,
-    Command\Pattern\Argument,
+    Command\Pattern,
 };
 use Innmind\Immutable\{
     Str,
     Sequence,
-    Map,
 };
-use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
+    PHPUnit\Framework\TestCase,
     Set,
 };
 
@@ -32,22 +31,15 @@ class PackArgumentTest extends TestCase
                 static fn() => null,
             ),
         );
-        $this->assertInstanceOf(
-            Argument::class,
-            PackArgument::of(Str::of('...foo'))->match(
-                static fn($input) => $input,
-                static fn() => null,
-            ),
-        );
     }
 
-    public function testReturnNothingWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern(): BlackBox\Proof
     {
-        $this
-            ->forAll(Set\Strings::any()->filter(
+        return $this
+            ->forAll(Set::strings()->filter(
                 static fn(string $s) => !\preg_match('~^[a-zA-Z0-9]+$~', $s),
             ))
-            ->then(function(string $string): void {
+            ->prove(function(string $string): void {
                 $this->assertNull(PackArgument::of(Str::of('...'.$string))->match(
                     static fn($input) => $input,
                     static fn() => null,
@@ -55,48 +47,29 @@ class PackArgumentTest extends TestCase
             });
     }
 
-    public function testStringCast()
+    public function testParse(): BlackBox\Proof
     {
-        $this
-            ->forAll(Set\Elements::of('...foo', '...bar', '...baz'))
-            ->then(function(string $string): void {
-                $this->assertSame(
-                    $string,
-                    PackArgument::of(Str::of($string))->match(
-                        static fn($input) => $input->toString(),
-                        static fn() => null,
-                    ),
-                );
-            });
-    }
-
-    public function testParse()
-    {
-        $this
-            ->forAll(Set\Sequence::of(
-                Set\Strings::atLeast(1),
+        return $this
+            ->forAll(Set::sequence(
+                Set::strings()->atLeast(1),
             )->between(0, 10))
-            ->then(function($strings) {
-                $input = PackArgument::of(Str::of('...foo'))->match(
-                    static fn($input) => $input,
-                    static fn() => null,
+            ->prove(function($strings) {
+                $pattern = new Pattern(
+                    Sequence::of(),
+                    Sequence::of(),
+                    true,
                 );
 
-                [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+                [$arguments] = $pattern(
                     Sequence::of(...$strings),
-                    Map::of(),
-                    Sequence::of(),
-                    Map::of(),
                 );
+                $pack = $arguments->pack();
 
                 $this->assertTrue(
                     $pack->equals(
                         Sequence::of(...$strings),
                     ),
                 );
-                $this->assertTrue($arguments->empty());
-                $this->assertTrue($parsedArguments->empty());
-                $this->assertTrue($options->empty());
             });
     }
 }

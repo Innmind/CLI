@@ -6,7 +6,6 @@ namespace Tests\Innmind\CLI\Command\Pattern;
 use Innmind\CLI\{
     Command\Pattern\RequiredArgument,
     Command\Pattern\Input,
-    Command\Pattern\Argument,
     Exception\MissingArgument,
 };
 use Innmind\Immutable\{
@@ -14,9 +13,9 @@ use Innmind\Immutable\{
     Sequence,
     Map,
 };
-use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
+    PHPUnit\Framework\TestCase,
     Set,
 };
 
@@ -33,22 +32,15 @@ class RequiredArgumentTest extends TestCase
                 static fn() => null,
             ),
         );
-        $this->assertInstanceOf(
-            Argument::class,
-            RequiredArgument::of(Str::of('foo'))->match(
-                static fn($input) => $input,
-                static fn() => null,
-            ),
-        );
     }
 
-    public function testReturnNothingWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern(): BlackBox\Proof
     {
-        $this
-            ->forAll(Set\Strings::any()->filter(
+        return $this
+            ->forAll(Set::strings()->filter(
                 static fn(string $s) => !\preg_match('~^[a-zA-Z0-9]+$~', $s),
             ))
-            ->then(function(string $string): void {
+            ->prove(function(string $string): void {
                 $this->assertNull(RequiredArgument::of(Str::of($string))->match(
                     static fn($input) => $input,
                     static fn() => null,
@@ -56,11 +48,11 @@ class RequiredArgumentTest extends TestCase
             });
     }
 
-    public function testStringCast()
+    public function testStringCast(): BlackBox\Proof
     {
-        $this
-            ->forAll(Set\Elements::of('foo', 'bar', 'baz'))
-            ->then(function(string $string): void {
+        return $this
+            ->forAll(Set::of('foo', 'bar', 'baz'))
+            ->prove(function(string $string): void {
                 $this->assertSame(
                     $string,
                     RequiredArgument::of(Str::of($string))->match(
@@ -71,22 +63,20 @@ class RequiredArgumentTest extends TestCase
             });
     }
 
-    public function testParse()
+    public function testParse(): BlackBox\Proof
     {
-        $this
-            ->forAll(Set\Sequence::of(
-                Set\Strings::atLeast(1),
+        return $this
+            ->forAll(Set::sequence(
+                Set::strings()->atLeast(1),
             )->between(1, 10))
-            ->then(function($strings) {
+            ->prove(function($strings) {
                 $input = RequiredArgument::of(Str::of('foo'))->match(
                     static fn($input) => $input,
                     static fn() => null,
                 );
 
-                [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+                [$arguments, $parsedArguments] = $input->parse(
                     Sequence::of(...$strings),
-                    Map::of(),
-                    Sequence::of(),
                     Map::of(),
                 );
 
@@ -100,8 +90,6 @@ class RequiredArgumentTest extends TestCase
                         Sequence::of(...$strings)->drop(1),
                     ),
                 );
-                $this->assertTrue($pack->empty());
-                $this->assertTrue($options->empty());
             });
     }
 
@@ -116,8 +104,6 @@ class RequiredArgumentTest extends TestCase
         $this->expectExceptionMessage('foo');
 
         $input->parse(
-            Sequence::of(),
-            Map::of(),
             Sequence::of(),
             Map::of(),
         );
