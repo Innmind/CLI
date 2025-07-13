@@ -59,7 +59,9 @@ final class Commands
                 ->displayHelp(
                     $env,
                     true,
-                    $this->specifications,
+                    $this->specifications->map(
+                        static fn($spec) => $spec->usage(),
+                    ),
                 )
                 ->map(static fn($env) => $env->exit(64)); // EX_USAGE The command was used incorrectly
         }
@@ -68,7 +70,9 @@ final class Commands
             return $this->displayHelp(
                 $env,
                 false,
-                $this->specifications,
+                $this->specifications->map(
+                    static fn($spec) => $spec->usage(),
+                ),
             );
         }
 
@@ -90,7 +94,9 @@ final class Commands
                     ->displayHelp(
                         $env,
                         true,
-                        Sequence::of($spec)->append($rest),
+                        Sequence::of($spec)
+                            ->append($rest)
+                            ->map(static fn($spec) => $spec->usage()),
                     )
                     ->map(static fn($env) => $env->exit(64)), // EX_USAGE The command was used incorrectly
             },
@@ -98,7 +104,9 @@ final class Commands
                 ->displayHelp(
                     $env,
                     true,
-                    $this->specifications,
+                    $this->specifications->map(
+                        static fn($spec) => $spec->usage(),
+                    ),
                 )
                 ->map(static fn($env) => $env->exit(64)), // EX_USAGE The command was used incorrectly
         );
@@ -180,17 +188,17 @@ final class Commands
     }
 
     /**
-     * @param Sequence<Specification> $specifications
+     * @param Sequence<Usage> $usages
      *
      * @return Attempt<Environment>
      */
     private function displayHelp(
         Environment $env,
         bool $error,
-        Sequence $specifications,
+        Sequence $usages,
     ): Attempt {
-        $names = $specifications->map(
-            static fn($spec) => Str::of($spec->name()),
+        $names = $usages->map(
+            static fn($usage) => Str::of($usage->name()),
         );
         $lengths = $names
             ->map(static fn($name) => $name->length())
@@ -198,11 +206,11 @@ final class Commands
         /** @var positive-int */
         $maxLength = \max(...$lengths);
 
-        $rows = $specifications->map(
-            static fn($spec) => Str::of(' ')
-                ->append(Str::of($spec->name())->rightPad($maxLength)->toString())
+        $rows = $usages->map(
+            static fn($usage) => Str::of(' ')
+                ->append(Str::of($usage->name())->rightPad($maxLength)->toString())
                 ->append('  ')
-                ->append($spec->shortDescription())
+                ->append($usage->shortDescription())
                 ->append("\n"),
         );
 
