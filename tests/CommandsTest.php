@@ -10,7 +10,10 @@ use Innmind\CLI\{
     Environment,
     Console,
 };
-use Innmind\Immutable\Attempt;
+use Innmind\Immutable\{
+    Attempt,
+    Sequence,
+};
 use Innmind\BlackBox\PHPUnit\Framework\TestCase;
 
 #[Command\Name('foo')]
@@ -669,5 +672,203 @@ USAGE);
             ],
             $env->outputs(),
         );
+    }
+
+    public function testDoesntLazyLoadCommandWhenAnExactMatchHasBeenFound()
+    {
+        $loaded = false;
+        $run = Commands::for(Sequence::lazy(static function() use (&$loaded) {
+            yield new class implements Command {
+                public function __invoke(Console $console): Attempt
+                {
+                    return Attempt::result($console->exit(42));
+                }
+
+                public function usage(): Usage
+                {
+                    return Usage::of('first');
+                }
+            };
+            yield new class implements Command {
+                public function __invoke(Console $console): Attempt
+                {
+                    return Attempt::result($console->exit(24));
+                }
+
+                public function usage(): Usage
+                {
+                    return Usage::of('watch');
+                }
+            };
+            $loaded = true;
+            yield new class implements Command {
+                public function __invoke(Console $console): Attempt
+                {
+                    return Attempt::result($console->exit(42));
+                }
+
+                public function usage(): Usage
+                {
+                    return Usage::of('last');
+                }
+            };
+        }));
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'watch', 'foo', '--foo', 'bar'],
+            [],
+            '/',
+        );
+
+        $this->assertFalse($loaded);
+        $this->assertSame(24, $run($env)->unwrap()->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+    }
+
+    public function testLazyLoadedCommandsAreLoadedOnceWhenSomeMatchesCommandName()
+    {
+        $loaded = 0;
+        $run = Commands::for(Sequence::lazy(static function() use (&$loaded) {
+            yield new class($loaded) implements Command {
+                public function __construct(private &$loaded)
+                {
+                }
+
+                public function __invoke(Console $console): Attempt
+                {
+                    return Attempt::result($console->exit(42));
+                }
+
+                public function usage(): Usage
+                {
+                    ++$this->loaded;
+
+                    return Usage::of('bar');
+                }
+            };
+            yield new class($loaded) implements Command {
+                public function __construct(private &$loaded)
+                {
+                }
+
+                public function __invoke(Console $console): Attempt
+                {
+                    return Attempt::result($console->exit(24));
+                }
+
+                public function usage(): Usage
+                {
+                    ++$this->loaded;
+
+                    return Usage::of('foo');
+                }
+            };
+            yield new class($loaded) implements Command {
+                public function __construct(private &$loaded)
+                {
+                }
+
+                public function __invoke(Console $console): Attempt
+                {
+                    return Attempt::result($console->exit(42));
+                }
+
+                public function usage(): Usage
+                {
+                    ++$this->loaded;
+
+                    return Usage::of('baz');
+                }
+            };
+        }));
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'ba'],
+            [],
+            '/',
+        );
+
+        $env = $run($env)->unwrap();
+        $this->assertSame(3, $loaded);
+        $this->assertSame(64, $env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
+    }
+
+    public function testLazyLoadedCommandsAreLoadedOnceWhenNoneMatchesCommandName()
+    {
+        $loaded = 0;
+        $run = Commands::for(Sequence::lazy(static function() use (&$loaded) {
+            yield new class($loaded) implements Command {
+                public function __construct(private &$loaded)
+                {
+                }
+
+                public function __invoke(Console $console): Attempt
+                {
+                    return Attempt::result($console->exit(42));
+                }
+
+                public function usage(): Usage
+                {
+                    ++$this->loaded;
+
+                    return Usage::of('bar');
+                }
+            };
+            yield new class($loaded) implements Command {
+                public function __construct(private &$loaded)
+                {
+                }
+
+                public function __invoke(Console $console): Attempt
+                {
+                    return Attempt::result($console->exit(24));
+                }
+
+                public function usage(): Usage
+                {
+                    ++$this->loaded;
+
+                    return Usage::of('foo');
+                }
+            };
+            yield new class($loaded) implements Command {
+                public function __construct(private &$loaded)
+                {
+                }
+
+                public function __invoke(Console $console): Attempt
+                {
+                    return Attempt::result($console->exit(42));
+                }
+
+                public function usage(): Usage
+                {
+                    ++$this->loaded;
+
+                    return Usage::of('baz');
+                }
+            };
+        }));
+        $env = Environment\InMemory::of(
+            [],
+            true,
+            ['bin/console', 'unknown'],
+            [],
+            '/',
+        );
+
+        $env = $run($env)->unwrap();
+        $this->assertSame(3, $loaded);
+        $this->assertSame(64, $env->exitCode()->match(
+            static fn($code) => $code->toInt(),
+            static fn() => null,
+        ));
     }
 }
