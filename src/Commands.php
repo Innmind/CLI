@@ -196,8 +196,13 @@ final class Commands
         $lengths = $names
             ->map(static fn($name) => $name->length())
             ->toList();
+
+        if (\count($lengths) === 0) {
+            return Attempt::result($env);
+        }
+
         /** @var positive-int */
-        $maxLength = \max(...$lengths);
+        $maxLength = \max($lengths);
 
         $rows = $usages->map(
             static fn($usage) => Str::of(' ')
