@@ -18,17 +18,13 @@ use Innmind\Immutable\{
  */
 final class ChoiceQuestion
 {
-    private Str $question;
-    /** @var Map<scalar, scalar> */
-    private Map $values;
-
     /**
      * @param Map<scalar, scalar> $values
      */
-    public function __construct(string $question, Map $values)
-    {
-        $this->question = Str::of($question);
-        $this->values = $values;
+    private function __construct(
+        private Str $question,
+        private Map $values,
+    ) {
     }
 
     /**
@@ -70,6 +66,16 @@ final class ChoiceQuestion
             )
             ->flatMap(static fn($env) => $env->output(Str::of('> ')))
             ->map($this->read(...));
+    }
+
+    /**
+     * @psalm-pure
+     *
+     * @param Map<scalar, scalar> $values
+     */
+    public static function of(string $question, Map $values): self
+    {
+        return new self(Str::of($question), $values);
     }
 
     /**

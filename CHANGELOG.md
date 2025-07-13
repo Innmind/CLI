@@ -28,6 +28,8 @@
 - `Innmind\CLI\Command\Arguments` constructor is now declared internal
 - `Innmind\CLI\Command\Options` constructor is now declared internal
 - `Innmind\CLI\Environment\ExitCode` constructor is now declared internal
+- `Innmind\CLI\Question\Question` constructor is now private, use `::of()` instead
+- `Innmind\CLI\Question\ChoiceQuestion` constructor is now private, use `::of()` instead
 
 ### Removed
 

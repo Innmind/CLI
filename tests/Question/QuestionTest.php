@@ -14,7 +14,7 @@ class QuestionTest extends TestCase
 {
     public function testInvoke()
     {
-        $question = new Question('message');
+        $question = Question::of('message');
         $env = Environment\InMemory::of(
             ['f', "oo\n"],
             true,
@@ -39,7 +39,7 @@ class QuestionTest extends TestCase
 
     public function testReturnNothingWhenEnvNonInteractive()
     {
-        $question = new Question('watev');
+        $question = Question::of('watev');
 
         $env = Environment\InMemory::of(
             [],
@@ -59,7 +59,7 @@ class QuestionTest extends TestCase
 
     public function testReturnNothingWhenOptionToSpecifyNoInteractionIsRequired()
     {
-        $question = new Question('watev');
+        $question = Question::of('watev');
 
         $env = Environment\InMemory::of(
             [],
