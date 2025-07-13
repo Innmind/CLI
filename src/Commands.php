@@ -31,16 +31,25 @@ final class Commands
      */
     public function __invoke(Environment $env): Attempt
     {
-        if ($this->commands->size() === 1) {
-            return $this
-                ->commands
-                ->first()
-                ->match(
-                    fn($command) => $this->run($env, $command),
-                    static fn() => Attempt::result($env),
-                );
-        }
+        return $this->commands->match(
+            fn($command, $rest) => match ($rest->empty()) {
+                true => $this->run($env, $command),
+                false => $this->find($env), // todo avoid re-iterating over commands
+            },
+            fn() => $this->find($env),
+        );
+    }
 
+    public static function of(Command $command, Command ...$commands): self
+    {
+        return new self($command, ...$commands);
+    }
+
+    /**
+     * @return Attempt<Environment>
+     */
+    private function find(Environment $env): Attempt
+    {
         $command = $env
             ->arguments()
             ->get(1) // 0 being the tool name
@@ -101,11 +110,6 @@ final class Commands
                 )
                 ->map(static fn($env) => $env->exit(64)), // EX_USAGE The command was used incorrectly
         );
-    }
-
-    public static function of(Command $command, Command ...$commands): self
-    {
-        return new self($command, ...$commands);
     }
 
     /**
