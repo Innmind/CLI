@@ -4,12 +4,10 @@ declare(strict_types = 1);
 namespace Innmind\CLI;
 
 use Innmind\CLI\{
-    Command\Specification,
     Command\Usage,
     Exception\Exception,
 };
 use Innmind\Immutable\{
-    Map,
     Str,
     Sequence,
     Attempt,
@@ -17,21 +15,15 @@ use Innmind\Immutable\{
 
 final class Commands
 {
-    /** @var Map<Specification, Command> */
-    private Map $commands;
-    /** @var Sequence<Specification> */
-    private Sequence $specifications;
+    /** @var Sequence<Command> */
+    private Sequence $commands;
     /** @var Sequence<Usage> */
     private Sequence $usages;
 
     private function __construct(Command $command, Command ...$commands)
     {
-        $commands = Sequence::of($command, ...$commands)->map(
-            static fn($command) => [new Specification($command), $command],
-        );
-        $this->commands = Map::of(...$commands->toList());
-        $this->specifications = $commands->map(static fn($command) => $command[0]);
-        $this->usages = $commands->map(static fn($command) => $command[0]->usage());
+        $this->commands = Sequence::of($command, ...$commands);
+        $this->usages = $this->commands->map(static fn($command) => $command->usage());
     }
 
     /**
@@ -41,10 +33,10 @@ final class Commands
     {
         if ($this->commands->size() === 1) {
             return $this
-                ->specifications
+                ->commands
                 ->first()
                 ->match(
-                    fn($specification) => $this->run($env, $specification),
+                    fn($command) => $this->run($env, $command),
                     static fn() => Attempt::result($env),
                 );
         }
@@ -75,29 +67,29 @@ final class Commands
             );
         }
 
-        /** @var Sequence<Specification> */
+        /** @var Sequence<Command> */
         $found = Sequence::of();
-        $specifications = $this
-            ->specifications
+        $commands = $this
+            ->commands
             ->sink($found)
-            ->until(static fn($found, $spec, $continuation) => match ($spec->is($command)) {
-                true => $continuation->stop(Sequence::of($spec)),
-                false => match ($spec->matches($command)) {
-                    true => $continuation->continue(($found)($spec)),
+            ->until(static fn($found, $maybe, $continuation) => match ($maybe->usage()->is($command)) {
+                true => $continuation->stop(Sequence::of($maybe)),
+                false => match ($maybe->usage()->matches($command)) {
+                    true => $continuation->continue(($found)($maybe)),
                     false => $continuation->continue($found),
                 },
             });
 
-        return $specifications->match(
-            fn($spec, $rest) => match ($rest->empty()) {
-                true => $this->run($env, $spec),
+        return $commands->match(
+            fn($command, $rest) => match ($rest->empty()) {
+                true => $this->run($env, $command),
                 false => $this
                     ->displayHelp(
                         $env,
                         true,
-                        Sequence::of($spec)
+                        Sequence::of($command)
                             ->append($rest)
-                            ->map(static fn($spec) => $spec->usage()),
+                            ->map(static fn($command) => $command->usage()),
                     )
                     ->map(static fn($env) => $env->exit(64)), // EX_USAGE The command was used incorrectly
             },
@@ -119,12 +111,9 @@ final class Commands
     /**
      * @return Attempt<Environment>
      */
-    private function run(Environment $env, Specification $spec): Attempt
+    private function run(Environment $env, Command $command): Attempt
     {
-        $run = $this->commands->get($spec)->match(
-            static fn($command) => $command,
-            static fn() => throw new \LogicException('This case should not be possible'),
-        );
+        $usage = $command->usage();
         [$bin, $arguments] = $env->arguments()->match(
             static fn($bin, $arguments) => [$bin, $arguments],
             static fn() => throw new \LogicException('Arguments list should not be empty'),
@@ -134,7 +123,7 @@ final class Commands
         // command defined
         $arguments = $arguments
             ->first()
-            ->filter(static fn($first) => $spec->matches($first))
+            ->filter(static fn($first) => $usage->matches($first))
             ->match(
                 static fn() => $arguments->drop(1),
                 static fn() => $arguments,
@@ -144,12 +133,12 @@ final class Commands
             return $this->displayUsage(
                 $env->output(...),
                 $bin,
-                $spec->usage(),
+                $usage,
             );
         }
 
         try {
-            $pattern = $spec->pattern();
+            $pattern = $usage->pattern();
 
             [$arguments, $options] = $pattern($arguments);
         } catch (Exception $e) {
@@ -157,12 +146,12 @@ final class Commands
                 ->displayUsage(
                     $env->error(...),
                     $bin,
-                    $spec->usage(),
+                    $usage,
                 )
                 ->map(static fn($env) => $env->exit(64)); // EX_USAGE The command was used incorrectly
         }
 
-        return $run(Console::of($env, $arguments, $options))->map(
+        return $command(Console::of($env, $arguments, $options))->map(
             static fn($console) => $console->environment(),
         );
     }
