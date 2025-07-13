@@ -3,7 +3,7 @@ repo_name: Innmind/CLI
 docs_dir: documentation
 
 nav:
-  - Getting Started: readme.md
+  - Getting Started: index.md
   - Use cases:
     - use-cases/hello-world.md
     - use-cases/reading-input.md
