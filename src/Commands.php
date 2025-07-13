@@ -15,12 +15,12 @@ use Innmind\Immutable\{
 
 final class Commands
 {
-    /** @var Sequence<Command> */
-    private Sequence $commands;
-
-    private function __construct(Command $command, Command ...$commands)
-    {
-        $this->commands = Sequence::of($command, ...$commands);
+    /**
+     * @param Sequence<Command> $commands
+     */
+    private function __construct(
+        private Sequence $commands,
+    ) {
     }
 
     /**
@@ -39,7 +39,7 @@ final class Commands
 
     public static function of(Command $command, Command ...$commands): self
     {
-        return new self($command, ...$commands);
+        return new self(Sequence::of($command, ...$commands));
     }
 
     /**
