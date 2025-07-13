@@ -79,7 +79,8 @@ final class Commands
 
         /** @var Sequence<Command> */
         $found = Sequence::of();
-        $commands = $this
+
+        return $this
             ->commands
             ->sink($found)
             ->until(static fn($found, $maybe, $continuation) => match ($maybe->usage()->is($command)) {
@@ -88,29 +89,28 @@ final class Commands
                     true => $continuation->continue(($found)($maybe)),
                     false => $continuation->continue($found),
                 },
-            });
-
-        return $commands->match(
-            fn($command, $rest) => match ($rest->empty()) {
-                true => $this->run($env, $command),
-                false => $this
+            })
+            ->match(
+                fn($command, $rest) => match ($rest->empty()) {
+                    true => $this->run($env, $command),
+                    false => $this
+                        ->displayHelp(
+                            $env,
+                            true,
+                            Sequence::of($command)
+                                ->append($rest)
+                                ->map(static fn($command) => $command->usage()),
+                        )
+                        ->map(static fn($env) => $env->exit(64)), // EX_USAGE The command was used incorrectly
+                },
+                fn() => $this
                     ->displayHelp(
                         $env,
                         true,
-                        Sequence::of($command)
-                            ->append($rest)
-                            ->map(static fn($command) => $command->usage()),
+                        $this->commands->map(static fn($command) => $command->usage()),
                     )
                     ->map(static fn($env) => $env->exit(64)), // EX_USAGE The command was used incorrectly
-            },
-            fn() => $this
-                ->displayHelp(
-                    $env,
-                    true,
-                    $this->commands->map(static fn($command) => $command->usage()),
-                )
-                ->map(static fn($env) => $env->exit(64)), // EX_USAGE The command was used incorrectly
-        );
+            );
     }
 
     /**
