@@ -20,6 +20,7 @@ final class Commands
      */
     private function __construct(
         private Sequence $commands,
+        private bool $single,
     ) {
     }
 
@@ -28,18 +29,21 @@ final class Commands
      */
     public function __invoke(Environment $env): Attempt
     {
-        return $this->commands->match(
-            fn($command, $rest) => match ($rest->empty()) {
-                true => $this->run($env, $command),
-                false => $this->find($env), // todo avoid re-iterating over commands
-            },
-            fn() => $this->find($env),
-        );
+        return match ($this->single) {
+            true => $this->commands->first()->match(
+                fn($command) => $this->run($env, $command),
+                static fn() => throw new \Exception('Missing command'), // this case should never happen
+            ),
+            false => $this->find($env),
+        };
     }
 
     public static function of(Command $command, Command ...$commands): self
     {
-        return new self(Sequence::of($command, ...$commands));
+        return new self(
+            Sequence::of($command, ...$commands),
+            \count($commands) === 0,
+        );
     }
 
     /**
