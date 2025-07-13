@@ -4,7 +4,6 @@ declare(strict_types = 1);
 namespace Innmind\CLI\Command;
 
 use Innmind\CLI\Command;
-use Innmind\Immutable\Str;
 
 /**
  * @psalm-immutable
@@ -24,38 +23,12 @@ final class Specification
 
     public function is(string $command): bool
     {
-        return $this->name() === $command;
+        return $this->usage()->is($command);
     }
 
     public function matches(string $command): bool
     {
-        if ($command === '') {
-            return false;
-        }
-
-        $command = Str::of($command);
-        $name = Str::of($this->name());
-
-        if ($name->equals($command)) {
-            return true;
-        }
-
-        $commandChunks = $command->trim(':')->split(':');
-        $nameChunks = $name->trim(':')->split(':');
-        $diff = $nameChunks
-            ->zip($commandChunks)
-            ->map(static fn($pair) => [
-                $pair[0]->take($pair[1]->length()),
-                $pair[1],
-            ]);
-
-        if ($nameChunks->size() !== $diff->size()) {
-            return false;
-        }
-
-        return $diff->matches(
-            static fn($pair) => $pair[0]->equals($pair[1]),
-        );
+        return $this->usage()->matches($command);
     }
 
     public function shortDescription(): string
