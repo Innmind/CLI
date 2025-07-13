@@ -5,6 +5,7 @@ namespace Innmind\CLI;
 
 use Innmind\CLI\{
     Command\Specification,
+    Command\Usage,
     Exception\Exception,
 };
 use Innmind\Immutable\{
@@ -136,7 +137,7 @@ final class Commands
             return $this->displayUsage(
                 $env->output(...),
                 $bin,
-                $spec,
+                $spec->usage(),
             );
         }
 
@@ -149,7 +150,7 @@ final class Commands
                 ->displayUsage(
                     $env->error(...),
                     $bin,
-                    $spec,
+                    $spec->usage(),
                 )
                 ->map(static fn($env) => $env->exit(64)); // EX_USAGE The command was used incorrectly
         }
@@ -167,13 +168,13 @@ final class Commands
     private function displayUsage(
         callable $write,
         string $bin,
-        Specification $spec,
+        Usage $usage,
     ): Attempt {
         return $write(
             Str::of('usage: ')
                 ->append($bin)
                 ->append(' ')
-                ->append($spec->usage()->toString())
+                ->append($usage->toString())
                 ->append("\n"),
         );
     }
