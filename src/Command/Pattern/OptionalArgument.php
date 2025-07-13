@@ -3,6 +3,8 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Command\Pattern;
 
+use Innmind\CLI\Command\Usage;
+use Innmind\Validation\Is;
 use Innmind\Immutable\{
     Str,
     Sequence,
@@ -14,46 +16,74 @@ use Innmind\Immutable\{
  * @psalm-immutable
  * @internal
  */
-final class OptionalArgument implements Input, Argument
+final class OptionalArgument implements Input
 {
+    /**
+     * @param non-empty-string $name
+     */
     private function __construct(private string $name)
     {
     }
 
     /**
      * @psalm-pure
+     *
+     * @param non-empty-string $name
      */
-    #[\Override]
-    public static function of(Str $pattern): Maybe
+    public static function named(string $name): self
     {
-        /** @var Maybe<Input> */
-        return Maybe::just($pattern)
-            ->filter(static fn($pattern) => $pattern->matches('~^\[[a-zA-Z0-9]+\]$~'))
-            ->map(static fn($pattern) => $pattern->drop(1)->dropEnd(1))
-            ->map(static fn($pattern) => new self($pattern->toString()));
+        return new self($name);
     }
 
+    /**
+     * @psalm-pure
+     */
     #[\Override]
+    public static function walk(Usage $usage, Str $pattern): Maybe
+    {
+        return self::of($pattern)
+            ->map(static fn($self) => $self->name)
+            ->map($usage->optionalArgument(...));
+    }
+
+    /**
+     * @psalm-pure
+     *
+     * @return Maybe<self>
+     */
+    public static function of(Str $pattern): Maybe
+    {
+        return Maybe::just($pattern)
+            ->filter(static fn($pattern) => $pattern->matches('~^\[[a-zA-Z0-9]+\]$~'))
+            ->map(static fn($pattern) => $pattern->drop(1)->dropEnd(1)->toString())
+            ->keep(Is::string()->nonEmpty()->asPredicate())
+            ->map(static fn($pattern) => new self($pattern));
+    }
+
+    /**
+     * @param Sequence<string> $arguments
+     * @param Map<string, string> $parsed
+     *
+     * @return array{
+     *     Sequence<string>,
+     *     Map<string, string>,
+     * }
+     */
     public function parse(
         Sequence $arguments,
-        Map $parsedArguments,
-        Sequence $pack,
-        Map $options,
+        Map $parsed,
     ): array {
-        [$arguments, $parsedArguments] = $arguments
+        return $arguments
             ->first()
             ->match(
                 fn($value) => [
                     $arguments->drop(1),
-                    ($parsedArguments)($this->name, $value),
+                    ($parsed)($this->name, $value),
                 ],
-                static fn() => [$arguments, $parsedArguments],
+                static fn() => [$arguments, $parsed],
             );
-
-        return [$arguments, $parsedArguments, $pack, $options];
     }
 
-    #[\Override]
     public function toString(): string
     {
         return '['.$this->name.']';

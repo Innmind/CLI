@@ -5,10 +5,9 @@ namespace Tests\Innmind\CLI\Command;
 
 use Innmind\CLI\{
     Command\Specification,
-    Command\Pattern,
+    Command\Usage,
     Command,
     Console,
-    Exception\EmptyDeclaration,
 };
 use Innmind\Immutable\Attempt;
 use Innmind\BlackBox\{
@@ -28,18 +27,18 @@ class SpecificationTest extends TestCase
             {
             }
 
-            public function usage(): string
+            public function usage(): Usage
             {
-                return <<<USAGE
-    watch container [output] ...proxy
+                return Usage::parse(<<<USAGE
+                    watch container [output] ...proxy
 
-    Watch a container definition file for changes and generate corresponding graph
+                    Watch a container definition file for changes and generate corresponding graph
 
-    The output argument is optional, when ommitted it will print the graphviz dot
-    content but if provided it will automatically generate the graph to the given file.
+                    The output argument is optional, when ommitted it will print the graphviz dot
+                    content but if provided it will automatically generate the graph to the given file.
 
-    The proxy pack argument are arguments that will be sent used for the graphviz command.
-USAGE;
+                    The proxy pack argument are arguments that will be sent used for the graphviz command.
+                    USAGE);
             }
         };
 
@@ -51,23 +50,18 @@ USAGE;
             $spec->shortDescription(),
         );
 
-        $expected = <<<DESCRIPTION
-The output argument is optional, when ommitted it will print the graphviz dot
-content but if provided it will automatically generate the graph to the given file.
+        $expected = <<<USAGE
+        watch container [output] ...arguments --help --no-interaction
 
-The proxy pack argument are arguments that will be sent used for the graphviz command.
-DESCRIPTION;
+        Watch a container definition file for changes and generate corresponding graph
 
-        $this->assertSame($expected, $spec->description());
-        $this->assertSame(
-            'watch container [output] ...proxy --help --no-interaction',
-            $spec->toString(),
-        );
-        $this->assertInstanceOf(Pattern::class, $spec->pattern());
-        $this->assertSame(
-            'container [output] ...proxy --help --no-interaction',
-            $spec->pattern()->toString(),
-        );
+        The output argument is optional, when ommitted it will print the graphviz dot
+        content but if provided it will automatically generate the graph to the given file.
+
+        The proxy pack argument are arguments that will be sent used for the graphviz command.
+        USAGE;
+
+        $this->assertSame($expected, $spec->usage()->toString());
     }
 
     public function testMatchesItsOwnName(): BlackBox\Proof
@@ -91,9 +85,9 @@ DESCRIPTION;
                     {
                     }
 
-                    public function usage(): string
+                    public function usage(): Usage
                     {
-                        return $this->usage;
+                        return Usage::parse($this->usage);
                     }
                 };
 
@@ -120,9 +114,9 @@ DESCRIPTION;
             {
             }
 
-            public function usage(): string
+            public function usage(): Usage
             {
-                return $this->usage;
+                return Usage::parse($this->usage);
             }
         };
 
@@ -152,9 +146,9 @@ DESCRIPTION;
                     {
                     }
 
-                    public function usage(): string
+                    public function usage(): Usage
                     {
-                        return $this->usage;
+                        return Usage::parse($this->usage);
                     }
                 };
 
@@ -185,9 +179,9 @@ DESCRIPTION;
                     {
                     }
 
-                    public function usage(): string
+                    public function usage(): Usage
                     {
-                        return $this->usage;
+                        return Usage::parse($this->usage);
                     }
                 };
 
@@ -214,9 +208,9 @@ DESCRIPTION;
             {
             }
 
-            public function usage(): string
+            public function usage(): Usage
             {
-                return $this->usage;
+                return Usage::parse($this->usage);
             }
         };
 
@@ -245,9 +239,9 @@ DESCRIPTION;
                     {
                     }
 
-                    public function usage(): string
+                    public function usage(): Usage
                     {
-                        return $this->usage;
+                        return Usage::parse($this->usage);
                     }
                 };
 
@@ -278,9 +272,9 @@ DESCRIPTION;
                     {
                     }
 
-                    public function usage(): string
+                    public function usage(): Usage
                     {
-                        return $this->usage;
+                        return Usage::parse($this->usage);
                     }
                 };
 
@@ -298,15 +292,16 @@ DESCRIPTION;
             {
             }
 
-            public function usage(): string
+            public function usage(): Usage
             {
-                return '  ';
+                return Usage::parse('  ');
             }
         };
 
-        $this->expectException(EmptyDeclaration::class);
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Empty usage');
 
-        (new Specification($command))->toString();
+        (new Specification($command))->usage();
     }
 
     private function names(): Set

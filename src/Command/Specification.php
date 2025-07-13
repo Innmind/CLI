@@ -3,15 +3,8 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Command;
 
-use Innmind\CLI\{
-    Command,
-    Exception\EmptyDeclaration,
-};
-use Innmind\Immutable\{
-    Sequence,
-    Str,
-    Maybe,
-};
+use Innmind\CLI\Command;
+use Innmind\Immutable\Str;
 
 /**
  * @psalm-immutable
@@ -19,21 +12,14 @@ use Innmind\Immutable\{
  */
 final class Specification
 {
-    public function __construct(private Command $command)
-    {
+    public function __construct(
+        private Command $command,
+    ) {
     }
 
     public function name(): string
     {
-        return $this
-            ->lines()
-            ->first()
-            ->map(static fn($line) => $line->split(' '))
-            ->flatMap(static fn($parts) => $parts->first())
-            ->match(
-                static fn($name) => $name->toString(),
-                static fn() => throw new \LogicException('Command name not found'),
-            );
+        return $this->usage()->name();
     }
 
     public function is(string $command): bool
@@ -74,71 +60,16 @@ final class Specification
 
     public function shortDescription(): string
     {
-        return $this
-            ->lines()
-            ->get(2)
-            ->map(static fn($line) => $line->trim()->toString())
-            ->match(
-                static fn($description) => $description,
-                static fn() => '',
-            );
-    }
-
-    public function description(): string
-    {
-        $lines = $this
-            ->lines()
-            ->drop(4)
-            ->map(static fn($line) => $line->trim()->toString());
-
-        return Str::of("\n")->join($lines)->toString();
+        return $this->usage()->shortDescription();
     }
 
     public function pattern(): Pattern
     {
-        return new Pattern(
-            ...$this
-                ->firstLine()
-                ->map(static fn($line) => $line->split(' ')->drop(1))
-                ->match(
-                    static fn($parts) => $parts->toList(),
-                    static fn() => [],
-                ),
-        );
+        return $this->usage()->pattern();
     }
 
-    public function toString(): string
+    public function usage(): Usage
     {
-        return $this
-            ->firstLine()
-            ->match(
-                static fn($line) => $line->toString(),
-                static fn() => '',
-            );
-    }
-
-    /**
-     * @return Sequence<Str>
-     */
-    private function lines(): Sequence
-    {
-        $declaration = Str::of($this->command->usage())->trim();
-
-        if ($declaration->empty()) {
-            throw new EmptyDeclaration(\get_class($this->command));
-        }
-
-        return $declaration->split("\n");
-    }
-
-    /**
-     * @return Maybe<Str>
-     */
-    private function firstLine(): Maybe
-    {
-        return $this
-            ->lines()
-            ->first()
-            ->map(static fn($line) => $line->append(' --help --no-interaction'));
+        return $this->command->usage();
     }
 }

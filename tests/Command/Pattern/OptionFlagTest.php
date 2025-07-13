@@ -6,7 +6,6 @@ namespace Tests\Innmind\CLI\Command\Pattern;
 use Innmind\CLI\{
     Command\Pattern\OptionFlag,
     Command\Pattern\Input,
-    Command\Pattern\Option,
 };
 use Innmind\Immutable\{
     Str,
@@ -27,13 +26,6 @@ class OptionFlagTest extends TestCase
     {
         $this->assertInstanceOf(
             Input::class,
-            OptionFlag::of(Str::of('--foo'))->match(
-                static fn($input) => $input,
-                static fn() => null,
-            ),
-        );
-        $this->assertInstanceOf(
-            Option::class,
             OptionFlag::of(Str::of('--foo'))->match(
                 static fn($input) => $input,
                 static fn() => null,
@@ -79,16 +71,12 @@ class OptionFlagTest extends TestCase
             static fn() => null,
         );
 
-        [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+        [$arguments, $options] = $input->parse(
             Sequence::of('watev', '--foo', 'bar', '--unknown', 'baz', '-f'),
-            Map::of(),
-            Sequence::of(),
             Map::of(),
         );
 
         $this->assertSame(['watev', 'bar', '--unknown', 'baz'], $arguments->toList());
-        $this->assertTrue($parsedArguments->empty());
-        $this->assertTrue($pack->empty());
         $this->assertCount(1, $options);
         $this->assertSame('', $options->get('foo')->match(
             static fn($value) => $value,
@@ -103,16 +91,12 @@ class OptionFlagTest extends TestCase
             static fn() => null,
         );
 
-        [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+        [$arguments, $options] = $input->parse(
             Sequence::of('watev', 'bar', '--unknown', 'baz'),
-            Map::of(),
-            Sequence::of(),
             Map::of(),
         );
 
         $this->assertSame(['watev', 'bar', '--unknown', 'baz'], $arguments->toList());
-        $this->assertTrue($parsedArguments->empty());
-        $this->assertTrue($pack->empty());
         $this->assertTrue($options->empty());
     }
 }

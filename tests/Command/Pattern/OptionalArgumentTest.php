@@ -6,7 +6,6 @@ namespace Tests\Innmind\CLI\Command\Pattern;
 use Innmind\CLI\{
     Command\Pattern\OptionalArgument,
     Command\Pattern\Input,
-    Command\Pattern\Argument,
 };
 use Innmind\Immutable\{
     Str,
@@ -27,13 +26,6 @@ class OptionalArgumentTest extends TestCase
     {
         $this->assertInstanceOf(
             Input::class,
-            OptionalArgument::of(Str::of('[foo]'))->match(
-                static fn($input) => $input,
-                static fn() => null,
-            ),
-        );
-        $this->assertInstanceOf(
-            Argument::class,
             OptionalArgument::of(Str::of('[foo]'))->match(
                 static fn($input) => $input,
                 static fn() => null,
@@ -82,10 +74,8 @@ class OptionalArgumentTest extends TestCase
                     static fn() => null,
                 );
 
-                [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+                [$arguments, $parsedArguments] = $input->parse(
                     Sequence::of(...$strings),
-                    Map::of(),
-                    Sequence::of(),
                     Map::of(),
                 );
 
@@ -99,8 +89,6 @@ class OptionalArgumentTest extends TestCase
                         Sequence::of(...$strings)->drop(1),
                     ),
                 );
-                $this->assertTrue($pack->empty());
-                $this->assertTrue($options->empty());
             });
     }
 
@@ -111,9 +99,7 @@ class OptionalArgumentTest extends TestCase
             static fn() => null,
         );
 
-        [$arguments, $parsedArguments, $pack, $options] = $input->parse(
-            Sequence::of(),
-            Map::of(),
+        [$arguments, $parsedArguments] = $input->parse(
             Sequence::of(),
             Map::of(),
         );
@@ -124,7 +110,5 @@ class OptionalArgumentTest extends TestCase
             static fn() => null,
         ));
         $this->assertTrue($arguments->empty());
-        $this->assertTrue($pack->empty());
-        $this->assertTrue($options->empty());
     }
 }

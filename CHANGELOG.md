@@ -2,23 +2,36 @@
 
 ## [Unreleased]
 
+### Added
+
+- `Innmind\CLI\Command\Usage`
+- `Innmind\CLI\Command\Name`
+
 ### Changed
 
 - Requires `innmind/immutable:~5.16`
 - Requires `innmind/operating-system:~6.0`
-- `Innmind\Cli\Environment::read()` now return the read data in an `Innmind\Immutable\Attempt`
-- `Innmind\Cli\Console::read()` now return the read data in an `Innmind\Immutable\Attempt`
-- `Innmind\Cli\Console::output()` now return an `Innmind\Immutable\Attempt`
-- `Innmind\Cli\Console::error()` now return an `Innmind\Immutable\Attempt`
-- `Innmind\Cli\Environment::output()` now return an `Innmind\Immutable\Attempt`
-- `Innmind\Cli\Environment::error()` now return an `Innmind\Immutable\Attempt`
-- `Innmind\Cli\Question\Question` now return the read data in an `Innmind\Immutable\Attempt`
-- `Innmind\Cli\Question\ChoiceQuestion` now return the read data in an `Innmind\Immutable\Attempt`
-- `Innmind\Cli\Question\Question` now return an `Innmind\Immutable\Attempt`
-- `Innmind\Cli\Question\ChoiceQuestion` now return an `Innmind\Immutable\Attempt`
-- `Innmind\Cli\Commands` now return an `Innmind\Immutable\Attempt`
-- `Innmind\Cli\Command` now return an `Innmind\Immutable\Attempt`
-- `Innmind\Cli\Main::main()` now return an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Environment::read()` now return the read data in an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Console::read()` now return the read data in an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Console::output()` now return an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Console::error()` now return an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Environment::output()` now return an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Environment::error()` now return an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Question\Question` now return the read data in an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Question\ChoiceQuestion` now return the read data in an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Question\Question` now return an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Question\ChoiceQuestion` now return an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Commands` now return an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Command` now return an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Main::main()` now return an `Innmind\Immutable\Attempt`
+- `Innmind\CLI\Command::usage()` now return a `Usage`
+
+### Removed
+
+- `Innmind\CLI\Exception\NoRequiredArgumentAllowedAfterAnOptionalOne`
+- `Innmind\CLI\Exception\OnlyOnePackArgumentAllowed`
+- `Innmind\CLI\Exception\PackArgumentMustBeTheLastOne`
+- `Innmind\CLI\Exception\EmptyDeclaration`
 
 ### Fixed
 

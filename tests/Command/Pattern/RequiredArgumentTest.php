@@ -6,7 +6,6 @@ namespace Tests\Innmind\CLI\Command\Pattern;
 use Innmind\CLI\{
     Command\Pattern\RequiredArgument,
     Command\Pattern\Input,
-    Command\Pattern\Argument,
     Exception\MissingArgument,
 };
 use Innmind\Immutable\{
@@ -28,13 +27,6 @@ class RequiredArgumentTest extends TestCase
     {
         $this->assertInstanceOf(
             Input::class,
-            RequiredArgument::of(Str::of('foo'))->match(
-                static fn($input) => $input,
-                static fn() => null,
-            ),
-        );
-        $this->assertInstanceOf(
-            Argument::class,
             RequiredArgument::of(Str::of('foo'))->match(
                 static fn($input) => $input,
                 static fn() => null,
@@ -83,10 +75,8 @@ class RequiredArgumentTest extends TestCase
                     static fn() => null,
                 );
 
-                [$arguments, $parsedArguments, $pack, $options] = $input->parse(
+                [$arguments, $parsedArguments] = $input->parse(
                     Sequence::of(...$strings),
-                    Map::of(),
-                    Sequence::of(),
                     Map::of(),
                 );
 
@@ -100,8 +90,6 @@ class RequiredArgumentTest extends TestCase
                         Sequence::of(...$strings)->drop(1),
                     ),
                 );
-                $this->assertTrue($pack->empty());
-                $this->assertTrue($options->empty());
             });
     }
 
@@ -116,8 +104,6 @@ class RequiredArgumentTest extends TestCase
         $this->expectExceptionMessage('foo');
 
         $input->parse(
-            Sequence::of(),
-            Map::of(),
             Sequence::of(),
             Map::of(),
         );

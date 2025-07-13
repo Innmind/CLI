@@ -169,21 +169,11 @@ final class Commands
         string $bin,
         Specification $spec,
     ): Attempt {
-        $description = Str::of($spec->shortDescription())
-            ->append("\n\n")
-            ->append($spec->description())
-            ->trim();
-
-        if (!$description->empty()) {
-            $description = $description->prepend("\n\n");
-        }
-
         return $write(
             Str::of('usage: ')
                 ->append($bin)
                 ->append(' ')
-                ->append($spec->toString())
-                ->append($description->toString())
+                ->append($spec->usage()->toString())
                 ->append("\n"),
         );
     }

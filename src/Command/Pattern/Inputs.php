@@ -3,12 +3,14 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Command\Pattern;
 
-use Innmind\CLI\Exception\PatternNotRecognized;
+use Innmind\CLI\{
+    Command\Usage,
+    Exception\PatternNotRecognized,
+};
 use Innmind\Immutable\{
+    Attempt,
     Str,
-    Maybe,
     Sequence,
-    Predicate\Instance,
 };
 
 /**
@@ -31,25 +33,22 @@ final class Inputs
         );
     }
 
-    public function __invoke(Str $pattern): Input
+    /**
+     * @return Attempt<Usage>
+     */
+    public function __invoke(Usage $usage, Str $pattern): Attempt
     {
-        /** @var ?Input */
-        $parsed = null;
-
-        $input = $this
+        $parsed = $this
             ->inputs
-            ->sink($parsed)
-            ->until(static fn($parsed, $input, $continuation) => match ($parsed) {
-                null => $input::of($pattern)->match(
-                    static fn($input) => $continuation->stop($input),
-                    static fn() => $continuation->continue($parsed),
-                ),
-                default => $continuation->stop($parsed),
-            });
+            ->sink($usage)
+            ->until(static fn($usage, $input, $continuation) => $input::walk($usage, $pattern)->match(
+                static fn($usage) => $continuation->stop($usage),
+                static fn() => $continuation->continue($usage),
+            ));
 
-        return Maybe::of($input)
-            ->keep(Instance::of(Input::class))
-            ->attempt(static fn() => new PatternNotRecognized($pattern->toString()))
-            ->unwrap();
+        return match ($parsed) {
+            $usage => Attempt::error(new PatternNotRecognized($pattern->toString())),
+            default => Attempt::result($parsed),
+        };
     }
 }
