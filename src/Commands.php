@@ -45,6 +45,17 @@ final class Commands
     }
 
     /**
+     * Use this method to lazy load commands and free the unused one from memory
+     * when they will never be used in the current process.
+     *
+     * @param Sequence<Command> $commands
+     */
+    public static function for(Sequence $commands): self
+    {
+        return new self($commands);
+    }
+
+    /**
      * @param Sequence<Command> $commands
      *
      * @return Attempt<Environment>

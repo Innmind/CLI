@@ -6,6 +6,7 @@
 
 - `Innmind\CLI\Command\Usage`
 - `Innmind\CLI\Command\Name`
+- `Innmind\CLI\Commands::for()`
 
 ### Changed
 

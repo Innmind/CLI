@@ -4,7 +4,10 @@ declare(strict_types = 1);
 namespace Innmind\CLI\Command;
 
 use Innmind\CLI\Command;
-use Innmind\Immutable\Sequence;
+use Innmind\Immutable\{
+    Sequence,
+    Pair,
+};
 
 /**
  * @internal
@@ -13,7 +16,7 @@ use Innmind\Immutable\Sequence;
 final class Finder
 {
     /**
-     * @param Command|Sequence<Command>|null $found
+     * @param Command|Sequence<Pair<Usage, Command>>|null $found
      * @param Sequence<Usage> $all
      */
     private function __construct(
@@ -45,9 +48,9 @@ final class Finder
 
         if ($usage->matches($command)) {
             if ($this->found instanceof Sequence) {
-                $found = $this->found->add($maybe);
+                $found = $this->found->add(new Pair($usage, $maybe));
             } else {
-                $found = Sequence::of($maybe);
+                $found = Sequence::of(new Pair($usage, $maybe));
             }
 
             return new self(
@@ -104,11 +107,11 @@ final class Finder
         /** @psalm-suppress ImpureFunctionCall */
         return $this->found->match(
             static fn($first, $rest) => match ($rest->empty()) {
-                true => $match($first),
+                true => $match($first->value()),
                 false => $matches(
                     Sequence::of($first)
                         ->append($rest)
-                        ->map(static fn($command) => $command->usage()),
+                        ->map(static fn($pair) => $pair->key()),
                 ),
             },
             fn() => $matches($this->all),
