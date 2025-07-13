@@ -30,10 +30,10 @@ final class Commands
     public function __invoke(Environment $env): Attempt
     {
         if ($this->commands instanceof Command) {
-            return $this->run($env, $this->commands);
+            return self::run($env, $this->commands);
         }
 
-        return $this->find($env, $this->commands);
+        return self::find($env, $this->commands);
     }
 
     public static function of(Command $command, Command ...$commands): self
@@ -49,7 +49,7 @@ final class Commands
      *
      * @return Attempt<Environment>
      */
-    private function find(Environment $env, Sequence $commands): Attempt
+    private static function find(Environment $env, Sequence $commands): Attempt
     {
         $command = $env
             ->arguments()
@@ -60,17 +60,16 @@ final class Commands
             );
 
         if (!\is_string($command)) {
-            return $this
-                ->displayHelp(
-                    $env,
-                    true,
-                    $commands->map(static fn($command) => $command->usage()),
-                )
+            return self::displayHelp(
+                $env,
+                true,
+                $commands->map(static fn($command) => $command->usage()),
+            )
                 ->map(static fn($env) => $env->exit(64)); // EX_USAGE The command was used incorrectly
         }
 
         if ($command === 'help') {
-            return $this->displayHelp(
+            return self::displayHelp(
                 $env,
                 false,
                 $commands->map(static fn($command) => $command->usage()),
@@ -91,13 +90,12 @@ final class Commands
                     ),
             )
             ->match(
-                fn($command) => $this->run($env, $command),
-                fn($usages) => $this
-                    ->displayHelp(
-                        $env,
-                        true,
-                        $usages,
-                    )
+                static fn($command) => self::run($env, $command),
+                static fn($usages) => self::displayHelp(
+                    $env,
+                    true,
+                    $usages,
+                )
                     ->map(static fn($env) => $env->exit(64)), // EX_USAGE The command was used incorrectly
             );
     }
@@ -105,7 +103,7 @@ final class Commands
     /**
      * @return Attempt<Environment>
      */
-    private function run(Environment $env, Command $command): Attempt
+    private static function run(Environment $env, Command $command): Attempt
     {
         $usage = $command->usage();
         [$bin, $arguments] = $env->arguments()->match(
@@ -124,7 +122,7 @@ final class Commands
             );
 
         if ($arguments->contains('--help')) {
-            return $this->displayUsage(
+            return self::displayUsage(
                 $env->output(...),
                 $bin,
                 $usage,
@@ -136,12 +134,11 @@ final class Commands
 
             [$arguments, $options] = $pattern($arguments);
         } catch (Exception $e) {
-            return $this
-                ->displayUsage(
-                    $env->error(...),
-                    $bin,
-                    $usage,
-                )
+            return self::displayUsage(
+                $env->error(...),
+                $bin,
+                $usage,
+            )
                 ->map(static fn($env) => $env->exit(64)); // EX_USAGE The command was used incorrectly
         }
 
@@ -155,7 +152,7 @@ final class Commands
      *
      * @return Attempt<Environment>
      */
-    private function displayUsage(
+    private static function displayUsage(
         callable $write,
         string $bin,
         Usage $usage,
@@ -174,7 +171,7 @@ final class Commands
      *
      * @return Attempt<Environment>
      */
-    private function displayHelp(
+    private static function displayHelp(
         Environment $env,
         bool $error,
         Sequence $usages,
