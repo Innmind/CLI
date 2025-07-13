@@ -22,14 +22,6 @@ final class PackArgument implements Input
     /**
      * @psalm-pure
      */
-    public static function new(): self
-    {
-        return new self();
-    }
-
-    /**
-     * @psalm-pure
-     */
     #[\Override]
     public static function walk(Usage $usage, Str $pattern): Maybe
     {
@@ -46,10 +38,5 @@ final class PackArgument implements Input
             ->filter(static fn($pattern) => $pattern->matches('~^\.\.\.[a-zA-Z0-9]+$~'))
             ->map(static fn($pattern) => $pattern->drop(3))
             ->map(static fn($pattern) => new self);
-    }
-
-    public function toString(): string
-    {
-        return '...arguments';
     }
 }

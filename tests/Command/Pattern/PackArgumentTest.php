@@ -47,21 +47,6 @@ class PackArgumentTest extends TestCase
             });
     }
 
-    public function testStringCast(): BlackBox\Proof
-    {
-        return $this
-            ->forAll(Set::of('...foo', '...bar', '...baz'))
-            ->prove(function(string $string): void {
-                $this->assertSame(
-                    '...arguments',
-                    PackArgument::of(Str::of($string))->match(
-                        static fn($input) => $input->toString(),
-                        static fn() => null,
-                    ),
-                );
-            });
-    }
-
     public function testParse(): BlackBox\Proof
     {
         return $this
