@@ -9,6 +9,8 @@ namespace Innmind\CLI\Environment;
 final class ExitCode
 {
     /**
+     * @internal
+     *
      * 255 is reserved by PHP
      * @param int<0, 254> $code
      */

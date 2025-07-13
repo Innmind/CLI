@@ -25,6 +25,9 @@
 - `Innmind\CLI\Command` now return an `Innmind\Immutable\Attempt`
 - `Innmind\CLI\Main::main()` now return an `Innmind\Immutable\Attempt`
 - `Innmind\CLI\Command::usage()` now return a `Usage`
+- `Innmind\CLI\Command\Arguments` constructor is now declared internal
+- `Innmind\CLI\Command\Options` constructor is now declared internal
+- `Innmind\CLI\Environment\ExitCode` constructor is now declared internal
 
 ### Removed
 
