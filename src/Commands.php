@@ -16,11 +16,10 @@ use Innmind\Immutable\{
 final class Commands
 {
     /**
-     * @param Sequence<Command> $commands
+     * @param Command|Sequence<Command> $commands
      */
     private function __construct(
-        private Sequence $commands,
-        private bool $single,
+        private Command|Sequence $commands,
     ) {
     }
 
@@ -29,27 +28,27 @@ final class Commands
      */
     public function __invoke(Environment $env): Attempt
     {
-        return match ($this->single) {
-            true => $this->commands->first()->match(
-                fn($command) => $this->run($env, $command),
-                static fn() => throw new \Exception('Missing command'), // this case should never happen
-            ),
-            false => $this->find($env),
-        };
+        if ($this->commands instanceof Command) {
+            return $this->run($env, $this->commands);
+        }
+
+        return $this->find($env, $this->commands);
     }
 
     public static function of(Command $command, Command ...$commands): self
     {
-        return new self(
-            Sequence::of($command, ...$commands),
-            \count($commands) === 0,
-        );
+        return new self(match ($commands) {
+            [] => $command,
+            default => Sequence::of($command, ...$commands),
+        });
     }
 
     /**
+     * @param Sequence<Command> $commands
+     *
      * @return Attempt<Environment>
      */
-    private function find(Environment $env): Attempt
+    private function find(Environment $env, Sequence $commands): Attempt
     {
         $command = $env
             ->arguments()
@@ -64,7 +63,7 @@ final class Commands
                 ->displayHelp(
                     $env,
                     true,
-                    $this->commands->map(static fn($command) => $command->usage()),
+                    $commands->map(static fn($command) => $command->usage()),
                 )
                 ->map(static fn($env) => $env->exit(64)); // EX_USAGE The command was used incorrectly
         }
@@ -73,15 +72,14 @@ final class Commands
             return $this->displayHelp(
                 $env,
                 false,
-                $this->commands->map(static fn($command) => $command->usage()),
+                $commands->map(static fn($command) => $command->usage()),
             );
         }
 
         /** @var Sequence<Command> */
         $found = Sequence::of();
 
-        return $this
-            ->commands
+        return $commands
             ->sink($found)
             ->until(static fn($found, $maybe, $continuation) => match ($maybe->usage()->is($command)) {
                 true => $continuation->stop(Sequence::of($maybe)),
@@ -107,7 +105,7 @@ final class Commands
                     ->displayHelp(
                         $env,
                         true,
-                        $this->commands->map(static fn($command) => $command->usage()),
+                        $commands->map(static fn($command) => $command->usage()),
                     )
                     ->map(static fn($env) => $env->exit(64)), // EX_USAGE The command was used incorrectly
             );
