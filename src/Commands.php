@@ -5,6 +5,7 @@ namespace Innmind\CLI;
 
 use Innmind\CLI\{
     Command\Usage,
+    Command\Finder,
     Exception\Exception,
 };
 use Innmind\Immutable\{
@@ -80,32 +81,22 @@ final class Commands
         $found = Sequence::of();
 
         return $commands
-            ->sink($found)
-            ->until(static fn($found, $maybe, $continuation) => match ($maybe->usage()->is($command)) {
-                true => $continuation->stop(Sequence::of($maybe)),
-                false => match ($maybe->usage()->matches($command)) {
-                    true => $continuation->continue(($found)($maybe)),
-                    false => $continuation->continue($found),
-                },
-            })
+            ->sink(Finder::new())
+            ->until(
+                static fn($finder, $maybe, $continuation) => $finder
+                    ->maybe($maybe, $command)
+                    ->next(
+                        static fn($finder) => $continuation->stop($finder),
+                        static fn($finder) => $continuation->continue($finder),
+                    ),
+            )
             ->match(
-                fn($command, $rest) => match ($rest->empty()) {
-                    true => $this->run($env, $command),
-                    false => $this
-                        ->displayHelp(
-                            $env,
-                            true,
-                            Sequence::of($command)
-                                ->append($rest)
-                                ->map(static fn($command) => $command->usage()),
-                        )
-                        ->map(static fn($env) => $env->exit(64)), // EX_USAGE The command was used incorrectly
-                },
-                fn() => $this
+                fn($command) => $this->run($env, $command),
+                fn($usages) => $this
                     ->displayHelp(
                         $env,
                         true,
-                        $commands->map(static fn($command) => $command->usage()),
+                        $usages,
                     )
                     ->map(static fn($env) => $env->exit(64)), // EX_USAGE The command was used incorrectly
             );
