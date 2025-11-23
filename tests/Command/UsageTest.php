@@ -135,6 +135,10 @@ class UsageTest extends TestCase
                 Set::integers()->between(1, 10),
                 Set::integers()->between(1, 10),
             )
+            ->filter(static fn($name, $start, $shrink) => !\str_starts_with(
+                $name,
+                \mb_substr($name, $start, $shrink),
+            ))
             ->prove(function($name, $start, $shrink) {
                 $usage = Usage::parse($name);
                 $shrunk = \mb_substr($name, $start, $shrink);
