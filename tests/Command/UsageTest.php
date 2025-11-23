@@ -160,23 +160,8 @@ class UsageTest extends TestCase
         return Set::strings()
             ->madeOf(
                 Set::strings()
-                    ->unicode()
-                    ->char()
-                    ->filter(
-                        static fn($char) => !\in_array(
-                            $char,
-                            [
-                                ':',
-                                ' ',
-                                "\n",
-                                "\r",
-                                \chr(11),
-                                \chr(0),
-                                "\t",
-                            ],
-                            true,
-                        ),
-                    ),
+                    ->chars()
+                    ->alphanumerical(),
             )
             ->between(1, 10);
     }

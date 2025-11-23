@@ -5,6 +5,7 @@
 ### Changed
 
 - Requires PHP `8.4`
+- Commands name only support alphanumerical characters (use unicode at your own risk)
 
 ## 4.0.0 - 2025-07-13
 
