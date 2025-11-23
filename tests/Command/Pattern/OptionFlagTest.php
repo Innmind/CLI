@@ -77,7 +77,7 @@ class OptionFlagTest extends TestCase
         );
 
         $this->assertSame(['watev', 'bar', '--unknown', 'baz'], $arguments->toList());
-        $this->assertCount(1, $options);
+        $this->assertSame(1, $options->size());
         $this->assertSame('', $options->get('foo')->match(
             static fn($value) => $value,
             static fn() => null,

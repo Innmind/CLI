@@ -37,7 +37,7 @@ class ChoiceQuestionTest extends TestCase
         );
 
         $this->assertInstanceOf(Map::class, $response);
-        $this->assertCount(2, $response);
+        $this->assertSame(2, $response->size());
         $this->assertSame('bar', $response->get('foo')->match(
             static fn($value) => $value,
             static fn() => null,

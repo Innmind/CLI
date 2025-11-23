@@ -80,7 +80,7 @@ class RequiredArgumentTest extends TestCase
                     Map::of(),
                 );
 
-                $this->assertCount(1, $parsedArguments);
+                $this->assertSame(1, $parsedArguments->size());
                 $this->assertSame($strings[0], $parsedArguments->get('foo')->match(
                     static fn($value) => $value,
                     static fn() => null,
