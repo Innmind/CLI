@@ -22,7 +22,7 @@ class ChoiceQuestionTest extends TestCase
                 (2, 3)
                 ('bar', 3),
         );
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [' foo,  ', "2\n"],
             true,
             [],
@@ -55,7 +55,10 @@ class ChoiceQuestionTest extends TestCase
                 "[bar] 3\n",
                 '> ',
             ],
-            $env->outputs(),
+            $env
+                ->outputted()
+                ->map(static fn($pair) => $pair[0]->toString())
+                ->toList(),
         );
     }
 
@@ -63,7 +66,7 @@ class ChoiceQuestionTest extends TestCase
     {
         $question = ChoiceQuestion::of('watev', Map::of());
 
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             false,
             [],
@@ -83,7 +86,7 @@ class ChoiceQuestionTest extends TestCase
     {
         $question = ChoiceQuestion::of('watev', Map::of());
 
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             true,
             ['foo', '--no-interaction', 'bar'],

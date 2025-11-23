@@ -55,7 +55,7 @@ class CommandsTest extends TestCase
                 return Usage::parse('watch container [output] --foo');
             }
         });
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             true,
             ['bin/console', 'foo', '--foo', 'bar'],
@@ -105,7 +105,7 @@ class CommandsTest extends TestCase
                 }
             },
         );
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             true,
             ['bin/console', 'watch', 'foo', '--foo', 'bar'],
@@ -145,7 +145,7 @@ class CommandsTest extends TestCase
                 }
             },
         );
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             true,
             ['bin/console', 'watch', 'foo', '--foo', 'bar'],
@@ -185,7 +185,7 @@ class CommandsTest extends TestCase
                 }
             },
         );
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             true,
             ['bin/console', 'foo'],
@@ -225,7 +225,7 @@ class CommandsTest extends TestCase
                 }
             },
         );
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             true,
             ['bin/console', 'w'],
@@ -265,7 +265,7 @@ class CommandsTest extends TestCase
                 }
             },
         );
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             true,
             ['bin/console', 'f:b:b'],
@@ -305,7 +305,7 @@ class CommandsTest extends TestCase
                 }
             },
         );
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             true,
             ['bin/console', 'bar'],
@@ -324,7 +324,11 @@ class CommandsTest extends TestCase
                 " foo    \n",
                 " watch  \n",
             ],
-            $env->errors(),
+            $env
+                ->outputted()
+                ->filter(static fn($pair) => $pair[1] === 'error')
+                ->map(static fn($pair) => $pair[0]->toString())
+                ->toList(),
         );
     }
 
@@ -354,7 +358,7 @@ class CommandsTest extends TestCase
                 }
             },
         );
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             true,
             ['bin/console', 'ba'],
@@ -373,7 +377,11 @@ class CommandsTest extends TestCase
                 " bar  \n",
                 " baz  \n",
             ],
-            $env->errors(),
+            $env
+                ->outputted()
+                ->filter(static fn($pair) => $pair[1] === 'error')
+                ->map(static fn($pair) => $pair[0]->toString())
+                ->toList(),
         );
     }
 
@@ -396,7 +404,7 @@ Bar
 USAGE);
             }
         });
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             true,
             ['bin/console'],
@@ -412,7 +420,11 @@ USAGE);
         ));
         $this->assertSame(
             ['usage: bin/console watch container [output] --foo --help --no-interaction'."\n\nFoo\n\nBar\n"],
-            $env->errors(),
+            $env
+                ->outputted()
+                ->filter(static fn($pair) => $pair[1] === 'error')
+                ->map(static fn($pair) => $pair[0]->toString())
+                ->toList(),
         );
     }
 
@@ -429,7 +441,7 @@ USAGE);
                 return Usage::parse('watch container [output] --foo');
             }
         });
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             true,
             ['bin/console', 'foo', '--foo', 'bar'],
@@ -461,7 +473,7 @@ Bar
 USAGE);
             }
         });
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             true,
             ['bin/console', '--help'],
@@ -477,7 +489,11 @@ USAGE);
         ));
         $this->assertSame(
             ['usage: bin/console watch container [output] --foo --help --no-interaction'."\n\nFoo\n\nBar\n"],
-            $env->outputs(),
+            $env
+                ->outputted()
+                ->filter(static fn($pair) => $pair[1] === 'output')
+                ->map(static fn($pair) => $pair[0]->toString())
+                ->toList(),
         );
     }
 
@@ -507,7 +523,7 @@ USAGE);
                 }
             },
         );
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             true,
             ['bin/console', 'help'],
@@ -526,7 +542,11 @@ USAGE);
                 " foo    Description\n",
                 " watch  Watch dependency injection\n",
             ],
-            $env->outputs(),
+            $env
+                ->outputted()
+                ->filter(static fn($pair) => $pair[1] === 'output')
+                ->map(static fn($pair) => $pair[0]->toString())
+                ->toList(),
         );
     }
 
@@ -556,7 +576,7 @@ USAGE);
                 }
             },
         );
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             true,
             ['bin/console'],
@@ -572,7 +592,11 @@ USAGE);
         ));
         $this->assertSame(
             [" foo    \n", " watch  \n"],
-            $env->errors(),
+            $env
+                ->outputted()
+                ->filter(static fn($pair) => $pair[1] === 'error')
+                ->map(static fn($pair) => $pair[0]->toString())
+                ->toList(),
         );
     }
 
@@ -603,7 +627,7 @@ USAGE);
                 }
             },
         );
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             true,
             ['bin/console', 'help'],
@@ -622,7 +646,11 @@ USAGE);
                 " foo    \n",
                 " watch  \n",
             ],
-            $env->outputs(),
+            $env
+                ->outputted()
+                ->filter(static fn($pair) => $pair[1] === 'output')
+                ->map(static fn($pair) => $pair[0]->toString())
+                ->toList(),
         );
     }
 
@@ -647,7 +675,7 @@ USAGE);
                 }
             },
         );
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             true,
             ['bin/console', '--help'],
@@ -670,7 +698,11 @@ USAGE);
 
                 USAGE,
             ],
-            $env->outputs(),
+            $env
+                ->outputted()
+                ->filter(static fn($pair) => $pair[1] === 'output')
+                ->map(static fn($pair) => $pair[0]->toString())
+                ->toList(),
         );
     }
 
@@ -713,7 +745,7 @@ USAGE);
                 }
             };
         }));
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             true,
             ['bin/console', 'watch', 'foo', '--foo', 'bar'],
@@ -784,7 +816,7 @@ USAGE);
                 }
             };
         }));
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             true,
             ['bin/console', 'ba'],
@@ -856,7 +888,7 @@ USAGE);
                 }
             };
         }));
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             true,
             ['bin/console', 'unknown'],

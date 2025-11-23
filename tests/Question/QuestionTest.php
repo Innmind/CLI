@@ -15,7 +15,7 @@ class QuestionTest extends TestCase
     public function testInvoke()
     {
         $question = Question::of('message');
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             ['f', "oo\n"],
             true,
             [],
@@ -33,7 +33,10 @@ class QuestionTest extends TestCase
         $this->assertSame('foo', $response->toString());
         $this->assertSame(
             ['message '],
-            $env->outputs(),
+            $env
+                ->outputted()
+                ->map(static fn($pair) => $pair[0]->toString())
+                ->toList(),
         );
     }
 
@@ -41,7 +44,7 @@ class QuestionTest extends TestCase
     {
         $question = Question::of('watev');
 
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             false,
             [],
@@ -61,7 +64,7 @@ class QuestionTest extends TestCase
     {
         $question = Question::of('watev');
 
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             true,
             ['foo', '--no-interaction', 'bar'],

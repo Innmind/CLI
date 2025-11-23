@@ -6,6 +6,7 @@
 
 - Requires PHP `8.4`
 - Commands name only support alphanumerical characters (use unicode at your own risk)
+- `Innmind\CLI\Environment` is now a final class, all previous implementations are now flagged as internal
 
 ## 4.0.0 - 2025-07-13
 

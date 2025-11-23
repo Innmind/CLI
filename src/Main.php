@@ -25,7 +25,7 @@ abstract class Main
     {
         $config ??= Config::new();
         $os = Factory::build($config);
-        $env = Environment\GlobalEnvironment::of($config->io());
+        $env = Environment::global($config->io());
 
         try {
             $env = $this->main($env, $os)->unwrap();
