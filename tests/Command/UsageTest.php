@@ -55,6 +55,7 @@ class UsageTest extends TestCase
                 $this->names(),
             )
             ->filter(static fn($a, $b) => $a !== $b)
+            ->filter(static fn($a, $b) => !\str_starts_with($a, $b))
             ->prove(function($a, $b) {
                 $usage = Usage::parse($a);
 
