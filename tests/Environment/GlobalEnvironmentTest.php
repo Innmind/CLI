@@ -3,10 +3,7 @@ declare(strict_types = 1);
 
 namespace Tests\Innmind\CLI\Environment;
 
-use Innmind\CLI\{
-    Environment\GlobalEnvironment,
-    Environment,
-};
+use Innmind\CLI\Environment\GlobalEnvironment;
 use Innmind\IO\IO;
 use Innmind\Url\Path;
 use Innmind\Immutable\{
@@ -23,11 +20,6 @@ class GlobalEnvironmentTest extends TestCase
     public function setUp(): void
     {
         $this->env = GlobalEnvironment::of(IO::fromAmbientAuthority());
-    }
-
-    public function testInterface()
-    {
-        $this->assertInstanceOf(Environment::class, $this->env);
     }
 
     public function testInteractive()
@@ -63,7 +55,6 @@ class GlobalEnvironmentTest extends TestCase
     {
         $this->assertEquals(Maybe::nothing(), $this->env->exitCode());
         $env = $this->env->exit(1);
-        $this->assertInstanceOf(Environment::class, $env);
         $this->assertSame(1, $env->exitCode()->match(
             static fn($code) => $code->toInt(),
             static fn() => null,

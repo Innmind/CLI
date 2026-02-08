@@ -72,7 +72,7 @@ class MainTest extends TestCase
             $process
                 ->output()
                 ->map(static fn($chunk) => $chunk->data())
-                ->fold(new Concat)
+                ->fold(Concat::monoid)
                 ->toString(),
         );
     }
@@ -88,7 +88,7 @@ class MainTest extends TestCase
                     ->withEnvironment('PATH', $_SERVER['PATH']),
             )
             ->unwrap();
-        $process->output()->foreach(function($chunk): void {
+        $_ = $process->output()->foreach(function($chunk): void {
             $this->assertSame(Type::error, $chunk->type());
         });
 
@@ -97,7 +97,7 @@ class MainTest extends TestCase
             $process
                 ->output()
                 ->map(static fn($chunk) => $chunk->data())
-                ->fold(new Concat)
+                ->fold(Concat::monoid)
                 ->toString(),
         )
             ->split("\n")
@@ -105,11 +105,11 @@ class MainTest extends TestCase
 
         $this->assertCount(6, $output);
         $this->assertSame(
-            "Innmind\CLI\Exception\LogicException(waaat, 0)",
+            'LogicException(waaat, 0)',
             $output[0]->toString(),
         );
         $this->assertSame(
-            "$cwd/fixtures/thrower.php:18",
+            "$cwd/fixtures/thrower.php:17",
             $output[1]->toString(),
         );
         $this->assertSame(
@@ -133,7 +133,7 @@ class MainTest extends TestCase
             $output[3]->substring(-28 - \strlen($cwd))->toString(),
         );
         $this->assertSame(
-            "Innmind\CLI\Main->__construct() at $cwd/fixtures/thrower.php:15",
+            "Innmind\CLI\Main->__construct() at $cwd/fixtures/thrower.php:14",
             $output[4]->toString(),
         );
         $this->assertSame(

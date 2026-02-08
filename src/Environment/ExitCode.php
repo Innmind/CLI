@@ -21,11 +21,13 @@ final class ExitCode
     /**
      * @return int<0, 254>
      */
+    #[\NoDiscard]
     public function toInt(): int
     {
         return $this->code;
     }
 
+    #[\NoDiscard]
     public function successful(): bool
     {
         return $this->code === 0;

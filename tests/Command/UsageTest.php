@@ -55,6 +55,7 @@ class UsageTest extends TestCase
                 $this->names(),
             )
             ->filter(static fn($a, $b) => $a !== $b)
+            ->filter(static fn($a, $b) => !\str_starts_with($a, $b))
             ->prove(function($a, $b) {
                 $usage = Usage::parse($a);
 
@@ -135,6 +136,10 @@ class UsageTest extends TestCase
                 Set::integers()->between(1, 10),
                 Set::integers()->between(1, 10),
             )
+            ->filter(static fn($name, $start, $shrink) => !\str_starts_with(
+                $name,
+                \mb_substr($name, $start, $shrink),
+            ))
             ->prove(function($name, $start, $shrink) {
                 $usage = Usage::parse($name);
                 $shrunk = \mb_substr($name, $start, $shrink);
@@ -148,7 +153,7 @@ class UsageTest extends TestCase
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('Empty usage');
 
-        Usage::parse('  ');
+        $_ = Usage::parse('  ');
     }
 
     private function names(): Set
@@ -156,23 +161,8 @@ class UsageTest extends TestCase
         return Set::strings()
             ->madeOf(
                 Set::strings()
-                    ->unicode()
-                    ->char()
-                    ->filter(
-                        static fn($char) => !\in_array(
-                            $char,
-                            [
-                                ':',
-                                ' ',
-                                "\n",
-                                "\r",
-                                \chr(11),
-                                \chr(0),
-                                "\t",
-                            ],
-                            true,
-                        ),
-                    ),
+                    ->chars()
+                    ->alphanumerical(),
             )
             ->between(1, 10);
     }

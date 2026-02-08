@@ -27,6 +27,7 @@ final class Commands
     /**
      * @return Attempt<Environment>
      */
+    #[\NoDiscard]
     public function __invoke(Environment $env): Attempt
     {
         if ($this->commands instanceof Command) {
@@ -36,6 +37,7 @@ final class Commands
         return self::find($env, $this->commands);
     }
 
+    #[\NoDiscard]
     public static function of(Command $command, Command ...$commands): self
     {
         return new self(match ($commands) {
@@ -50,6 +52,7 @@ final class Commands
      *
      * @param Sequence<Command> $commands
      */
+    #[\NoDiscard]
     public static function for(Sequence $commands): self
     {
         return new self($commands);

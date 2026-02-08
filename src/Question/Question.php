@@ -28,6 +28,7 @@ final class Question
      *
      * @return Attempt<array{Attempt<Str>, T}> Returns nothing when no interactions available
      */
+    #[\NoDiscard]
     public function __invoke(Environment|Console $env): Attempt
     {
         $noInteraction = match ($env::class) {
@@ -52,6 +53,7 @@ final class Question
     /**
      * @psalm-pure
      */
+    #[\NoDiscard]
     public static function of(string $question): self
     {
         return new self(Str::of($question)->append(' '));

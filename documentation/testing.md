@@ -13,7 +13,7 @@ You can write such a test like this:
 ```php
 use Innmind\CLI\{
     Commands,
-    Environment\InMemory,
+    Environment,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -22,7 +22,7 @@ class GreetTest extends TestCase
     public function testCommandGreetsTheUser()
     {
         $commands = Commands::of(new Greet);
-        $environment = $commands(InMemory::of(
+        $environment = $commands(Environment::inMemory(
             [], // no chunks in STDIN
             false, // non interactive mode
             ['cli.php', 'greet', 'Bob'], // to simulate `php cli.php greet Bob`
@@ -31,9 +31,22 @@ class GreetTest extends TestCase
         ))->unwrap();
 
         // it asked to output "Hi Bob\n"
-        $this->assertSame(["Hi Bob\n"], $environment->outputs());
+        $this->assertSame(
+            ["Hi Bob\n"],
+            $environment
+                ->outputted()
+                ->filter(static fn($chunk) => $chunk[1] === 'output')
+                ->map(static fn($chunk) => $chunk[0]->toString())
+                ->toList(),
+        );
         // it didn't write anything to STDERR
-        $this->assertSame([], $environment->errors());
+        $this->assertSame(
+            [],
+            $environment
+                ->outputted()
+                ->filter(static fn($chunk) => $chunk[1] === 'error')
+                ->toList(),
+        );
         // it didn't specify any exit code, meaning it will default to 0
         $this->assertFalse($environment->exitCode()->match(
             static fn() => true,

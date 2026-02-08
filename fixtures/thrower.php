@@ -7,7 +7,6 @@ require __DIR__.'/../vendor/autoload.php';
 use Innmind\CLI\{
     Main,
     Environment,
-    Exception\LogicException,
 };
 use Innmind\OperatingSystem\OperatingSystem;
 use Innmind\Immutable\Attempt;
@@ -15,6 +14,6 @@ use Innmind\Immutable\Attempt;
 new class extends Main {
     protected function main(Environment $env, OperatingSystem $os): Attempt
     {
-        throw new LogicException('waaat');
+        throw new \LogicException('waaat');
     }
 };

@@ -1,5 +1,14 @@
 # Changelog
 
+## 5.0.0 - 2026-02-08
+
+### Changed
+
+- Requires PHP `8.4`
+- Commands name only support alphanumerical characters (use unicode at your own risk)
+- `Innmind\CLI\Environment` is now a final class, all previous implementations are now flagged as internal
+- Requires `innmind/operating-system:~7.0`
+
 ## 4.0.0 - 2025-07-13
 
 ### Added
