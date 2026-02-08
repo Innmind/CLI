@@ -153,7 +153,7 @@ class UsageTest extends TestCase
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('Empty usage');
 
-        Usage::parse('  ');
+        $_ = Usage::parse('  ');
     }
 
     private function names(): Set

@@ -11,10 +11,12 @@ interface Command
     /**
      * @return Attempt<Console>
      */
+    #[\NoDiscard]
     public function __invoke(Console $console): Attempt;
 
     /**
      * @psalm-mutation-free
      */
+    #[\NoDiscard]
     public function usage(): Usage;
 }

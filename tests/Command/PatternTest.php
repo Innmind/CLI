@@ -52,7 +52,7 @@ class PatternTest extends TestCase
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('No required argument after an optional one');
 
-        Usage::of('name')
+        $_ = Usage::of('name')
             ->argument('baz')
             ->optionalArgument('foo')
             ->flag('foo')

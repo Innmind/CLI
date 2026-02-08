@@ -34,6 +34,7 @@ final class ChoiceQuestion
      *
      * @return Attempt<array{Attempt<Map<scalar, scalar>>, T}> Returns nothing when no interactions available
      */
+    #[\NoDiscard]
     public function __invoke(Environment|Console $env): Attempt
     {
         $noInteraction = match ($env::class) {
@@ -73,6 +74,7 @@ final class ChoiceQuestion
      *
      * @param Map<scalar, scalar> $values
      */
+    #[\NoDiscard]
     public static function of(string $question, Map $values): self
     {
         return new self(Str::of($question), $values);

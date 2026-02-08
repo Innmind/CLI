@@ -47,6 +47,7 @@ final class Usage
      *
      * @param non-empty-string $name
      */
+    #[\NoDiscard]
     public static function of(string $name): self
     {
         /** @var ?string */
@@ -67,6 +68,7 @@ final class Usage
      *
      * @param class-string<Command> $class
      */
+    #[\NoDiscard]
     public static function for(string $class): self
     {
         $refl = new \ReflectionClass($class);
@@ -94,6 +96,7 @@ final class Usage
     /**
      * @psalm-pure
      */
+    #[\NoDiscard]
     public static function parse(string $usage): self
     {
         $declaration = Str::of($usage)->trim();
@@ -144,6 +147,7 @@ final class Usage
     /**
      * @param non-empty-string $name
      */
+    #[\NoDiscard]
     public function argument(string $name): self
     {
         $_ = $this
@@ -168,6 +172,7 @@ final class Usage
     /**
      * @param non-empty-string $name
      */
+    #[\NoDiscard]
     public function optionalArgument(string $name): self
     {
         return new self(
@@ -180,6 +185,7 @@ final class Usage
         );
     }
 
+    #[\NoDiscard]
     public function packArguments(): self
     {
         return new self(
@@ -196,6 +202,7 @@ final class Usage
      * @param non-empty-string $name
      * @param ?non-empty-string $short
      */
+    #[\NoDiscard]
     public function option(string $name, ?string $short = null): self
     {
         return new self(
@@ -212,6 +219,7 @@ final class Usage
      * @param non-empty-string $name
      * @param ?non-empty-string $short
      */
+    #[\NoDiscard]
     public function flag(string $name, ?string $short = null): self
     {
         return new self(
@@ -224,6 +232,7 @@ final class Usage
         );
     }
 
+    #[\NoDiscard]
     public function withShortDescription(string $description): self
     {
         if (Str::of($description)->contains("\n")) {
@@ -240,6 +249,7 @@ final class Usage
         );
     }
 
+    #[\NoDiscard]
     public function withDescription(string $description): self
     {
         /** @var ?string */
@@ -262,6 +272,7 @@ final class Usage
      *
      * @param callable(): self $load
      */
+    #[\NoDiscard]
     public function load(callable $load): self
     {
         $usage = Identity::defer($load);
@@ -287,6 +298,7 @@ final class Usage
     /**
      * @return non-empty-string
      */
+    #[\NoDiscard]
     public function name(): string
     {
         return $this->name;
@@ -334,11 +346,13 @@ final class Usage
         );
     }
 
+    #[\NoDiscard]
     public function shortDescription(): string
     {
         return $this->shortDescription ?? '';
     }
 
+    #[\NoDiscard]
     public function pattern(): Pattern
     {
         return new Pattern(
@@ -351,6 +365,7 @@ final class Usage
     /**
      * @return non-empty-string
      */
+    #[\NoDiscard]
     public function toString(): string
     {
         $string = $this->name;

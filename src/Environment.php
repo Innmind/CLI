@@ -63,6 +63,7 @@ final class Environment
     /**
      * True if the environment running the script is an interactive terminal
      */
+    #[\NoDiscard]
     public function interactive(): bool
     {
         return $this->implementation->interactive();
@@ -73,6 +74,7 @@ final class Environment
      *
      * @return array{Attempt<Str>, self}
      */
+    #[\NoDiscard]
     public function read(?int $length = null): array
     {
         [$read, $implementation] = $this->implementation->read($length);
@@ -83,6 +85,7 @@ final class Environment
     /**
      * @return Attempt<self>
      */
+    #[\NoDiscard]
     public function output(Str $data): Attempt
     {
         return $this
@@ -94,6 +97,7 @@ final class Environment
     /**
      * @return Attempt<self>
      */
+    #[\NoDiscard]
     public function error(Str $data): Attempt
     {
         return $this
@@ -105,6 +109,7 @@ final class Environment
     /**
      * @return Sequence<string>
      */
+    #[\NoDiscard]
     public function arguments(): Sequence
     {
         return $this->implementation->arguments();
@@ -113,6 +118,7 @@ final class Environment
     /**
      * @return Map<string, string>
      */
+    #[\NoDiscard]
     public function variables(): Map
     {
         return $this->implementation->variables();
@@ -121,6 +127,7 @@ final class Environment
     /**
      * @param int<0, 254> $code
      */
+    #[\NoDiscard]
     public function exit(int $code): self
     {
         return new self($this->implementation->exit($code));
@@ -129,11 +136,13 @@ final class Environment
     /**
      * @return Maybe<ExitCode>
      */
+    #[\NoDiscard]
     public function exitCode(): Maybe
     {
         return $this->implementation->exitCode();
     }
 
+    #[\NoDiscard]
     public function workingDirectory(): Path
     {
         return $this->implementation->workingDirectory();
@@ -144,6 +153,7 @@ final class Environment
      *
      * @return Sequence<array{Str, 'output'|'error'}>
      */
+    #[\NoDiscard]
     public function outputted(): Sequence
     {
         return $this->implementation->outputted();

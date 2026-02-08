@@ -21,11 +21,13 @@ final class Name
     /**
      * @return non-empty-string
      */
+    #[\NoDiscard]
     public function name(): string
     {
         return $this->name;
     }
 
+    #[\NoDiscard]
     public function shortDescription(): ?string
     {
         return $this->shortDescription;
