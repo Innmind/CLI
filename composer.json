@@ -15,13 +15,13 @@
         "issues": "http://github.com/Innmind/CLI/issues"
     },
     "require": {
-        "php": "~8.2",
-        "innmind/io": "~3.2",
-        "innmind/immutable": "~5.16",
-        "innmind/url": "~4.0",
-        "innmind/operating-system": "~6.0",
-        "innmind/stack-trace": "~4.0",
-        "innmind/validation": "~2.0"
+        "php": "~8.4",
+        "innmind/io": "~4.0",
+        "innmind/immutable": "~6.0",
+        "innmind/url": "~5.0",
+        "innmind/operating-system": "~7.0",
+        "innmind/stack-trace": "~5.0",
+        "innmind/validation": "~3.0"
     },
     "autoload": {
         "psr-4": {
@@ -34,7 +34,7 @@
         }
     },
     "require-dev": {
-        "innmind/static-analysis": "^1.2.1",
+        "innmind/static-analysis": "~1.3",
         "innmind/black-box": "^6.4.1",
         "innmind/coding-standard": "~2.0"
     }

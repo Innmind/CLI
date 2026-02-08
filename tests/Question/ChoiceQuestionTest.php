@@ -22,7 +22,7 @@ class ChoiceQuestionTest extends TestCase
                 (2, 3)
                 ('bar', 3),
         );
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [' foo,  ', "2\n"],
             true,
             [],
@@ -37,7 +37,7 @@ class ChoiceQuestionTest extends TestCase
         );
 
         $this->assertInstanceOf(Map::class, $response);
-        $this->assertCount(2, $response);
+        $this->assertSame(2, $response->size());
         $this->assertSame('bar', $response->get('foo')->match(
             static fn($value) => $value,
             static fn() => null,
@@ -55,7 +55,10 @@ class ChoiceQuestionTest extends TestCase
                 "[bar] 3\n",
                 '> ',
             ],
-            $env->outputs(),
+            $env
+                ->outputted()
+                ->map(static fn($pair) => $pair[0]->toString())
+                ->toList(),
         );
     }
 
@@ -63,7 +66,7 @@ class ChoiceQuestionTest extends TestCase
     {
         $question = ChoiceQuestion::of('watev', Map::of());
 
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             false,
             [],
@@ -83,7 +86,7 @@ class ChoiceQuestionTest extends TestCase
     {
         $question = ChoiceQuestion::of('watev', Map::of());
 
-        $env = Environment\InMemory::of(
+        $env = Environment::inMemory(
             [],
             true,
             ['foo', '--no-interaction', 'bar'],

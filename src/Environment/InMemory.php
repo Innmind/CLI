@@ -3,7 +3,6 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Environment;
 
-use Innmind\CLI\Environment;
 use Innmind\Url\Path;
 use Innmind\Immutable\{
     Sequence,
@@ -16,21 +15,20 @@ use Innmind\Immutable\{
 /**
  * Use this implementation for tests only
  * @psalm-immutable
+ * @internal
  */
-final class InMemory implements Environment
+final class InMemory implements Implementation
 {
     /**
      * @param Sequence<Str> $input
-     * @param Sequence<Str> $output
-     * @param Sequence<Str> $error
+     * @param Sequence<array{Str, 'output'|'error'}> $outputted
      * @param Sequence<string> $arguments
      * @param Map<string, string> $variables
      * @param Maybe<ExitCode> $exitCode
      */
     private function __construct(
         private Sequence $input,
-        private Sequence $output,
-        private Sequence $error,
+        private Sequence $outputted,
         private bool $interactive,
         private Sequence $arguments,
         private Map $variables,
@@ -56,7 +54,6 @@ final class InMemory implements Environment
 
         return new self(
             Sequence::of(...$input)->map(static fn($string) => Str::of($string, Str\Encoding::ascii)),
-            Sequence::of(),
             Sequence::of(),
             $interactive,
             Sequence::of(...$arguments),
@@ -95,8 +92,7 @@ final class InMemory implements Environment
             $data->attempt(static fn() => new \LogicException('No input data specified')),
             new self(
                 $input,
-                $this->output,
-                $this->error,
+                $this->outputted,
                 $this->interactive,
                 $this->arguments,
                 $this->variables,
@@ -111,8 +107,10 @@ final class InMemory implements Environment
     {
         return Attempt::result(new self(
             $this->input,
-            ($this->output)($data->toEncoding(Str\Encoding::ascii)),
-            $this->error,
+            ($this->outputted)([
+                $data->toEncoding(Str\Encoding::ascii),
+                'output',
+            ]),
             $this->interactive,
             $this->arguments,
             $this->variables,
@@ -126,8 +124,10 @@ final class InMemory implements Environment
     {
         return Attempt::result(new self(
             $this->input,
-            $this->output,
-            ($this->error)($data->toEncoding(Str\Encoding::ascii)),
+            ($this->outputted)([
+                $data->toEncoding(Str\Encoding::ascii),
+                'error',
+            ]),
             $this->interactive,
             $this->arguments,
             $this->variables,
@@ -153,8 +153,7 @@ final class InMemory implements Environment
     {
         return new self(
             $this->input,
-            $this->output,
-            $this->error,
+            $this->outputted,
             $this->interactive,
             $this->arguments,
             $this->variables,
@@ -175,25 +174,9 @@ final class InMemory implements Environment
         return $this->workingDirectory;
     }
 
-    /**
-     * @return list<string>
-     */
-    public function outputs(): array
+    #[\Override]
+    public function outputted(): Sequence
     {
-        return $this
-            ->output
-            ->map(static fn($string) => $string->toString())
-            ->toList();
-    }
-
-    /**
-     * @return list<string>
-     */
-    public function errors(): array
-    {
-        return $this
-            ->error
-            ->map(static fn($string) => $string->toString())
-            ->toList();
+        return $this->outputted;
     }
 }

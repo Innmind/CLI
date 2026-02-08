@@ -3,8 +3,7 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Environment;
 
-use Innmind\CLI\Environment;
-use Innmind\TimeContinuum\Period;
+use Innmind\Time\Period;
 use Innmind\IO\{
     IO,
     Streams\Stream\Read,
@@ -21,8 +20,9 @@ use Innmind\Immutable\{
 
 /**
  * @psalm-immutable
+ * @internal
  */
-final class GlobalEnvironment implements Environment
+final class GlobalEnvironment implements Implementation
 {
     /**
      * @param Output<'stdout'> $output
@@ -179,5 +179,11 @@ final class GlobalEnvironment implements Environment
     public function workingDirectory(): Path
     {
         return $this->workingDirectory;
+    }
+
+    #[\Override]
+    public function outputted(): Sequence
+    {
+        return Sequence::of();
     }
 }

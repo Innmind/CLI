@@ -67,6 +67,6 @@ class PatternTest extends TestCase
 
         $this->assertSame('first', $arguments->get('foo'));
         $this->assertSame('second', $arguments->get('bar'));
-        $this->assertCount(0, $arguments->pack());
+        $this->assertSame(0, $arguments->pack()->size());
     }
 }

@@ -79,7 +79,7 @@ class OptionalArgumentTest extends TestCase
                     Map::of(),
                 );
 
-                $this->assertCount(1, $parsedArguments);
+                $this->assertSame(1, $parsedArguments->size());
                 $this->assertSame($strings[0], $parsedArguments->get('foo')->match(
                     static fn($value) => $value,
                     static fn() => null,
@@ -104,7 +104,7 @@ class OptionalArgumentTest extends TestCase
             Map::of(),
         );
 
-        $this->assertCount(0, $parsedArguments);
+        $this->assertSame(0, $parsedArguments->size());
         $this->assertNull($parsedArguments->get('foo')->match(
             static fn($value) => $value,
             static fn() => null,

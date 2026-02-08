@@ -77,7 +77,7 @@ class OptionWithValueTest extends TestCase
         );
 
         $this->assertSame(['watev', 'bar'], $arguments->toList());
-        $this->assertCount(1, $options);
+        $this->assertSame(1, $options->size());
         $this->assertSame('baz', $options->get('foo')->match(
             static fn($value) => $value,
             static fn() => null,
@@ -97,7 +97,7 @@ class OptionWithValueTest extends TestCase
         );
 
         $this->assertSame(['watev', 'bar'], $arguments->toList());
-        $this->assertCount(1, $options);
+        $this->assertSame(1, $options->size());
         $this->assertSame('baz', $options->get('foo')->match(
             static fn($value) => $value,
             static fn() => null,
@@ -117,7 +117,7 @@ class OptionWithValueTest extends TestCase
         );
 
         $this->assertSame(['watev'], $arguments->toList());
-        $this->assertCount(1, $options);
+        $this->assertSame(1, $options->size());
         $this->assertSame('', $options->get('foo')->match(
             static fn($value) => $value,
             static fn() => null,
@@ -137,7 +137,7 @@ class OptionWithValueTest extends TestCase
         );
 
         $this->assertSame(['watev', 'bar'], $arguments->toList());
-        $this->assertCount(1, $options);
+        $this->assertSame(1, $options->size());
         $this->assertSame('baz', $options->get('foo')->match(
             static fn($value) => $value,
             static fn() => null,
