@@ -30,6 +30,7 @@ final class Arguments
         $this->pack = $pack ?? Sequence::strings();
     }
 
+    #[\NoDiscard]
     public function get(string $argument): string
     {
         return $this->maybe($argument)->match(
@@ -41,6 +42,7 @@ final class Arguments
     /**
      * @return Maybe<string>
      */
+    #[\NoDiscard]
     public function maybe(string $argument): Maybe
     {
         return $this->arguments->get($argument);
@@ -49,11 +51,13 @@ final class Arguments
     /**
      * @return Sequence<string>
      */
+    #[\NoDiscard]
     public function pack(): Sequence
     {
         return $this->pack;
     }
 
+    #[\NoDiscard]
     public function contains(string $argument): bool
     {
         return $this->arguments->contains($argument);

@@ -41,11 +41,13 @@ final class Console
         );
     }
 
+    #[\NoDiscard]
     public function arguments(): Arguments
     {
         return $this->arguments;
     }
 
+    #[\NoDiscard]
     public function options(): Options
     {
         return $this->options;
@@ -56,6 +58,7 @@ final class Console
      *
      * @return array{Attempt<Str>, self}
      */
+    #[\NoDiscard]
     public function read(?int $length = null): array
     {
         [$data, $env] = $this->env->read($length);
@@ -70,6 +73,7 @@ final class Console
     /**
      * @return Attempt<self>
      */
+    #[\NoDiscard]
     public function output(Str $data): Attempt
     {
         return $this->env->output($data)->map(
@@ -84,6 +88,7 @@ final class Console
     /**
      * @return Attempt<self>
      */
+    #[\NoDiscard]
     public function error(Str $data): Attempt
     {
         return $this->env->error($data)->map(
@@ -95,6 +100,7 @@ final class Console
         );
     }
 
+    #[\NoDiscard]
     public function interactive(): bool
     {
         return $this->env->interactive();
@@ -103,11 +109,13 @@ final class Console
     /**
      * @return Map<string, string>
      */
+    #[\NoDiscard]
     public function variables(): Map
     {
         return $this->env->variables();
     }
 
+    #[\NoDiscard]
     public function workingDirectory(): Path
     {
         return $this->env->workingDirectory();
@@ -116,6 +124,7 @@ final class Console
     /**
      * @param int<0, 254> $exit
      */
+    #[\NoDiscard]
     public function exit(int $exit): self
     {
         return new self(
@@ -128,6 +137,7 @@ final class Console
     /**
      * @internal
      */
+    #[\NoDiscard]
     public function environment(): Environment
     {
         return $this->env;

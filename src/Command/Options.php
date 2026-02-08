@@ -25,6 +25,7 @@ final class Options
         $this->options = $options ?? Map::of();
     }
 
+    #[\NoDiscard]
     public function get(string $option): string
     {
         return $this->maybe($option)->match(
@@ -36,11 +37,13 @@ final class Options
     /**
      * @return Maybe<string>
      */
+    #[\NoDiscard]
     public function maybe(string $option): Maybe
     {
         return $this->options->get($option);
     }
 
+    #[\NoDiscard]
     public function contains(string $option): bool
     {
         return $this->options->contains($option);
