@@ -3,7 +3,7 @@ declare(strict_types = 1);
 
 namespace Innmind\CLI\Environment;
 
-use Innmind\TimeContinuum\Period;
+use Innmind\Time\Period;
 use Innmind\IO\{
     IO,
     Streams\Stream\Read,

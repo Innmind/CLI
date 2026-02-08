@@ -358,7 +358,7 @@ final class Usage
             ->arguments
             ->map(static fn($argument) => ' '.$argument->toString())
             ->map(Str::of(...))
-            ->fold(new Concat)
+            ->fold(Concat::monoid)
             ->toString();
 
         if ($this->pack->unwrap()) {
@@ -369,7 +369,7 @@ final class Usage
             ->options
             ->map(static fn($argument) => ' '.$argument->toString())
             ->map(Str::of(...))
-            ->fold(new Concat)
+            ->fold(Concat::monoid)
             ->toString();
         $string .= ' --help --no-interaction';
 

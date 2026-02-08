@@ -16,26 +16,12 @@
     },
     "require": {
         "php": "~8.4",
-        "innmind/io": "dev-next",
-        "innmind/immutable": "dev-next",
-        "innmind/url": "dev-next",
-        "innmind/operating-system": "dev-next",
-        "innmind/stack-trace": "dev-next",
-        "innmind/validation": "dev-next",
-        "innmind/server-status": "dev-next",
-        "innmind/http-transport": "dev-next",
-        "innmind/file-watch": "dev-next",
-        "innmind/signals": "dev-next",
-        "innmind/http": "dev-next",
-        "innmind/server-control": "dev-next",
-        "innmind/filesystem": "dev-next",
-        "innmind/time-warp": "dev-next",
-        "innmind/media-type": "dev-next",
-        "innmind/ip": "dev-next",
-        "innmind/time-continuum": "dev-next",
-        "innmind/graphviz": "dev-next",
-        "innmind/colour": "dev-next",
-        "formal/access-layer": "dev-next"
+        "innmind/io": "~4.0",
+        "innmind/immutable": "~6.0",
+        "innmind/url": "~5.0",
+        "innmind/operating-system": "~7.0",
+        "innmind/stack-trace": "~5.0",
+        "innmind/validation": "~3.0"
     },
     "autoload": {
         "psr-4": {
@@ -48,7 +34,7 @@
         }
     },
     "require-dev": {
-        "innmind/static-analysis": "^1.2.1",
+        "innmind/static-analysis": "~1.3",
         "innmind/black-box": "^6.4.1",
         "innmind/coding-standard": "~2.0"
     }

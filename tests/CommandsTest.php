@@ -451,7 +451,7 @@ USAGE);
 
         $this->expectException(\Exception::class);
 
-        $run($env)->unwrap();
+        $_ = $run($env)->unwrap();
     }
 
     public function testDisplayUsageWhenHelpOptionFound()

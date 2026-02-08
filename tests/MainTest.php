@@ -72,7 +72,7 @@ class MainTest extends TestCase
             $process
                 ->output()
                 ->map(static fn($chunk) => $chunk->data())
-                ->fold(new Concat)
+                ->fold(Concat::monoid)
                 ->toString(),
         );
     }
@@ -88,7 +88,7 @@ class MainTest extends TestCase
                     ->withEnvironment('PATH', $_SERVER['PATH']),
             )
             ->unwrap();
-        $process->output()->foreach(function($chunk): void {
+        $_ = $process->output()->foreach(function($chunk): void {
             $this->assertSame(Type::error, $chunk->type());
         });
 
@@ -97,7 +97,7 @@ class MainTest extends TestCase
             $process
                 ->output()
                 ->map(static fn($chunk) => $chunk->data())
-                ->fold(new Concat)
+                ->fold(Concat::monoid)
                 ->toString(),
         )
             ->split("\n")

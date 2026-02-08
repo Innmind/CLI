@@ -18,6 +18,6 @@ class InputsTest extends TestCase
         $this->expectException(PatternNotRecognized::class);
         $this->expectExceptionMessage('_foo_');
 
-        (new Inputs)(Usage::of('name'), Str::of('_foo_'))->unwrap();
+        $_ = (new Inputs)(Usage::of('name'), Str::of('_foo_'))->unwrap();
     }
 }
