@@ -24,7 +24,7 @@ interface Implementation
     public function interactive(): bool;
 
     /**
-     * @param ?positive-int $length
+     * @param ?int<1, max> $length
      *
      * @return array{Attempt<Str>, self}
      */
