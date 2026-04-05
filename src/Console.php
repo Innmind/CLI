@@ -54,7 +54,7 @@ final class Console
     }
 
     /**
-     * @param positive-int|null $length
+     * @param ?int<1, max> $length
      *
      * @return array{Attempt<Str>, self}
      */
