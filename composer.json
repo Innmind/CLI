@@ -15,7 +15,7 @@
         "issues": "http://github.com/Innmind/CLI/issues"
     },
     "require": {
-        "php": "~8.4",
+        "php": "~8.5",
         "innmind/io": "~4.0",
         "innmind/immutable": "~6.0",
         "innmind/url": "~5.0",
