@@ -2,7 +2,9 @@
     "name": "innmind/cli",
     "type": "library",
     "description": "Library to build CLI tools",
-    "keywords": ["cli"],
+    "keywords": [
+        "cli"
+    ],
     "homepage": "http://github.com/Innmind/CLI",
     "license": "MIT",
     "authors": [
