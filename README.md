@@ -1,6 +1,6 @@
 # CLI
 
-[![CI](https://github.com/Innmind/CLI/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Innmind/CLI/actions/workflows/ci.yml)
+[![CI](https://github.com/Innmind/CLI/actions/workflows/ci.yml/badge.svg)](https://github.com/Innmind/CLI/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/Innmind/CLI/branch/develop/graph/badge.svg)](https://codecov.io/gh/Innmind/CLI)
 [![Type Coverage](https://shepherd.dev/github/Innmind/CLI/coverage.svg)](https://shepherd.dev/github/Innmind/CLI)
 
