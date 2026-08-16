@@ -201,7 +201,7 @@ final class Commands
             return Attempt::result($env);
         }
 
-        /** @var positive-int */
+        /** @var int<1, max> */
         $maxLength = \max($lengths);
 
         $rows = $usages->map(
